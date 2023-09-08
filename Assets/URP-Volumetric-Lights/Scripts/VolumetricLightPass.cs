@@ -11,6 +11,9 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     private static Material blitAdd;
     private static Shader volumetricLight;
 
+    
+    private static Material defaultLit;
+
     public static Mesh spotLightMesh {get; private set; }
     public static Mesh pointLightMesh  {get; private set; }
     private static Texture3D noiseTexture;
@@ -46,6 +49,8 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         if (VolumetricLightPass.blitAdd == null || VolumetricLightPass.blitAdd.shader != blitAdd)
             VolumetricLightPass.blitAdd = new Material(blitAdd);
+
+        defaultLit = new Material(Shader.Find("Universal Render Pipeline/Lit"));
 
         VolumetricLightPass.volumetricLight = volumetricLight;
 

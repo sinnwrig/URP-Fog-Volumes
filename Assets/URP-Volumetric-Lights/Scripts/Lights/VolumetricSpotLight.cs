@@ -6,36 +6,13 @@ public partial class VolumetricLight
 {
     private void SetupSpotLight(VolumetricLightPass pass)
     {
-        int shaderPass = 1;
+        float scale = _light.range;
+        float angleScale = Mathf.Tan((_light.spotAngle + 1) * 0.5f * Mathf.Deg2Rad) * _light.range;
 
-        if (!IsCameraInSpotLightBounds())
-        {
-            shaderPass = 3;     
-        }
+        Matrix4x4 world = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(angleScale, angleScale, scale));
+        Mesh mesh = VolumetricLightPass.spotLightMesh;
 
-        _material.SetPass(shaderPass);
-        _material.SetVector("_LightPos", new Vector4(_light.transform.position.x, _light.transform.position.y, _light.transform.position.z, 1.0f / (_light.range * _light.range)));
-        _material.SetVector("_LightColor", _light.color * _light.intensity);
-
-
-        Vector3 apex = transform.position;
-        Vector3 axis = transform.forward;
-        
-        // plane equation ax + by + cz + d = 0; precompute d here to lighten the shader
-        Vector3 center = apex + axis * _light.range;
-        float d = -Vector3.Dot(center, axis);
-
-        // update material
-        _material.SetFloat("_PlaneD", d);        
-        _material.SetFloat("_CosAngle", Mathf.Cos((_light.spotAngle + 1) * 0.5f * Mathf.Deg2Rad));
-
-        _material.SetVector("_ConeApex", new Vector4(apex.x, apex.y, apex.z));
-        _material.SetVector("_ConeAxis", new Vector4(axis.x, axis.y, axis.z));
-
-        _material.EnableKeyword("SPOT");
-        _material.DisableKeyword("SHADOWS_DEPTH");
-
-        //pass.LightPassBuffer.DrawMesh(mesh, world, _material, 0, shaderPass);
+        pass.DrawTestMesh(mesh, world);
     }
 
 

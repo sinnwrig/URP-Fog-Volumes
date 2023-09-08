@@ -94,4 +94,10 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
         return shader;
     }
+
+
+    protected override void Dispose(bool disposing)
+    {
+        lightPass.Dispose();
+    }
 }

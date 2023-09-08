@@ -1,9 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Burst;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 public partial class VolumetricLightPass
 {
@@ -13,6 +10,7 @@ public partial class VolumetricLightPass
     private static readonly GlobalKeyword halfResKernel = GlobalKeyword.Create("HALF_RES_BLUR_KERNEL_SIZE");
     private static readonly GlobalKeyword quarterResKernel = GlobalKeyword.Create("QUARTER_RES_BLUR_KERNEL_SIZE");
 
+    private RTHandle tempHandle;
 
 
     private void BilateralBlur()
@@ -45,22 +43,21 @@ public partial class VolumetricLightPass
     }
 
 
-    private void BilateralBlur(RenderTarget source, RenderTarget depthBuffer, int ratio = 1)
+    private void BilateralBlur(RTHandle source, RTHandle depthBuffer, int ratio = 1)
     {
-        RenderTarget temp = new("_Temp");
-        temp.GetTemporary(LightPassBuffer, source.descriptor.width / ratio, source.descriptor.height / ratio, 0, RenderTextureFormat.ARGBHalf, FilterMode.Bilinear);
+        RenderTextureDescriptor desc = new(source.referenceSize.x, source.referenceSize.y, RenderTextureFormat.ARGBHalf, 0);
 
-        LightPassBuffer.SetGlobalTexture("_DepthTexture", depthBuffer.isAssigned ? depthBuffer.identifier : depthAttachmentHandle);
+        RenderingUtils.ReAllocateIfNeeded(ref tempHandle, Vector2.one / ratio, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_Temp");
+        
+        LightPassBuffer.SetGlobalTexture("_DepthTexture", depthBuffer ?? depthAttachmentHandle);
 
         // Horizontal bilateral blur
-        LightPassBuffer.SetGlobalTexture("_BlurSource", source.identifier);
-        LightPassBuffer.Blit(null, temp.identifier, bilateralBlur, 0); 
+        LightPassBuffer.SetGlobalTexture("_BlurSource", source);
+        LightPassBuffer.Blit(null, tempHandle, bilateralBlur, 0); 
 
         // Vertical bilateral blur
-        LightPassBuffer.SetGlobalTexture("_BlurSource", temp.identifier);
-        LightPassBuffer.Blit(null, source.identifier, bilateralBlur, 1); 
-
-        temp.ReleaseTemporary(LightPassBuffer);    
+        LightPassBuffer.SetGlobalTexture("_BlurSource", tempHandle);
+        LightPassBuffer.Blit(null, source, bilateralBlur, 1);    
     }
 
     
@@ -80,19 +77,19 @@ public partial class VolumetricLightPass
 
 
 
-    private void DownsampleDepth(RenderTarget source, RenderTarget destination) 
+    private void DownsampleDepth(RTHandle source, RTHandle destination) 
     {
-        LightPassBuffer.SetGlobalTexture("_DownsampleSource", source.isAssigned ? source.identifier : depthAttachmentHandle);
-        LightPassBuffer.Blit(null, destination.identifier, bilateralBlur, 2);
+        LightPassBuffer.SetGlobalTexture("_DownsampleSource", source ?? depthAttachmentHandle);
+        LightPassBuffer.Blit(null, destination, bilateralBlur, 2);
     }
 
 
-    private void Upsample(RenderTarget sourceColor, RenderTarget sourceDepth, RenderTarget destination)
+    private void Upsample(RTHandle sourceColor, RTHandle sourceDepth, RTHandle destination)
     {
         LightPassBuffer.SetGlobalTexture("_FullResDepth", depthAttachmentHandle);
-        LightPassBuffer.SetGlobalTexture("_DownsampleColor", sourceColor.identifier);
-        LightPassBuffer.SetGlobalTexture("_DownsampleDepth", sourceDepth.identifier);
+        LightPassBuffer.SetGlobalTexture("_DownsampleColor", sourceColor);
+        LightPassBuffer.SetGlobalTexture("_DownsampleDepth", sourceDepth);
 
-        LightPassBuffer.Blit(null, destination.identifier, bilateralBlur, 3);
+        LightPassBuffer.Blit(null, destination, bilateralBlur, 3);
     }
 }

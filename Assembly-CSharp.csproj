@@ -42,7 +42,6 @@
   <ItemGroup>
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricDirectionalLight.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/RenderTarget.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightFeature.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricPointLight.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricSpotLight.cs" />

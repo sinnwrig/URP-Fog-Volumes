@@ -50,9 +50,16 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         if (VolumetricLightPass.blitAdd == null || VolumetricLightPass.blitAdd.shader != blitAdd)
             VolumetricLightPass.blitAdd = new Material(blitAdd);
 
-        defaultLit = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-
         VolumetricLightPass.volumetricLight = volumetricLight;
+
+        ValidateResources();
+    }   
+
+
+    private void ValidateResources()
+    {
+        if (defaultLit == null)
+            defaultLit = new Material(Shader.Find("Universal Render Pipeline/Lit"));
 
         if (spotLightMesh == null) 
             spotLightMesh = MeshUtility.CreateConeMesh(16);
@@ -65,7 +72,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         if (ditherTexture == null)
             ditherTexture = Resources.Load("DitherTex") as Texture2D;
-    }   
+    }
 
 
     private void UpdateShaderParameters()
@@ -81,51 +88,40 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         LightPassBuffer = CommandBufferPool.Get("Volumetric Light Pass");
 
+        DownsampleDepthBuffer();
+
+        UpdateShaderParameters();
+
+        for (int i = 0; i < activeLights.Count; i++)
+        {
+            activeLights[i].PreRenderEvent(this);
+        }
+
+        context.ExecuteCommandBuffer(LightPassBuffer);
+
+        CommandBufferPool.Release(LightPassBuffer);
+    }
+
+
+    private void DownsampleDepthBuffer()
+    {
+        // Downsample depth buffer
         if (resolution == VolumetricResolution.Quarter)
         {
             // Downsample to half and then quarter
-            DownsampleDepth(default, halfDepthBuffer);
+            DownsampleDepth(null, halfDepthBuffer);
             DownsampleDepth(halfDepthBuffer, quarterDepthBuffer);
         }
         else if (resolution == VolumetricResolution.Half)
         {
             // Downsample to half
-            DownsampleDepth(default, halfDepthBuffer);
+            DownsampleDepth(null, halfDepthBuffer);
         }
+    }
 
 
-        UpdateShaderParameters();
-
-
-        //for (int i = 0; i < activeLights.Count; i++)
-        //{
-        //    activeLights[i].PreRenderEvent(this);
-        //}
-
-
-        RenderTarget sourceClone = new("_SourceClone");
-        sourceClone.GetTemporary(LightPassBuffer, renderingData.cameraData.cameraTargetDescriptor, FilterMode.Point);
-
-        LightPassBuffer.Blit(source, sourceClone.identifier);
-        
-        BilateralBlur(sourceClone, default);
-
-        LightPassBuffer.Blit(sourceClone.identifier, source);
-
-        //LightPassBuffer.Blit(volumeLightTexture.identifier, source);
-
-        //BilateralBlur(descriptor.width, descriptor.height);
-
-        // add volume light buffer to rendered scene
-        //LightPassBuffer.SetGlobalTexture("_Source", sourceClone.identifier);
-        //LightPassBuffer.SetGlobalTexture("_SourceAdd", volumeLightTexture.identifier);
-
-        //LightPassBuffer.Blit(sourceClone.identifier, source, blitAdd, 0);
-
-        sourceClone.ReleaseTemporary(LightPassBuffer);
-
-        context.ExecuteCommandBuffer(LightPassBuffer);
-
-        CommandBufferPool.Release(LightPassBuffer);
+    public void DrawTestMesh(Mesh mesh, Matrix4x4 world)
+    {
+        LightPassBuffer.DrawMesh(mesh, world, defaultLit);
     }
 }

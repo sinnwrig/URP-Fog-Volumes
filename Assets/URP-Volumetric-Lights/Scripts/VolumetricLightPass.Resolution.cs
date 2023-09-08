@@ -5,15 +5,15 @@ using UnityEngine.Rendering.Universal;
 
 public partial class VolumetricLightPass
 {
-    private static readonly RenderTarget halfDepthBuffer = new("_HalfResDepthBuffer");
-    private static readonly RenderTarget quarterDepthBuffer = new("_QuarterResDepthBuffer");
+    private RTHandle halfDepthBuffer;
+    private RTHandle quarterDepthBuffer;
 
-    private static readonly RenderTarget volumeLightTexture = new("_FullResColor");
-    private static readonly RenderTarget halfVolumeLightTexture = new("_HalfResColor");
-    private static readonly RenderTarget quarterVolumeLightTexture = new("_QuarterResColor");
+    private RTHandle volumeLightTexture;
+    private RTHandle halfVolumeLightTexture;
+    private RTHandle quarterVolumeLightTexture;
 
 
-    public RenderTarget VolumeLightBuffer 
+    public RTHandle VolumeLightBuffer 
     {
         get 
         {
@@ -27,7 +27,7 @@ public partial class VolumetricLightPass
         }
     }
 
-    public RenderTarget VolumeLightDepthBuffer
+    public RTHandle VolumeLightDepthBuffer
     {
         get 
         {
@@ -35,50 +35,50 @@ public partial class VolumetricLightPass
             {
                 VolumetricResolution.Quarter => quarterDepthBuffer,
                 VolumetricResolution.Half => halfDepthBuffer,
-                VolumetricResolution.Full => new("_CameraDepthTexture"),
-                _ => new("_CameraDepthTexture")
+                VolumetricResolution.Full => depthAttachmentHandle,
+                _ => depthAttachmentHandle
             };
         }
     }
 
 
-
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
     {
         var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-        int width = descriptor.width;
-        int height = descriptor.height;
-
-        volumeLightTexture.GetTemporary(cmd, width, height, 0, RenderTextureFormat.ARGBHalf, FilterMode.Bilinear);
+        descriptor.colorFormat = RenderTextureFormat.ARGBHalf;
+    
+        RenderingUtils.ReAllocateIfNeeded(ref volumeLightTexture, Vector2.one, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_FullResColor");
 
         if (resolution == VolumetricResolution.Half || resolution == VolumetricResolution.Quarter)
         {
-            halfVolumeLightTexture.GetTemporary(cmd, width / 2, height / 2, 0, RenderTextureFormat.ARGBHalf, FilterMode.Bilinear);
-            halfDepthBuffer.GetTemporary(cmd, width / 2, height / 2, 0, RenderTextureFormat.RFloat, FilterMode.Point);
+            descriptor.colorFormat = RenderTextureFormat.ARGBHalf;
+            RenderingUtils.ReAllocateIfNeeded(ref halfVolumeLightTexture, Vector2.one / 2, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_HalfResColor");
+            
+            descriptor.colorFormat = RenderTextureFormat.RFloat;
+            RenderingUtils.ReAllocateIfNeeded(ref halfDepthBuffer, Vector2.one / 2, descriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_HalfResDepthBuffer");
         }
 
         if (resolution == VolumetricResolution.Quarter)
         {
-            quarterVolumeLightTexture.GetTemporary(cmd, width / 4, height / 4, 0, RenderTextureFormat.ARGBHalf, FilterMode.Bilinear);
-            quarterDepthBuffer.GetTemporary(cmd, width / 4, height / 4, 0, RenderTextureFormat.RFloat, FilterMode.Point);
+            descriptor.colorFormat = RenderTextureFormat.ARGBHalf;
+            RenderingUtils.ReAllocateIfNeeded(ref quarterVolumeLightTexture, Vector2.one / 4, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_QuarterResColor");
+
+            descriptor.colorFormat = RenderTextureFormat.RFloat;
+            RenderingUtils.ReAllocateIfNeeded(ref quarterDepthBuffer, Vector2.one / 4, descriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_QuarterResDepthBuffer");
         }
     }
 
 
-    public override void OnCameraCleanup(CommandBuffer cmd)
-    {   
-        volumeLightTexture.ReleaseTemporary(cmd);
+    public void Dispose()
+    {
+        halfDepthBuffer?.Release();
+        quarterDepthBuffer?.Release();
 
-        if (resolution == VolumetricResolution.Half || resolution == VolumetricResolution.Quarter)
-        {
-            halfVolumeLightTexture.ReleaseTemporary(cmd);
-            halfDepthBuffer.ReleaseTemporary(cmd);
-        }
+        volumeLightTexture?.Release();
+        halfVolumeLightTexture?.Release();
+        quarterVolumeLightTexture?.Release();
 
-        if (resolution == VolumetricResolution.Quarter)
-        {
-            quarterVolumeLightTexture.ReleaseTemporary(cmd);
-            quarterDepthBuffer.ReleaseTemporary(cmd);
-        }
+        // Defined in VolumetricLightPass.Blur.cs
+        tempHandle?.Release();
     }
 }

@@ -61,8 +61,6 @@ Shader "Hidden/BlitAdd"
 				source *= sourceAdd.w;
 				source.xyz += sourceAdd.xyz;
 
-				return sourceAdd;
-
 				return source;
 			}
 			ENDHLSL

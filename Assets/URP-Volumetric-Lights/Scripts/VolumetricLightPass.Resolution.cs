@@ -12,6 +12,8 @@ public partial class VolumetricLightPass
     private RTHandle halfVolumeLightTexture;
     private RTHandle quarterVolumeLightTexture;
 
+    private RTHandle depthBuffer;
+
 
     public RTHandle VolumeLightBuffer 
     {
@@ -35,8 +37,8 @@ public partial class VolumetricLightPass
             {
                 VolumetricResolution.Quarter => quarterDepthBuffer,
                 VolumetricResolution.Half => halfDepthBuffer,
-                VolumetricResolution.Full => depthAttachmentHandle,
-                _ => depthAttachmentHandle
+                VolumetricResolution.Full => depthBuffer,
+                _ => depthBuffer
             };
         }
     }
@@ -46,8 +48,13 @@ public partial class VolumetricLightPass
     {
         var descriptor = renderingData.cameraData.cameraTargetDescriptor;
         descriptor.colorFormat = RenderTextureFormat.ARGBHalf;
-    
+        descriptor.depthBufferBits = 0;
+
         RenderingUtils.ReAllocateIfNeeded(ref volumeLightTexture, Vector2.one, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_FullResColor");
+
+        descriptor.colorFormat = RenderTextureFormat.RFloat;
+
+        RenderingUtils.ReAllocateIfNeeded(ref depthBuffer, Vector2.one, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_FullResDepthBuffer");
 
         if (resolution == VolumetricResolution.Half || resolution == VolumetricResolution.Quarter)
         {

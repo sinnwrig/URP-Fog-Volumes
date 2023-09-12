@@ -10,12 +10,12 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
     private static Material blitAdd;
     private static Shader volumetricLight;
-
-    
     private static Material defaultLit;
+
 
     public static Mesh spotLightMesh {get; private set; }
     public static Mesh pointLightMesh  {get; private set; }
+    public static Mesh quadMesh {get; private set; }
     private static Texture3D noiseTexture;
     private static Texture2D ditherTexture;
 
@@ -59,13 +59,16 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     private void ValidateResources()
     {
         if (defaultLit == null)
-            defaultLit = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            defaultLit = new Material(Shader.Find("Sprites/Default"));
 
         if (spotLightMesh == null) 
             spotLightMesh = MeshUtility.CreateConeMesh(16);
 
         if (pointLightMesh == null)
             pointLightMesh = MeshUtility.CreateIcosphere(7);
+
+        if (quadMesh == null)
+            quadMesh = MeshUtility.CreateQuadMesh();
 
         if (noiseTexture == null)
             noiseTexture = Resources.Load("Noise3DTexture") as Texture3D;
@@ -88,14 +91,20 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         LightPassBuffer = CommandBufferPool.Get("Volumetric Light Pass");
 
-        DownsampleDepthBuffer();
+        //DownsampleDepthBuffer();
+        //UpdateShaderParameters();
 
-        UpdateShaderParameters();
+        ConfigureTarget(volumeLightTexture);
+        ConfigureClear(ClearFlag.All, Color.clear);
+        
+        LightPassBuffer.DrawMesh(pointLightMesh, Matrix4x4.identity, defaultLit);
 
-        for (int i = 0; i < activeLights.Count; i++)
-        {
-            activeLights[i].PreRenderEvent(this);
-        }
+        //for (int i = 0; i < activeLights.Count; i++)
+        //{
+        //    activeLights[i].PreRenderEvent(this);
+        //}
+
+        Blit(LightPassBuffer, volumeLightTexture, source);
 
         context.ExecuteCommandBuffer(LightPassBuffer);
 

@@ -214,4 +214,36 @@ public static class MeshUtility
 
         vertices = newVertices;
     }
+
+
+    public static Mesh CreateQuadMesh()
+    {
+        Mesh quadMesh = new()
+        {
+            name = "Quad Mesh",
+            vertices = new Vector3[]
+            {
+                new Vector3(0.5f, 0.5f, 0.0f),
+                new Vector3(-0.5f, 0.5f, 0.0f),
+                new Vector3(-0.5f, -0.5f, 0.0f),
+                new Vector3(0.5f, -0.5f, 0.0f)
+            },
+
+            triangles = new int[]
+            {
+                0, 1, 2,
+                2, 3, 0
+            },
+
+            uv = new Vector2[]
+            {
+                new Vector2(1, 1),
+                new Vector2(0, 1),
+                new Vector2(0, 0),
+                new Vector2(1, 0)
+            }
+        };
+
+        return quadMesh;
+    }
 }

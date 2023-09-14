@@ -4,22 +4,21 @@ using UnityEngine.Rendering.Universal;
 
 public partial class VolumetricLightPass
 {
-    private static Material bilateralBlur;
-
     private static readonly GlobalKeyword fullResKernel = GlobalKeyword.Create("FULL_RES_BLUR_KERNEL_SIZE");
     private static readonly GlobalKeyword halfResKernel = GlobalKeyword.Create("HALF_RES_BLUR_KERNEL_SIZE");
     private static readonly GlobalKeyword quarterResKernel = GlobalKeyword.Create("QUARTER_RES_BLUR_KERNEL_SIZE");
 
-    private RTHandle tempHandle;
+    private static readonly GlobalKeyword fullDepthSource = GlobalKeyword.Create("SOURCE_FULL_DEPTH");
 
 
-    private void BilateralBlur()
+    // Blurs the active resolution texture, then upscales and blits (if neccesary) to full resolution texture
+    private void BilateralBlur(int width, int height)
     {
         if (resolution == VolumetricResolution.Quarter)
         {
             SetSingleKeyword(quarterResKernel);
 
-            BilateralBlur(quarterVolumeLightTexture, quarterDepthBuffer, 4);
+            BilateralBlur(quarterVolumeLightTexture, quarterDepthBuffer, width / 4, height / 4);
 
             // Upscale to full res
             Upsample(quarterVolumeLightTexture, quarterDepthBuffer, volumeLightTexture);
@@ -28,7 +27,7 @@ public partial class VolumetricLightPass
         {
             SetSingleKeyword(halfResKernel);
 
-            BilateralBlur(halfVolumeLightTexture, halfDepthBuffer, 2);
+            BilateralBlur(halfVolumeLightTexture, halfDepthBuffer, width / 2, height / 2);
             
             // Upscale to full res
             Upsample(halfVolumeLightTexture, halfDepthBuffer, volumeLightTexture);
@@ -37,59 +36,91 @@ public partial class VolumetricLightPass
         {
             SetSingleKeyword(fullResKernel);
 
-            // Blur full-scale texture
-            BilateralBlur(volumeLightTexture, default);
+            // Blur full-scale texture- use full-scale depth texture from shader
+            BilateralBlur(volumeLightTexture, null, width, height);
         }
     }
 
 
-    private void BilateralBlur(RTHandle source, RTHandle depthBuffer, int ratio = 1)
+    // Blurs source texture with provided depth texture to preserve edges- uses camera depth texture if none is provided
+    private void BilateralBlur(RenderTargetIdentifier source, RenderTargetIdentifier? depthBuffer, int sourceWidth, int sourceHeight)
     {
-        RenderTextureDescriptor desc = new(source.referenceSize.x, source.referenceSize.y, RenderTextureFormat.ARGBHalf, 0);
-
-        RenderingUtils.ReAllocateIfNeeded(ref tempHandle, Vector2.one / ratio, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_Temp");
+        commandBuffer.GetTemporaryRT(tempId, sourceWidth, sourceHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
         
-        LightPassBuffer.SetGlobalTexture("_DepthTexture", depthBuffer ?? depthAttachmentHandle);
+        SetDepthTexture("_DepthTexture", depthBuffer);
 
         // Horizontal bilateral blur
-        LightPassBuffer.SetGlobalTexture("_BlurSource", source);
-        LightPassBuffer.Blit(null, tempHandle, bilateralBlur, 0); 
+        commandBuffer.SetGlobalTexture("_BlurSource", source);
+        commandBuffer.Blit(null, tempHandle, bilateralBlur, 0); 
 
         // Vertical bilateral blur
-        LightPassBuffer.SetGlobalTexture("_BlurSource", tempHandle);
-        LightPassBuffer.Blit(null, source, bilateralBlur, 1);    
+        commandBuffer.SetGlobalTexture("_BlurSource", tempHandle);
+        commandBuffer.Blit(null, source, bilateralBlur, 1);    
+
+
+        commandBuffer.ReleaseTemporaryRT(tempId);
     }
 
     
     private void SetSingleKeyword(GlobalKeyword keyword)
     {
-        LightPassBuffer.EnableKeyword(keyword);
+        commandBuffer.EnableKeyword(keyword);
 
         if (keyword.name != fullResKernel.name) 
-            LightPassBuffer.DisableKeyword(fullResKernel);
+            commandBuffer.DisableKeyword(fullResKernel);
 
         if (keyword.name != halfResKernel.name) 
-            LightPassBuffer.DisableKeyword(halfResKernel);
+            commandBuffer.DisableKeyword(halfResKernel);
 
         if (keyword.name != quarterResKernel.name) 
-            LightPassBuffer.DisableKeyword(quarterResKernel);
+            commandBuffer.DisableKeyword(quarterResKernel);
     }
 
 
-
-    private void DownsampleDepth(RTHandle source, RTHandle destination) 
+    // Downsamples depth texture to active resolution buffer
+    private void DownsampleDepthBuffer()
     {
-        LightPassBuffer.SetGlobalTexture("_DownsampleSource", source ?? depthAttachmentHandle);
-        LightPassBuffer.Blit(null, destination, bilateralBlur, 2);
+        // Downsample depth buffer
+        if (resolution == VolumetricResolution.Quarter)
+        {
+            // Downsample full depth to half and then quarter
+            DownsampleDepth(null, halfDepthBuffer);
+            DownsampleDepth(halfDepthBuffer, quarterDepthBuffer);
+        }
+        else if (resolution == VolumetricResolution.Half)
+        {
+            // Downsample full depth to half
+            DownsampleDepth(null, halfDepthBuffer);
+        }
     }
 
 
-    private void Upsample(RTHandle sourceColor, RTHandle sourceDepth, RTHandle destination)
+    private void DownsampleDepth(RenderTargetIdentifier? source, RenderTargetIdentifier destination) 
     {
-        LightPassBuffer.SetGlobalTexture("_FullResDepth", depthAttachmentHandle);
-        LightPassBuffer.SetGlobalTexture("_DownsampleColor", sourceColor);
-        LightPassBuffer.SetGlobalTexture("_DownsampleDepth", sourceDepth);
+        SetDepthTexture("_DownsampleSource", source);
+        commandBuffer.Blit(null, destination, bilateralBlur, 2);
+    }
 
-        LightPassBuffer.Blit(null, destination, bilateralBlur, 3);
+
+    private void Upsample(RenderTargetIdentifier sourceColor, RenderTargetIdentifier sourceDepth, RenderTargetIdentifier destination)
+    {
+        commandBuffer.SetGlobalTexture("_DownsampleColor", sourceColor);
+        commandBuffer.SetGlobalTexture("_DownsampleDepth", sourceDepth);
+
+        commandBuffer.Blit(null, destination, bilateralBlur, 3);
+    }
+
+
+    // Use shader variants to either 
+    // 1: Use the depth texture being assigned 
+    // 2: Use the _CameraDepthTexture property if the texture is null
+    private void SetDepthTexture(string textureId, RenderTargetIdentifier? depth)
+    {
+        commandBuffer.SetKeyword(fullDepthSource, !depth.HasValue);
+    
+        if (depth.HasValue)
+        {
+            commandBuffer.SetGlobalTexture(textureId, depth.Value);
+        }
     }
 }

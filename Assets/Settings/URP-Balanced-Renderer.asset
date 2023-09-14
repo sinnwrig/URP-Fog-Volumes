@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: GodRaysRenderFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  settings: {renderData: {fileID: 11400000, guid: e6b76c6e411b42545bbf258d36b24ff1,
-      type: 2}, Jitter: 0.25, textureQuality: 2, stepQuality: 64, blur: 1, BlurCount: 4,
-    blurSamples: 7, depthAwareUpsampling: 1, allowMainLight: 1, allowAdditionalLights: 1,
-    temporallyRender: 0, temporalDuration: 2, temporalUseDiscard: 1, temporalReprojection: 1,
-    allowAdditionalLightShadows: 1, maxAdditionalLightCount: 10, useUnityDepthDirectly: 0,
-    supportUnityScreenSpaceShadows: 0, renderAfterTransparents: 1, useVariableIntensity: 0,
-    variableIntensityCurve:
+  settings: {renderData: {fileID: 0}, Jitter: 0.25, textureQuality: 2, stepQuality: 64,
+    blur: 1, BlurCount: 4, blurSamples: 7, depthAwareUpsampling: 1, allowMainLight: 1,
+    allowAdditionalLights: 1, temporallyRender: 0, temporalDuration: 2, temporalUseDiscard: 1,
+    temporalReprojection: 1, allowAdditionalLightShadows: 1, maxAdditionalLightCount: 10,
+    useUnityDepthDirectly: 0, supportUnityScreenSpaceShadows: 0, renderAfterTransparents: 1,
+    useVariableIntensity: 0, variableIntensityCurve:
       m_Curve: []
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -27,20 +26,6 @@ MonoBehaviour:
 , maxDistance: 256, encodeLightColor: 1, enableHighQualityTextures: 0, AdditionalLightLayers:
       m_Bits: 4294967295
 , renderOrderOffset: 0}
---- !u!114 &-1013376700149029805
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 175cea8de38556cbf9c2f04c6a06d29f, type: 3}
-  m_Name: VolumetricLightFeature
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  resolution: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58,8 +43,8 @@ MonoBehaviour:
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
-  - {fileID: -1013376700149029805}
-  m_RendererFeatureMap: 53a4f5a342c3eff1
+  - {fileID: 92985702146755445}
+  m_RendererFeatureMap: 75cba5e1005a4a01
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   shaders:
@@ -101,3 +86,17 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
+--- !u!114 &92985702146755445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 175cea8de38556cbf9c2f04c6a06d29f, type: 3}
+  m_Name: VolumetricLightFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  resolution: 0

@@ -6,13 +6,7 @@ public partial class VolumetricLight
 {
     private void SetupSpotLight(VolumetricLightPass pass)
     {
-        float scale = _light.range;
-        float angleScale = Mathf.Tan((_light.spotAngle + 1) * 0.5f * Mathf.Deg2Rad) * _light.range;
-
-        Matrix4x4 world = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(angleScale, angleScale, scale));
-        Mesh mesh = VolumetricLightPass.spotLightMesh;
-
-        pass.DrawTestMesh(mesh, world);
+        
     }
 
 

@@ -659,10 +659,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="BlitUtility.csproj">
-      <Project>{1e4017a2-aea5-6c69-d42b-b16277c35f6c}</Project>
-      <Name>BlitUtility</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -3,7 +3,7 @@
 #define UPSAMPLE_DEPTH_THRESHOLD 1.5f
 
 
-TEXTURE2D(_FullResDepth);
+TEXTURE2D(_CameraDepthTexture);
 
 TEXTURE2D(_DownsampleDepth); 
 SAMPLER(sampler_DownsampleDepth);
@@ -46,7 +46,7 @@ float4 BilateralUpsample(v2fUpsample input) : SV_TARGET
 {
     const float threshold = UPSAMPLE_DEPTH_THRESHOLD;
 
-    float4 highResDepth = LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_FullResDepth, sampler_DownsampleDepth, input.uv).x).xxxx;
+    float4 highResDepth = LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_DownsampleDepth, input.uv).x).xxxx;
 	float4 lowResDepth;
 
     lowResDepth.x = LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_DownsampleDepth, sampler_DownsampleDepth, input.uv00).x);

@@ -23,9 +23,11 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     {
         ValidateShaders();
 
-        lightPass = new VolumetricLightPass(bilateralBlur, blitAdd, volumetricLight) { resolution = resolution };
-        lightPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-        lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+        lightPass = new VolumetricLightPass(bilateralBlur, blitAdd, volumetricLight) 
+        { 
+            renderPassEvent = RenderPassEvent.AfterRenderingOpaques,
+            resolution = resolution 
+        };
     }
 
 
@@ -33,6 +35,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     {
         if (!renderingData.cameraData.isPreviewCamera)
         {
+            lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
             renderer.EnqueuePass(lightPass);
         }
     }
@@ -93,11 +96,5 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 #endif
 
         return shader;
-    }
-
-
-    protected override void Dispose(bool disposing)
-    {
-        lightPass.Dispose();
     }
 }

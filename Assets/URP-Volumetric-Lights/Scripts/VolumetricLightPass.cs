@@ -8,19 +8,15 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 {
     public VolumetricResolution resolution;
 
+    private static Material bilateralBlur;
     private static Material blitAdd;
     private static Shader volumetricLight;
-    private static Material defaultLit;
 
 
-    public static Mesh spotLightMesh {get; private set; }
-    public static Mesh pointLightMesh  {get; private set; }
-    public static Mesh quadMesh {get; private set; }
     private static Texture3D noiseTexture;
     private static Texture2D ditherTexture;
 
-
-    public CommandBuffer LightPassBuffer { get; private set; }
+    private CommandBuffer commandBuffer;
 
 
     private static readonly List<VolumetricLight> activeLights = new();
@@ -42,15 +38,15 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     
 
 
-    public VolumetricLightPass(Shader bilateralBlur, Shader blitAdd, Shader volumetricLight)
+    public VolumetricLightPass(Shader blur, Shader add, Shader light)
     {
-        if (VolumetricLightPass.bilateralBlur == null || VolumetricLightPass.bilateralBlur.shader != bilateralBlur)
-            VolumetricLightPass.bilateralBlur = new Material(bilateralBlur);
+        if (bilateralBlur == null || bilateralBlur.shader != blur)
+            bilateralBlur = new Material(blur);
 
-        if (VolumetricLightPass.blitAdd == null || VolumetricLightPass.blitAdd.shader != blitAdd)
-            VolumetricLightPass.blitAdd = new Material(blitAdd);
+        if (blitAdd == null || blitAdd.shader != add)
+            blitAdd = new Material(add);
 
-        VolumetricLightPass.volumetricLight = volumetricLight;
+        volumetricLight = light;
 
         ValidateResources();
     }   
@@ -58,18 +54,6 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
     private void ValidateResources()
     {
-        if (defaultLit == null)
-            defaultLit = new Material(Shader.Find("Sprites/Default"));
-
-        if (spotLightMesh == null) 
-            spotLightMesh = MeshUtility.CreateConeMesh(16);
-
-        if (pointLightMesh == null)
-            pointLightMesh = MeshUtility.CreateIcosphere(7);
-
-        if (quadMesh == null)
-            quadMesh = MeshUtility.CreateQuadMesh();
-
         if (noiseTexture == null)
             noiseTexture = Resources.Load("Noise3DTexture") as Texture3D;
 
@@ -78,59 +62,23 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     }
 
 
-    private void UpdateShaderParameters()
-    {
-        LightPassBuffer.SetGlobalTexture("_DitherTexture", ditherTexture);
-        LightPassBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);
-    }
-
-
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         var source = renderingData.cameraData.renderer.cameraColorTargetHandle;
+        var descriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-        LightPassBuffer = CommandBufferPool.Get("Volumetric Light Pass");
+        commandBuffer = CommandBufferPool.Get("Volumetric Light Pass");
 
-        //DownsampleDepthBuffer();
-        //UpdateShaderParameters();
+        DownsampleDepthBuffer();
 
-        ConfigureTarget(volumeLightTexture);
-        ConfigureClear(ClearFlag.All, Color.clear);
-        
-        LightPassBuffer.DrawMesh(pointLightMesh, Matrix4x4.identity, defaultLit);
+        commandBuffer.Blit(source, VolumeLightBuffer);
 
-        //for (int i = 0; i < activeLights.Count; i++)
-        //{
-        //    activeLights[i].PreRenderEvent(this);
-        //}
+        BilateralBlur(descriptor.width, descriptor.height);
 
-        Blit(LightPassBuffer, volumeLightTexture, source);
+        commandBuffer.Blit(volumeLightTexture, source);   
 
-        context.ExecuteCommandBuffer(LightPassBuffer);
+        context.ExecuteCommandBuffer(commandBuffer);
 
-        CommandBufferPool.Release(LightPassBuffer);
-    }
-
-
-    private void DownsampleDepthBuffer()
-    {
-        // Downsample depth buffer
-        if (resolution == VolumetricResolution.Quarter)
-        {
-            // Downsample to half and then quarter
-            DownsampleDepth(null, halfDepthBuffer);
-            DownsampleDepth(halfDepthBuffer, quarterDepthBuffer);
-        }
-        else if (resolution == VolumetricResolution.Half)
-        {
-            // Downsample to half
-            DownsampleDepth(null, halfDepthBuffer);
-        }
-    }
-
-
-    public void DrawTestMesh(Mesh mesh, Matrix4x4 world)
-    {
-        LightPassBuffer.DrawMesh(mesh, world, defaultLit);
+        CommandBufferPool.Release(commandBuffer);
     }
 }

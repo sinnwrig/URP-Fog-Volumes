@@ -72,9 +72,6 @@ public partial class VolumetricLight : MonoBehaviour
         _material.SetVector("_MieG", new Vector4(1 - (MieG * MieG), 1 + (MieG * MieG), 2 * MieG, 1.0f / (4.0f * Mathf.PI)));
         _material.SetVector("_VolumetricLight", new Vector4(ScatteringCoef, ExtinctionCoef, _light.range, 1.0f - SkyboxExtinctionCoef));
 
-        pass.LightPassBuffer.SetGlobalTexture("_CameraDepthTexture", pass.VolumeLightDepthBuffer);
-
-
         if (HeightFog)
         {
             _material.EnableKeyword("HEIGHT_FOG");

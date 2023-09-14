@@ -16,6 +16,8 @@ HLSLINCLUDE
 #pragma multi_compile FULL_RES_BLUR_KERNEL_SIZE
 #pragma multi_compile HALF_RES_BLUR_KERNEL_SIZE
 #pragma multi_compile QUARTER_RES_BLUR_KERNEL_SIZE
+#pragma multi_compile SOURCE_FULL_DEPTH
+
 
 #if defined(FULL_RES_BLUR_KERNEL_SIZE)
 	#define KERNEL_SIZE 7

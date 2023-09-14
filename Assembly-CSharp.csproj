@@ -47,9 +47,9 @@
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricSpotLight.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/MeshUtility.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Blur.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Resolution.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricResolution.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricLight.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Buffers.cs" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Math.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Upsample.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/VolumetricLight.shader" />

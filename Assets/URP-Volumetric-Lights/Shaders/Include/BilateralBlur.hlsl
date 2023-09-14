@@ -8,6 +8,13 @@
 #define BLUR_DEPTH_FACTOR 0.5 
 //--------------------------------------------------------------------------------------------
 
+// Check if full source depth should be used
+#if defined(SOURCE_FULL_DEPTH)
+	#define _DepthTexture _CameraDepthTexture
+	#define sampler_DepthTexture sampler_CameraDepthTexture
+	#define _DepthTexture_TexelSize _CameraDepthTexture_TexelSize
+#endif
+
 
 TEXTURE2D(_BlurSource);
 SAMPLER(sampler_BlurSource);
@@ -19,7 +26,7 @@ float4 _DepthTexture_TexelSize;
 
 
 
-float GaussianWeight(float offset, float deviation)
+const float GaussianWeight(float offset, float deviation)
 {
 	float weight = 1.0f / sqrt(2.0f * PI * deviation * deviation);
 	weight *= exp(-(offset * offset) / (2.0f * deviation * deviation));

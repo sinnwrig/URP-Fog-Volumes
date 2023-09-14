@@ -3,6 +3,13 @@
 // method used to downsample depth buffer: 0 = min; 1 = max; 2 = min/max in chessboard pattern
 #define DOWNSAMPLE_DEPTH_MODE 2
 
+// Check if full source depth should be used
+#if defined(SOURCE_FULL_DEPTH)
+	#define _DownsampleSource _CameraDepthTexture
+	#define sampler_DownsampleSource sampler_CameraDepthTexture
+	#define _DownsampleSource_TexelSize _CameraDepthTexture_TexelSize
+#endif
+
 
 TEXTURE2D(_DownsampleSource);     
 SAMPLER(sampler_DownsampleSource);

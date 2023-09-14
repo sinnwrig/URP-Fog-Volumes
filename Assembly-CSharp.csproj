@@ -45,7 +45,6 @@
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightFeature.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricPointLight.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricSpotLight.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/MeshUtility.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Blur.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricResolution.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricLight.cs" />

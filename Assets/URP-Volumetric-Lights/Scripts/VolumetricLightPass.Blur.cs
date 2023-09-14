@@ -11,6 +11,7 @@ public partial class VolumetricLightPass
     private static readonly GlobalKeyword fullDepthSource = GlobalKeyword.Create("SOURCE_FULL_DEPTH");
 
 
+
     // Blurs the active resolution texture, then upscales and blits (if neccesary) to full resolution texture
     private void BilateralBlur(int width, int height)
     {
@@ -56,7 +57,6 @@ public partial class VolumetricLightPass
         // Vertical bilateral blur
         commandBuffer.SetGlobalTexture("_BlurSource", tempHandle);
         commandBuffer.Blit(null, source, bilateralBlur, 1);    
-
 
         commandBuffer.ReleaseTemporaryRT(tempId);
     }

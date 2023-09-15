@@ -404,12 +404,12 @@ Shader "Hidden/VolumetricLight"
 
 				rayDir /= rayLength;
 
-
 				// inside cone
 				float3 r1 = rayEnd + rayDir * 0.001;
 
-				// plane intersection
-				float planeCoord = RayPlaneIntersect(_ConeAxis, _PlaneD, r1, rayDir);
+				bool intr;
+				// plane intersection	
+				float planeCoord = RayPlaneIntersect(_ConeAxis, _PlaneD, r1, rayDir, intr);
 
 				// ray cone intersection
 				float2 lineCoords = RayConeIntersect(_ConeApex, _ConeAxis, _CosAngle, r1, rayDir);
@@ -468,6 +468,65 @@ Shader "Hidden/VolumetricLight"
 				
 				return color;
 			}
+			ENDHLSL
+		}
+
+		// pass 5 - cone test
+		Pass
+		{
+			Cull Off ZWrite Off ZTest Always
+
+			HLSLPROGRAM
+
+			#pragma vertex vert
+			#pragma fragment fragDir
+			#pragma target 4.0
+
+
+			TEXTURE2D(_SceneColor);
+			SAMPLER(sampler_SceneColor);
+
+
+			float3 _ConeApex;
+			float3 _ConeAxis;
+			float _PlaneDist;
+			
+			float _CosAngle;
+			float _BaseRadius;
+
+
+
+			half4 fragDir(v2f i) : SV_Target
+			{
+				float2 uv = i.uv.xy;
+
+				float len = length(i.viewVector);
+				float3 rayDir = i.viewVector / len;				
+
+				float3 rayStart = _WorldSpaceCameraPos;
+
+
+				bool insideCone;
+				// ray cone intersection
+				float2 lineCoords = RayConeIntersect(_ConeApex, _ConeAxis, _CosAngle, _BaseRadius, _PlaneDist, rayStart, rayDir, insideCone);
+
+				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
+				float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
+
+				float3 col = insideCone ? float3(0.5, 0.5, 0.5) : float3(0.25, 0.75, 0.5);
+
+				float rayLength = min(lineCoords.x, lineCoords.y);
+
+				half4 scene = SAMPLE_TEXTURE2D(_SceneColor, sampler_SceneColor, uv);
+
+				if (rayLength > 0.0 && rayLength < linearDepth)
+				{
+					scene = half4(col, 1.0);
+				}
+
+				return scene;
+			}
+
 			ENDHLSL
 		}
 	}

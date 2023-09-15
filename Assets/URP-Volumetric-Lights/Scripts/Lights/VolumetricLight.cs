@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 using System;
 
 
-[RequireComponent(typeof(Light))]
+[RequireComponent(typeof(Light)), ExecuteAlways]
 public partial class VolumetricLight : MonoBehaviour 
 {
     private Light _light;
@@ -33,6 +33,11 @@ public partial class VolumetricLight : MonoBehaviour
     public float NoiseIntensityOffset = 0.3f;
     public Vector2 NoiseVelocity = new Vector2(3.0f, 3.0f);   
     public float MaxRayLength = 400.0f;    
+
+
+
+    public float coneAngle = 30.0f;
+    public float coneLength = 1.0f;
 
 
     public void Setup(Shader volumetricLight) 

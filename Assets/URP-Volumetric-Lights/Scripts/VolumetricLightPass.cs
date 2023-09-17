@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
-
+using System;
 
 public partial class VolumetricLightPass : ScriptableRenderPass
 {
@@ -19,6 +19,8 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     private static Texture2D ditherTexture;
 
     private CommandBuffer commandBuffer;
+
+    public VolumetricLightFeature feature;
 
 
     private static readonly List<VolumetricLight> activeLights = new();
@@ -80,29 +82,32 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         //BilateralBlur(descriptor.width, descriptor.height);
 
-        if (activeLights.Count > 0)
-        {
-            Vector3 apex = activeLights[0].transform.position;
-            Vector3 axis = activeLights[0].transform.forward;
+        // Inverse object transform matrices.
+        commandBuffer.SetGlobalMatrix("_Sphere", feature.sphereMatrix.Matrix.inverse);
+        commandBuffer.SetGlobalMatrix("_Cylinder", feature.cylinderMatrix.Matrix.inverse);
+        commandBuffer.SetGlobalMatrix("_Cone", feature.coneMatrix.Matrix.inverse);
+        commandBuffer.SetGlobalMatrix("_Box", feature.boxMatrix.Matrix.inverse);
+        commandBuffer.SetGlobalVector("_DiskPos", feature.diskPos);
 
-            float angle = (activeLights[0].coneAngle + 1) * 0.5f * Mathf.Deg2Rad;
-            float dist = activeLights[0].coneLength;
-            float radius = dist * Mathf.Tan(angle);
-            float cosAngle = Mathf.Cos(angle);
+        Vector3 normal = Quaternion.Euler(feature.diskRot) * -Vector3.forward;
+        commandBuffer.SetGlobalVector("_DiskNormal", normal);
+        commandBuffer.SetGlobalFloat("_DiskRadius", feature.diskRadius);
 
-            // update material
-            commandBuffer.SetGlobalFloat("_PlaneDist", dist);
-            commandBuffer.SetGlobalFloat("_BaseRadius", radius);        
-            commandBuffer.SetGlobalFloat("_CosAngle", cosAngle);
-            commandBuffer.SetGlobalVector("_ConeApex", apex);
-            commandBuffer.SetGlobalVector("_ConeAxis", axis);
 
-            commandBuffer.SetGlobalTexture("_SceneColor", source);
-            commandBuffer.Blit(volumeLightTexture, source, volumeLightMat, 5);   
-        }
+        commandBuffer.SetGlobalTexture("_SceneColor", source);
+        commandBuffer.Blit(volumeLightTexture, source, volumeLightMat);   
 
         context.ExecuteCommandBuffer(commandBuffer);
 
         CommandBufferPool.Release(commandBuffer);
+    }
+
+
+    private static Vector3 ClampMin(Vector3 vector)
+    {
+        vector.x = vector.x == 0.0 ? 1e-20f : vector.x;
+        vector.y = vector.y == 0.0 ? 1e-20f : vector.y;
+        vector.z = vector.z == 0.0 ? 1e-20f : vector.z;
+        return vector;
     }
 }

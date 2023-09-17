@@ -226,251 +226,6 @@ Shader "Hidden/VolumetricLight"
 
 		ENDHLSL
 
-
-		// pass 0 - point light, camera inside
-		Pass
-		{
-			Cull Front ZWrite Off ZTest Off
-
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragPointInside
-			#pragma target 4.0
-
-			#pragma shader_feature HEIGHT_FOG
-			#pragma shader_feature NOISE
-			#pragma shader_feature SHADOWS_CUBE
-			#pragma shader_feature POINT_COOKIE
-			#pragma shader_feature POINT
-						
-
-			
-			half4 fragPointInside(v2f i) : SV_Target
-			{	
-				float2 uv = i.uv.xy / i.uv.w;
-
-				// read depth and reconstruct world position
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);			
-
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.wpos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				float linearDepth = LINEAR_EYE_DEPTH(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
-				rayLength = min(rayLength, projectedDepth);
-				
-				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
-			}
-			ENDHLSL
-		}
-
-
-		// pass 1 - spot light, camera inside
-		Pass
-		{
-			Cull Front ZWrite Off ZTest Off
-
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragPointInside
-			#pragma target 4.0
-
-			#pragma shader_feature HEIGHT_FOG
-			#pragma shader_feature NOISE
-			#pragma shader_feature SHADOWS_DEPTH
-			#pragma shader_feature SPOT
-
-
-
-			half4 fragPointInside(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy / i.uv.w;
-
-				// read depth and reconstruct world position
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.wpos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				float linearDepth = LINEAR_EYE_DEPTH(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
-				rayLength = min(rayLength, projectedDepth);
-
-				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
-			}
-			ENDHLSL
-		}
-
-
-		// pass 2 - point light, camera outside
-		Pass
-		{
-			Cull Back ZWrite Off ZTest Always
-
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragPointOutside
-			#pragma target 4.0
-
-			#pragma shader_feature HEIGHT_FOG
-			#pragma shader_feature SHADOWS_CUBE
-			#pragma shader_feature NOISE
-
-			#pragma shader_feature POINT_COOKIE
-			#pragma shader_feature POINT
-
-
-
-			half4 fragPointOutside(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy / i.uv.w;
-
-				// read depth and reconstruct world position
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-			
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.wpos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				float3 lightToCamera = _WorldSpaceCameraPos - _LightPos;
-
-				float b = dot(rayDir, lightToCamera);
-				float c = dot(lightToCamera, lightToCamera) - (_VolumetricLight.z * _VolumetricLight.z);
-
-				float d = sqrt((b*b) - c);
-				float start = -b - d;
-				float end = -b + d;
-
-				float linearDepth = LINEAR_EYE_DEPTH(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
-				end = min(end, projectedDepth);
-
-				rayStart = rayStart + rayDir * start;
-				rayLength = end - start;
-
-				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
-			}
-			ENDHLSL
-		}
-				
-		// pass 3 - spot light, camera outside
-		Pass
-		{ 
-			Cull Back ZWrite Off ZTest Always
-
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragSpotOutside
-			#pragma target 4.0
-
-			#pragma shader_feature HEIGHT_FOG
-			#pragma shader_feature SHADOWS_DEPTH
-			#pragma shader_feature NOISE
-			#pragma shader_feature SPOT
-
-			
-			float _CosAngle;
-			float4 _ConeAxis;
-			float4 _ConeApex;
-			float _PlaneD;
-
-
-			half4 fragSpotOutside(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy / i.uv.w;
-
-				// read depth and reconstruct world position
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.wpos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				// inside cone
-				float3 r1 = rayEnd + rayDir * 0.001;
-
-				bool intr;
-				// plane intersection	
-				float planeCoord = RayPlaneIntersect(_ConeAxis, _PlaneD, r1, rayDir, intr);
-
-				// ray cone intersection
-				float2 lineCoords = RayConeIntersect(_ConeApex, _ConeAxis, _CosAngle, r1, rayDir);
-
-				float linearDepth = LINEAR_EYE_DEPTH(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
-
-				float z = (projectedDepth - rayLength);
-				rayLength = min(planeCoord, min(lineCoords.x, lineCoords.y));
-				rayLength = min(rayLength, z);
-
-				return RayMarch(i.pos.xy, rayEnd, rayDir, rayLength);
-			}
-			ENDHLSL
-		}		
-
-		// pass 4 - directional light
-		Pass
-		{
-			Cull Off ZWrite Off ZTest Always
-
-			HLSLPROGRAM
-
-			#pragma vertex vert
-			#pragma fragment fragDir
-			#pragma target 4.0
-
-			#pragma shader_feature HEIGHT_FOG
-			#pragma shader_feature NOISE
-			#pragma shader_feature SHADOWS_DEPTH
-			#pragma shader_feature DIRECTIONAL_COOKIE
-			#pragma shader_feature DIRECTIONAL
-
-
-			half4 fragDir(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy;
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-				float linearDepth = LINEAR_01_DEPTH(depth);
-				
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayDir = normalize(i.viewVector);				
-				rayDir *= linearDepth;
-
-				float rayLength = length(rayDir);
-				rayDir /= rayLength;
-
-				rayLength = min(rayLength, _MaxRayLength);
-
-				float4 color = RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
-
-				if (linearDepth > 0.999999)
-				{
-					color.w = lerp(color.w, 1, _VolumetricLight.w);
-				}
-				
-				return color;
-			}
-			ENDHLSL
-		}
-
 		// pass 5 - cone test
 		Pass
 		{
@@ -482,18 +237,26 @@ Shader "Hidden/VolumetricLight"
 			#pragma fragment fragDir
 			#pragma target 4.0
 
+			#include "/Include/Intersection.hlsl"
 
 			TEXTURE2D(_SceneColor);
 			SAMPLER(sampler_SceneColor);
 
+			float3x4 _Sphere;
+			float3x4 _Cylinder;
+			float3x4 _Cone;
+			float3x4 _Box;
 
-			float3 _ConeApex;
-			float3 _ConeAxis;
-			float _PlaneDist;
-			
-			float _CosAngle;
-			float _BaseRadius;
+			float3 _DiskPos;
+			float3 _DiskNormal;
+			float _DiskRadius;
 
+
+			void Fade(inout float4 sceneColor, float near, float far, float linearDepth)
+			{
+				if (min(near, far) < linearDepth)
+					sceneColor += (float4)min(linearDepth, far) - max(near, 0.0);
+			}
 
 
 			half4 fragDir(v2f i) : SV_Target
@@ -505,24 +268,23 @@ Shader "Hidden/VolumetricLight"
 
 				float3 rayStart = _WorldSpaceCameraPos;
 
-
-				bool insideCone;
-				// ray cone intersection
-				float2 lineCoords = RayConeIntersect(_ConeApex, _ConeAxis, _CosAngle, _BaseRadius, _PlaneDist, rayStart, rayDir, insideCone);
-
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
 				float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
-
-				float3 col = insideCone ? float3(0.5, 0.5, 0.5) : float3(0.25, 0.75, 0.5);
-
-				float rayLength = min(lineCoords.x, lineCoords.y);
-
 				half4 scene = SAMPLE_TEXTURE2D(_SceneColor, sampler_SceneColor, uv);
 
-				if (rayLength > 0.0 && rayLength < linearDepth)
-				{
-					scene = half4(col, 1.0);
-				}
+
+				float near, far;
+				if (RaySphere(_Sphere, rayStart, rayDir, near, far))
+					Fade(scene, near, far, linearDepth);
+				 
+				if (RayCylinder(_Cylinder, rayStart, rayDir, near, far))
+					Fade(scene, near, far, linearDepth);
+
+				if (RayCone(_Cone, rayStart, rayDir, near, far))
+					Fade(scene, near, far, linearDepth);
+				
+				if (RayCube(_Box, rayStart, rayDir, near, far))
+					Fade(scene, near, far, linearDepth);
 
 				return scene;
 			}

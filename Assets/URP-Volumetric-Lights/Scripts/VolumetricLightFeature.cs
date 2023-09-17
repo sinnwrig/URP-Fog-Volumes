@@ -12,6 +12,12 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     public VolumetricResolution resolution;
 
 
+    public TransformMatrix sphereMatrix, cylinderMatrix, coneMatrix, boxMatrix;
+
+    public Vector3 diskPos;
+    public Vector3 diskRot;
+    public float diskRadius;
+
     private VolumetricLightPass lightPass;
 
     private Shader bilateralBlur;
@@ -26,7 +32,8 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         lightPass = new VolumetricLightPass(bilateralBlur, blitAdd, volumetricLight) 
         { 
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques,
-            resolution = resolution 
+            resolution = resolution,
+            feature = this
         };
     }
 
@@ -97,4 +104,15 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
         return shader;
     }
+}
+
+
+[System.Serializable]
+public class TransformMatrix
+{
+    public Vector3 position;
+    public Vector3 rotation;
+    public Vector3 scale = Vector3.one;
+
+    public Matrix4x4 Matrix => Matrix4x4.TRS(position, Quaternion.Euler(rotation), scale);
 }

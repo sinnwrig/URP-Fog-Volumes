@@ -50,6 +50,7 @@
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricLight.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Buffers.cs" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Math.hlsl" />
+     <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Intersection.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Upsample.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/VolumetricLight.shader" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/BlitAdd.shader" />

@@ -100,3 +100,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   resolution: 0
+  sphereMatrix:
+    position: {x: -3, y: 3.19, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+  cylinderMatrix:
+    position: {x: -1.5, y: 3.19, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+  coneMatrix:
+    position: {x: 0, y: 3.19, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+  boxMatrix:
+    position: {x: 1.5, y: 3.19, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}

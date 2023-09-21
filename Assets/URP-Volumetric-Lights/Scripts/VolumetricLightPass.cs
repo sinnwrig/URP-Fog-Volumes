@@ -87,12 +87,6 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         commandBuffer.SetGlobalMatrix("_Cylinder", feature.cylinderMatrix.Matrix.inverse);
         commandBuffer.SetGlobalMatrix("_Cone", feature.coneMatrix.Matrix.inverse);
         commandBuffer.SetGlobalMatrix("_Box", feature.boxMatrix.Matrix.inverse);
-        commandBuffer.SetGlobalVector("_DiskPos", feature.diskPos);
-
-        Vector3 normal = Quaternion.Euler(feature.diskRot) * -Vector3.forward;
-        commandBuffer.SetGlobalVector("_DiskNormal", normal);
-        commandBuffer.SetGlobalFloat("_DiskRadius", feature.diskRadius);
-
 
         commandBuffer.SetGlobalTexture("_SceneColor", source);
         commandBuffer.Blit(volumeLightTexture, source, volumeLightMat);   

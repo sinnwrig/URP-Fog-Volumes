@@ -35,6 +35,7 @@ Shader "Hidden/VolumetricLight"
 		struct appdata
 		{
 			float4 vertex : POSITION;
+			float4 uv : TEXCOORD0;
 		};
 
 
@@ -59,32 +60,19 @@ Shader "Hidden/VolumetricLight"
 		{
 			float4 pos : SV_POSITION;
 			float4 uv : TEXCOORD0;
-			float3 wpos : TEXCOORD1;
 			float3 viewVector : TEXCOORD2;
 		};
 
 
-		// From UnityCG.cginc
-		float4 ComputeScreenPos(float4 pos) {
-		    float4 o = pos * 0.5f;
-		    o.xy = float2(o.x, o.y * _ProjectionParams.x) + o.w;
-		    o.zw = pos.zw;
-		    return o;
-		}
-
-
 		v2f vert(appdata v)
 		{
-			v2f o;
-			o.pos = TransformObjectToHClip(v.vertex.xyz);
+			v2f output;
+			output.pos = TransformObjectToHClip(v.vertex.xyz);
+			output.uv = v.uv;
+			float3 viewVector = mul(unity_CameraInvProjection, float4(v.uv.xy * 2 - 1, 0, -1)).xyz;
+			output.viewVector = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
 
-			o.uv = ComputeScreenPos(o.pos);
-			o.wpos = TransformObjectToWorld(v.vertex.xyz);
-
-			float3 viewVector = mul(unity_CameraInvProjection, float4(o.uv.xy * 2 - 1, 0, -1)).xyz;
-			o.viewVector = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
-
-			return o;
+			return output;
 		}
 
 		

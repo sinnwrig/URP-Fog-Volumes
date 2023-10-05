@@ -3,9 +3,13 @@
 #include "Math.hlsl"
 
 // Original intersection functions from https://www.shadertoy.com/view/4s23DR
-// Added transformation matrices to allow positioning, rotating, and scaling the intersection domains.
 
-// NOTE : Finding a way to multiply ray origin and direction in the vertex stage will be better for performance, but also probably not be worth it.
+// Added transformation matrices to allow positioning, rotating, and scaling the intersection domains.
+// NOTE : I'm not exactly sure myself how transforming a view ray by a matrix still gives valid near/far intersection results in world space, but it does. 
+// I assumed it would return warped values depending on scale and rotation, but the numbers properly interact with scene depth.
+
+
+// NOTE : Finding a way to multiply ray origin and direction in the vertex stage will be better for performance, but also likely not to be worth it.
 
 // Transform ray to volume's intersection space.
 // Use an inverted transformation matrix to convert a world-space ray into matrix space.
@@ -20,7 +24,7 @@ void TransformRay(float3x4 invTransform, inout float3 rayOrigin, inout float3 ra
 
 // invTransform: the inverse transform matrix of the sphere.
 // rayOrigin: the origin of the intersection ray.
-// rayDir: the normalized direction of the intersection ray. Non-normalized vectors will give unpredictable results.
+// rayDir: the normalized direction of the intersection ray. Non-normalized vectors can give unpredictable results.
 // out near: the distance along {rayDir} to the sphere if intersection ocurred.
 // out far: the distance along {rayDir} through the sphere if intersection ocurred.
 
@@ -42,8 +46,10 @@ bool RaySphere(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float
     }
 
 	float deltasqrt = sqrt(delta);
-	near = -b - deltasqrt;
-	far = -b + deltasqrt;
+	float arcp = 1.0 / a;
+
+	near = (-b - deltasqrt) * arcp;
+	far = (-b + deltasqrt) * arcp;
 
 	return far > 0.0;
 }
@@ -53,7 +59,7 @@ bool RaySphere(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float
 
 // invTransform: the inverse transform matrix of the cylinder.
 // rayOrigin: the origin of the intersection ray.
-// rayDir: the normalized direction of the intersection ray. Non-normalized vectors will give unpredictable results.
+// rayDir: the normalized direction of the intersection ray. Non-normalized vectors can give unpredictable results.
 // out near: the distance along {rayDir} to the cylinder if intersection ocurred.
 // out far: the distance along {rayDir} through the cylinder if intersection ocurred.
 
@@ -110,7 +116,7 @@ bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out flo
 
 // invTransform: the inverse transform matrix of the cone.
 // rayOrigin: the origin of the intersection ray.
-// rayDir: the normalized direction of the intersection ray. Non-normalized vectors will give unpredictable results.
+// rayDir: the normalized direction of the intersection ray. Non-normalized vectors can give unpredictable results.
 // out near: the distance along {rayDir} to the cone if intersection ocurred.
 // out far: the distance along {rayDir} through the cone if intersection ocurred.
 
@@ -119,6 +125,7 @@ bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
     TransformRay(invTransform, rayOrigin, rayDir);
 
     float s = 0.5;
+	
 	rayOrigin.z *= s;
 	rayDir.z *= s;
 	
@@ -207,7 +214,7 @@ bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 
 // invTransform: the inverse transform matrix of the cube.
 // rayOrigin: the origin of the intersection ray.
-// rayDir: the normalized direction of the intersection ray. Non-normalized vectors will give unpredictable results.
+// rayDir: the normalized direction of the intersection ray. Non-normalized vectors can give unpredictable results.
 // out near: the distance along {rayDir} to the cube if intersection ocurred.
 // out far: the distance along {rayDir} through the cube if intersection ocurred.
 
@@ -230,7 +237,7 @@ bool RayCube(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 // planePos: the world position of the plane.
 // planeNormal: the world normal of the plane.
 // rayOrigin: the origin of the intersection ray.
-// rayDir: the normalized direction of the intersection ray. Non-normalized vectors will give unpredictable results.
+// rayDir: the normalized direction of the intersection ray. Non-normalized vectors can give unpredictable results.
 // out distance: the distance along {rayDir} to the plane.
 
 bool RayPlane(float3 planePos, float3 planeNormal, float3 rayOrigin, float3 rayDir, out float distance)
@@ -256,13 +263,14 @@ bool RayPlane(float3 planePos, float3 planeNormal, float3 rayOrigin, float3 rayD
 // diskNormal: the world normal of the disk.
 // diskRadius: the radius of the disk.
 // rayOrigin: the origin of the intersection ray.
-// rayDir: the normalized direction of the intersection ray. Non-normalized vectors will give unpredictable results.
+// rayDir: the normalized direction of the intersection ray. Non-normalized vectors can give unpredictable results.
 // out distance: the distance along {rayDir} to the disk.
 
 bool RayDisk(float3 diskPos, float3 diskNormal, float diskRadius, float3 rayOrigin, float3 rayDir, out float distance)
 {
 	if (RayPlane(diskPos, diskNormal, rayOrigin, rayDir, distance))
 	{
+		// Dumb and simple. 
 		float3 wPos = rayOrigin + (rayDir * distance);
 		float3 distVec = wPos - diskPos;
 

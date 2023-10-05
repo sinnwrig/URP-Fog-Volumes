@@ -83,10 +83,10 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         //BilateralBlur(descriptor.width, descriptor.height);
 
         // Inverse object transform matrices.
-        commandBuffer.SetGlobalMatrix("_Sphere", feature.sphereMatrix.Matrix.inverse);
-        commandBuffer.SetGlobalMatrix("_Cylinder", feature.cylinderMatrix.Matrix.inverse);
-        commandBuffer.SetGlobalMatrix("_Cone", feature.coneMatrix.Matrix.inverse);
-        commandBuffer.SetGlobalMatrix("_Box", feature.boxMatrix.Matrix.inverse);
+        commandBuffer.SetGlobalMatrix("_SphereMatrix", feature.sphereMatrix.Matrix.inverse);
+        commandBuffer.SetGlobalMatrix("_CylinderMatrix", feature.cylinderMatrix.Matrix.inverse);
+        commandBuffer.SetGlobalMatrix("_ConeMatrix", feature.coneMatrix.Matrix.inverse);
+        commandBuffer.SetGlobalMatrix("_BoxMatrix", feature.boxMatrix.Matrix.inverse);
 
         commandBuffer.SetGlobalTexture("_SceneColor", source);
         commandBuffer.Blit(volumeLightTexture, source, volumeLightMat);   

@@ -9,14 +9,11 @@ using UnityEditor;
 
 public class VolumetricLightFeature : ScriptableRendererFeature
 {
+    public bool useMatrixScale = true;
     public VolumetricResolution resolution;
 
 
     public TransformMatrix sphereMatrix, cylinderMatrix, coneMatrix, boxMatrix;
-
-    public Vector3 diskPos;
-    public Vector3 diskRot;
-    public float diskRadius;
 
     private VolumetricLightPass lightPass;
 
@@ -113,6 +110,5 @@ public class TransformMatrix
     public Vector3 position;
     public Vector3 rotation;
     public Vector3 scale = Vector3.one;
-
     public Matrix4x4 Matrix => Matrix4x4.TRS(position, Quaternion.Euler(rotation), scale);
 }

@@ -214,7 +214,7 @@ Shader "Hidden/VolumetricLight"
 
 		ENDHLSL
 
-		// pass 5 - cone test
+		// pass 0 - test
 		Pass
 		{
 			Cull Off ZWrite Off ZTest Always
@@ -230,19 +230,17 @@ Shader "Hidden/VolumetricLight"
 			TEXTURE2D(_SceneColor);
 			SAMPLER(sampler_SceneColor);
 
-			float3x4 _Sphere;
-			float3x4 _Cylinder;
-			float3x4 _Cone;
-			float3x4 _Box;
-
-			float3 _DiskPos;
-			float3 _DiskNormal;
-			float _DiskRadius;
+			float3x4 _SphereMatrix;
+			float3x4 _CylinderMatrix;
+			float3x4 _ConeMatrix;
+			float3x4 _BoxMatrix;
 
 
-			void Fade(inout float4 sceneColor, float near, float far, float linearDepth)
+			void Fade(inout float4 sceneColor, float3 vVector, float near, float far, float linearDepth)
 			{
-				if (min(near, far) < linearDepth)
+				float minDist = min(near, far);
+
+				if (minDist < linearDepth)
 					sceneColor += (float4)min(linearDepth, far) - max(near, 0.0);
 			}
 
@@ -261,18 +259,21 @@ Shader "Hidden/VolumetricLight"
 				half4 scene = SAMPLE_TEXTURE2D(_SceneColor, sampler_SceneColor, uv);
 
 
-				float near, far;
-				if (RaySphere(_Sphere, rayStart, rayDir, near, far))
-					Fade(scene, near, far, linearDepth);
-				 
-				if (RayCylinder(_Cylinder, rayStart, rayDir, near, far))
-					Fade(scene, near, far, linearDepth);
+				float near;
+				float far;
 
-				if (RayCone(_Cone, rayStart, rayDir, near, far))
-					Fade(scene, near, far, linearDepth);
+				if (RaySphere(_SphereMatrix, rayStart, rayDir, near, far))
+					Fade(scene, rayDir, near, far, linearDepth);
 				
-				if (RayCube(_Box, rayStart, rayDir, near, far))
-					Fade(scene, near, far, linearDepth);
+				if (RayCylinder(_CylinderMatrix, rayStart, rayDir, near, far))
+					Fade(scene, rayDir, near, far, linearDepth);
+
+				if (RayCone(_ConeMatrix, rayStart, rayDir, near, far))
+					Fade(scene, rayDir, near, far, linearDepth);
+				
+				if (RayCube(_BoxMatrix, rayStart, rayDir, near, far))
+					Fade(scene, rayDir, near, far, linearDepth);
+				
 
 				return scene;
 			}

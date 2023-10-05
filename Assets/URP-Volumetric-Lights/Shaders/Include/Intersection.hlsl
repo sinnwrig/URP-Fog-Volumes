@@ -51,6 +51,8 @@ bool RaySphere(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float
 	near = (-b - deltasqrt) * arcp;
 	far = (-b + deltasqrt) * arcp;
 
+	// Hashoosha
+
 	return far > 0.0;
 }
 

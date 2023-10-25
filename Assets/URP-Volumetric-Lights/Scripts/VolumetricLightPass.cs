@@ -9,7 +9,6 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     public VolumetricResolution resolution;
 
     private static Material bilateralBlur;
-    private static Material blitAdd;
     private static Shader volumetricLight;
 
     private static Material volumeLightMat;
@@ -31,7 +30,11 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         if (!activeLights.Contains(light))
         {
             activeLights.Add(light);
-            light.Setup(volumetricLight);
+
+            if (volumetricLight != null) 
+            {
+                light.Setup(volumetricLight);
+            }
         }
     }
 
@@ -47,10 +50,12 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         if (bilateralBlur == null || bilateralBlur.shader != blur)
             bilateralBlur = new Material(blur);
 
-        if (blitAdd == null || blitAdd.shader != add)
-            blitAdd = new Material(add);
-
         volumetricLight = light;
+
+        foreach (VolumetricLight activeLight in activeLights)
+        {
+            activeLight.Setup(volumetricLight);
+        }
 
         if (volumeLightMat == null || volumeLightMat.shader != light)
             volumeLightMat = new Material(light);
@@ -78,18 +83,17 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         DownsampleDepthBuffer();
 
-        //commandBuffer.Blit(source, VolumeLightBuffer);
+        // Blit for every active volumetric light
+        //commandBuffer.Blit(source, volumeLightTexture, volumeLightMat);  
 
+
+        // Blur and upsample volumetric light texture
         //BilateralBlur(descriptor.width, descriptor.height);
 
-        // Inverse object transform matrices.
-        commandBuffer.SetGlobalMatrix("_SphereMatrix", feature.sphereMatrix.Matrix.inverse);
-        commandBuffer.SetGlobalMatrix("_CylinderMatrix", feature.cylinderMatrix.Matrix.inverse);
-        commandBuffer.SetGlobalMatrix("_ConeMatrix", feature.coneMatrix.Matrix.inverse);
-        commandBuffer.SetGlobalMatrix("_BoxMatrix", feature.boxMatrix.Matrix.inverse);
-
-        commandBuffer.SetGlobalTexture("_SceneColor", source);
-        commandBuffer.Blit(volumeLightTexture, source, volumeLightMat);   
+        //commandBuffer.SetGlobalTexture("_SourceTexture", sourceCopy);
+        //commandBuffer.SetGlobalTexture("_SourceAdd", volumeLightTexture);
+        // Use blit add kernel to merge source color and the blurred light texture
+        //commandBuffer.Blit(null, source, 3);
 
         context.ExecuteCommandBuffer(commandBuffer);
 

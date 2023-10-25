@@ -42,6 +42,11 @@ public partial class VolumetricLight : MonoBehaviour
 
     public void Setup(Shader volumetricLight) 
     {
+        if (volumetricLight == null)
+        {
+            return;
+        }
+
         _light = GetComponent<Light>();
         _material = new Material(volumetricLight);
     }
@@ -76,22 +81,6 @@ public partial class VolumetricLight : MonoBehaviour
 
         _material.SetVector("_MieG", new Vector4(1 - (MieG * MieG), 1 + (MieG * MieG), 2 * MieG, 1.0f / (4.0f * Mathf.PI)));
         _material.SetVector("_VolumetricLight", new Vector4(ScatteringCoef, ExtinctionCoef, _light.range, 1.0f - SkyboxExtinctionCoef));
-
-        if (HeightFog)
-        {
-            _material.EnableKeyword("HEIGHT_FOG");
-            _material.SetVector("_HeightFog", new Vector4(GroundLevel, HeightScale));
-        }
-        else
-        {
-            _material.DisableKeyword("HEIGHT_FOG");
-        }
-
-
-        if (Noise)
-            _material.EnableKeyword("NOISE");
-        else
-            _material.DisableKeyword("NOISE");
     }
 
 

@@ -102,18 +102,18 @@ MonoBehaviour:
   useMatrixScale: 1
   resolution: 0
   sphereMatrix:
-    position: {x: 0, y: -0.33, z: 0}
+    position: {x: 0, y: 5.7, z: 0}
     rotation: {x: 0, y: 0, z: 0}
     scale: {x: 1, y: 1, z: 1}
   cylinderMatrix:
-    position: {x: 1.99, y: 2.47, z: 0}
+    position: {x: 3.29, y: 5.12, z: 0}
     rotation: {x: 0, y: 0, z: 0}
-    scale: {x: 1, y: 7.69, z: 1}
+    scale: {x: 1, y: 1, z: 1}
   coneMatrix:
     position: {x: 0, y: 3.68, z: 0}
     rotation: {x: 0, y: 0, z: 0}
     scale: {x: 1, y: 1, z: 1}
   boxMatrix:
-    position: {x: 1.5, y: 0.09, z: 0}
+    position: {x: -1.47, y: 4, z: 0}
     rotation: {x: 0, y: -37.63, z: 0}
-    scale: {x: 4.06, y: 6.87, z: 1}
+    scale: {x: 1, y: 1, z: 1}

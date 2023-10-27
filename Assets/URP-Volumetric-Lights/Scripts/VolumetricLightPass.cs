@@ -45,7 +45,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     
 
 
-    public VolumetricLightPass(Shader blur, Shader add, Shader light)
+    public VolumetricLightPass(Shader blur, Shader light)
     {
         if (bilateralBlur == null || bilateralBlur.shader != blur)
             bilateralBlur = new Material(blur);

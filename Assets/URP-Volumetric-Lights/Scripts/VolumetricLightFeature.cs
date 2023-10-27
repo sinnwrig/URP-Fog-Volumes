@@ -9,16 +9,11 @@ using UnityEditor;
 
 public class VolumetricLightFeature : ScriptableRendererFeature
 {
-    public bool useMatrixScale = true;
     public VolumetricResolution resolution;
-
-
-    public TransformMatrix sphereMatrix, cylinderMatrix, coneMatrix, boxMatrix;
 
     private VolumetricLightPass lightPass;
 
     private Shader bilateralBlur;
-    private Shader blitAdd;
     private Shader volumetricLight;
 
 
@@ -26,7 +21,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     {
         ValidateShaders();
 
-        lightPass = new VolumetricLightPass(bilateralBlur, blitAdd, volumetricLight) 
+        lightPass = new VolumetricLightPass(bilateralBlur, volumetricLight) 
         { 
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques,
             resolution = resolution,
@@ -48,14 +43,10 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     void ValidateShaders() 
     {
         bilateralBlur = AddAlwaysIncludedShader("Hidden/BilateralBlur");
-        blitAdd = AddAlwaysIncludedShader("Hidden/BlitAdd");
         volumetricLight = AddAlwaysIncludedShader("Hidden/VolumetricLight");
 
         if (bilateralBlur == null) 
             Debug.LogError($"BilateralBlur shader missing! Make sure 'Hidden/BilateralBlur' is located somewhere in your project and included in 'Always Included Shaders'", this);
-
-        if (blitAdd == null)
-            Debug.LogError($"BlitAdd shader missing! Make sure 'Hidden/BlitAdd' is located somewhere in your project and included in 'Always Included Shaders'", this);
 
         if (volumetricLight == null)
             Debug.LogError($"VolumetricLight shader missing! Make sure 'Hidden/VolumetricLight' is located somewhere in your project and included in 'Always Included Shaders'", this);
@@ -101,14 +92,4 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
         return shader;
     }
-}
-
-
-[System.Serializable]
-public class TransformMatrix
-{
-    public Vector3 position;
-    public Vector3 rotation;
-    public Vector3 scale = Vector3.one;
-    public Matrix4x4 Matrix => Matrix4x4.TRS(position, Quaternion.Euler(rotation), scale);
 }

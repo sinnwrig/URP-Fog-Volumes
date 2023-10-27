@@ -45,6 +45,7 @@
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightFeature.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricPointLight.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricSpotLight.cs" />
+     <Compile Include="Assets/CorgiGodRays/GodRaysRenderPass.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Blur.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricResolution.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricLight.cs" />
@@ -52,12 +53,15 @@
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/VolumetricLight.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Math.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Intersection.hlsl" />
+     <None Include="Assets/URP-Volumetric-Lights/TestCompile.shader" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Upsample.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/VolumetricLight.shader" />
-     <None Include="Assets/URP-Volumetric-Lights/Shaders/BlitAdd.shader" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/BilateralBlur.shader" />
+     <None Include="Assets/CorgiGodRays/SharedInputs.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/BilateralBlur.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Downsample.hlsl" />
+     <None Include="Assets/CorgiGodRays/ScreenSpaceGodRays.shader" />
+     <None Include="Assets/URP-Volumetric-Lights/Test.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Common.hlsl" />
     <Reference Include="UnityEngine">
         <HintPath>/home/amog_os/Unity/Hub/Editor/2022.3.10f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>

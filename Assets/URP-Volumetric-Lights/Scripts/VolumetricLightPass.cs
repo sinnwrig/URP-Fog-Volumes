@@ -151,8 +151,6 @@ public partial class VolumetricLightPass : ScriptableRenderPass
                 isMain = "main ";
             }
 
-            // Would it be better to cache this GetComponent call? Yes.
-            // Is it minor compared to the actual rendering of the light? Yes. 
             if (lights[i].light.TryGetComponent(out VolumetricLight lightComponent))
             {
                 Log($"Drawing {isMain}light. Index {i}, Name {lightComponent.gameObject.name}");
@@ -162,9 +160,6 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
 
         BlitUtility.EndBlitLoop(source);
-
-        // Blit for every active volumetric light
-        //commandBuffer.Blit(source, volumeLightTexture, volumetricLight);  
 
 
         // Blur and upsample volumetric light texture

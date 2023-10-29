@@ -45,22 +45,48 @@ public partial class VolumetricLightPass
     // Get required temporary textures
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData data)
     {
-        var descriptor = data.cameraData.cameraTargetDescriptor;
+        RenderTextureDescriptor descriptor = data.cameraData.cameraTargetDescriptor;
 
-        cmd.GetTemporaryRT(volumeLightId, descriptor.width, descriptor.height, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
+        descriptor.depthBufferBits = 0;
+        descriptor.colorFormat = RenderTextureFormat.ARGBHalf;
+
+        RenderTextureDescriptor depthDescriptor = descriptor;
+        depthDescriptor.colorFormat = RenderTextureFormat.RFloat;
+
+
+        cmd.GetTemporaryRT(volumeLightId, descriptor, FilterMode.Bilinear);
+
 
         if (resolution == VolumetricResolution.Half)
-            cmd.GetTemporaryRT(halfVolumeLightId, descriptor.width / 2, descriptor.height / 2, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
+        {
+            descriptor.width /= 2;
+            descriptor.height /= 2;
+            cmd.GetTemporaryRT(halfVolumeLightId, descriptor, FilterMode.Bilinear);
+        }
 
         // Half/Quarter res both need half-res depth buffer for downsampling
         if (resolution == VolumetricResolution.Half || resolution == VolumetricResolution.Quarter) 
-            cmd.GetTemporaryRT(halfDepthId, descriptor.width / 2, descriptor.height / 2, 0, FilterMode.Point, RenderTextureFormat.RFloat);
+        {
+            depthDescriptor.width /= 2;
+            depthDescriptor.height /= 2;
+            cmd.GetTemporaryRT(halfDepthId, depthDescriptor, FilterMode.Point);
+        }
 
         if (resolution == VolumetricResolution.Quarter)
         {
-            cmd.GetTemporaryRT(quarterVolumeLightId, descriptor.width / 4, descriptor.height / 4, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
-            cmd.GetTemporaryRT(quarterDepthId, descriptor.width / 4, descriptor.height / 4, 0, FilterMode.Point, RenderTextureFormat.RFloat);
+            descriptor.width /= 4;
+            descriptor.height /= 4;
+
+            // Depth descriptor has already been divided previously
+            depthDescriptor.width /= 2;
+            depthDescriptor.height /= 2;
+
+            cmd.GetTemporaryRT(quarterVolumeLightId, descriptor, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(quarterDepthId, depthDescriptor, FilterMode.Point);
         }
+
+
+        BlitUtility.SetupBlitTargets(cmd, descriptor);
     }
 
 
@@ -80,5 +106,7 @@ public partial class VolumetricLightPass
             cmd.ReleaseTemporaryRT(quarterVolumeLightId);
             cmd.ReleaseTemporaryRT(quarterDepthId);
         }
+
+        BlitUtility.ReleaseBlitTargets(cmd);
     }
 }

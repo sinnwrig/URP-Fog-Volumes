@@ -10,7 +10,19 @@ using System;
 public partial class VolumetricLight : MonoBehaviour 
 {
     private Light _light;
-    private Material _material;
+    public Light Light
+    {
+        get 
+        {
+            if (_light == null)
+            {
+                _light = GetComponent<Light>();
+            }
+
+            return _light;
+        }
+    }
+
 
 
     [Range(1, 64)]
@@ -31,7 +43,7 @@ public partial class VolumetricLight : MonoBehaviour
     public float NoiseScale = 0.015f;
     public float NoiseIntensity = 1.0f;
     public float NoiseIntensityOffset = 0.3f;
-    public Vector2 NoiseVelocity = new Vector2(3.0f, 3.0f);   
+    public Vector2 NoiseVelocity = new(3.0f, 3.0f);   
     public float MaxRayLength = 400.0f;    
 
 
@@ -40,78 +52,48 @@ public partial class VolumetricLight : MonoBehaviour
     public float coneLength = 1.0f;
 
 
-    public void Setup(Shader volumetricLight) 
+
+    private void SetMaterialProperties(Material material)
     {
-        if (volumetricLight == null)
-        {
-            return;
-        }
+        material.SetInt("_SampleCount", SampleCount);
 
-        _light = GetComponent<Light>();
-        _material = new Material(volumetricLight);
+        material.SetVector("_NoiseVelocity", new Vector4(NoiseVelocity.x, NoiseVelocity.y) * NoiseScale);
+        material.SetVector("_NoiseData", new Vector4(NoiseScale, NoiseIntensity, NoiseIntensityOffset));
+
+        material.SetVector("_MieG", new Vector4(1 - (MieG * MieG), 1 + (MieG * MieG), 2 * MieG, 1.0f / (4.0f * Mathf.PI)));
+        material.SetVector("_VolumetricLight", new Vector4(ScatteringCoef, ExtinctionCoef, _light.range, 1.0f - SkyboxExtinctionCoef));
     }
 
 
-    private void OnEnable()
-    {
-        VolumetricLightPass.AddVolumetricLight(this);
-    }
-
-
-    private void OnDisable()
-    {
-        VolumetricLightPass.RemoveVolumetricLight(this);
-    }
-
-
-    private void OnDestroy()
-    {        
-        VolumetricLightPass.RemoveVolumetricLight(this);
-        DestroyImmediate(_material);
-    }
-
-
-    private void SetMaterialProperties(VolumetricLightPass pass)
-    {
-        _material.SetVector("_CameraForward", Camera.current.transform.forward);
-        _material.SetInt("_SampleCount", SampleCount);
-
-        _material.SetVector("_NoiseVelocity", new Vector4(NoiseVelocity.x, NoiseVelocity.y) * NoiseScale);
-        _material.SetVector("_NoiseData", new Vector4(NoiseScale, NoiseIntensity, NoiseIntensityOffset));
-
-        _material.SetVector("_MieG", new Vector4(1 - (MieG * MieG), 1 + (MieG * MieG), 2 * MieG, 1.0f / (4.0f * Mathf.PI)));
-        _material.SetVector("_VolumetricLight", new Vector4(ScatteringCoef, ExtinctionCoef, _light.range, 1.0f - SkyboxExtinctionCoef));
-    }
-
-
-    public void PreRenderEvent(VolumetricLightPass pass)
+    public void DrawLight(Material volumetricMaterial, VolumetricLightPass pass)
     {
         // Light was destroyed without deregistring, deregister and destroy component now
-        if (_light == null)
+        if (Light == null)
         {
-            OnDisable();
             DestroyImmediate(this);
+            return;
         }
 
-        if (!_light.enabled)
+        if (!Light.enabled)
         {
             return;
         }
 
-        SetMaterialProperties(pass);
 
-        switch (_light.type)
+        SetMaterialProperties(volumetricMaterial);
+
+        switch (Light.type)
         {
             case LightType.Point:
-                SetupPointLight(pass);
+                SetupPointLight(volumetricMaterial, pass);
             break;
 
             case LightType.Spot:
-                SetupSpotLight(pass);
+                SetupSpotLight(volumetricMaterial, pass);
             break;
 
             case LightType.Directional:
-                SetupDirectionalLight(pass);
+                SetupDirectionalLight(volumetricMaterial, pass);
             break;
         }
     }
@@ -119,13 +101,13 @@ public partial class VolumetricLight : MonoBehaviour
 
     private bool HasShadows() 
     {
-        if (_light.type == LightType.Directional) 
+        if (Light.type == LightType.Directional) 
         {
-            return _light.shadows != LightShadows.None;
+            return Light.shadows != LightShadows.None;
         }
 
-        bool hasShadows = (_light.transform.position - Camera.current.transform.position).magnitude <= QualitySettings.shadowDistance;
+        bool hasShadows = (Light.transform.position - Camera.current.transform.position).magnitude <= QualitySettings.shadowDistance;
 
-        return hasShadows && _light.shadows != LightShadows.None;
+        return hasShadows && Light.shadows != LightShadows.None;
     }
 }

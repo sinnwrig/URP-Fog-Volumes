@@ -10,6 +10,8 @@ using UnityEditor;
 public class VolumetricLightFeature : ScriptableRendererFeature
 {
     public VolumetricResolution resolution;
+    public float lightRange;
+    public float falloffRange;
 
     private VolumetricLightPass lightPass;
 
@@ -25,7 +27,9 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         { 
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques,
             resolution = resolution,
-            feature = this
+            feature = this,
+            lightRange = lightRange,
+            falloffRange = falloffRange
         };
     }
 

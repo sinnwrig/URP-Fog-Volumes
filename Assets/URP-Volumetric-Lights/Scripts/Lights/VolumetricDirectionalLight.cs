@@ -4,9 +4,12 @@ using UnityEngine.Rendering;
 
 public partial class VolumetricLight
 {
-    private void SetupDirectionalLight(Material volumetricMaterial, VolumetricLightPass pass)
+    private int SetupDirectionalLight(CommandBuffer cmd)
     {
-        // Pass 2 - Directional
-        BlitUtility.BlitNext(volumetricMaterial, "_SourceTexture", 2);
+        Matrix4x4 matrix = transform.worldToLocalMatrix;
+        cmd.SetGlobalMatrix("_InvLightMatrix", matrix);
+
+        // use pass 2 - directional
+        return 2;
     }
 }

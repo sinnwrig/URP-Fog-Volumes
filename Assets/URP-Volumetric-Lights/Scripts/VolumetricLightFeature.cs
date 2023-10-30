@@ -25,7 +25,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
         lightPass = new VolumetricLightPass(bilateralBlur, volumetricLight) 
         { 
-            renderPassEvent = RenderPassEvent.AfterRenderingOpaques,
+            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
             resolution = resolution,
             feature = this,
             lightRange = lightRange,

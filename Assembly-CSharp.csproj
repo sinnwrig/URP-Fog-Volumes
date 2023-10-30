@@ -58,6 +58,7 @@
      <None Include="Assets/URP-Volumetric-Lights/Shaders/VolumetricLight.shader" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/BilateralBlur.shader" />
      <None Include="Assets/CorgiGodRays/SharedInputs.hlsl" />
+     <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/LightAttenuation.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/BilateralBlur.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Downsample.hlsl" />
      <None Include="Assets/CorgiGodRays/ScreenSpaceGodRays.shader" />

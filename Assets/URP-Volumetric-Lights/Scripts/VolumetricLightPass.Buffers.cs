@@ -41,6 +41,9 @@ public partial class VolumetricLightPass
         }
     }
 
+    public RenderTextureDescriptor lightBufferDescriptor;
+
+
 
     // Get required temporary textures
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData data)
@@ -86,7 +89,7 @@ public partial class VolumetricLightPass
         }
 
 
-        BlitUtility.SetupBlitTargets(cmd, descriptor);
+        lightBufferDescriptor = descriptor;
     }
 
 

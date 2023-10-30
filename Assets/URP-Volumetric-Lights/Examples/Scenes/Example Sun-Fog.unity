@@ -37,8 +37,8 @@ RenderSettings:
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.17411555, g: 0.20950486, b: 0.2530723, a: 1}
+  m_Sun: {fileID: 973744429}
+  m_IndirectSpecularColor: {r: 0.17411554, g: 0.20950487, b: 0.2530724, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -232,20 +232,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SampleCount: 24
-  ScatteringCoef: 0.1
-  ExtinctionCoef: 0.01
-  SkyboxExtinctionCoef: 0.9
-  MieG: 0.1
-  HeightFog: 0
-  HeightScale: 0.1
-  GroundLevel: 0
-  Noise: 0
-  NoiseScale: 0.015
-  NoiseIntensity: 1
-  NoiseIntensityOffset: 0.3
-  NoiseVelocity: {x: 3, y: 3}
-  MaxRayLength: 400
+  sampleCount: 30
+  scatteringCoef: 0.5
+  extinctionCoef: 0.01
+  skyboxExtinctionCoef: 0.9
+  mieG: 0.1
+  noiseScale: 1
+  noiseIntensity: 1
+  noiseIntensityOffset: 0.3
+  noiseVelocity: {x: 0.1, y: 0.1}
+  maxRayLength: 150
 --- !u!114 &973744432
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -324,7 +320,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2131109544}
   - component: {fileID: 2131109543}
-  - component: {fileID: 2131109539}
   - component: {fileID: 2131109545}
   m_Layer: 0
   m_Name: Main Camera
@@ -333,20 +328,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2131109539
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2131109537}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eed1d9cbe64423499f1fefc0ce50417, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Resolution: 1
-  DefaultSpotCookie: {fileID: 2800000, guid: 5157bf6d690b6df458f6c0ce0c06d329, type: 3}
 --- !u!20 &2131109543
 Camera:
   m_ObjectHideFlags: 0
@@ -406,8 +387,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2131109537}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0117569305, y: 0.99486643, z: -0.003636893, w: 0.100445814}
-  m_LocalPosition: {x: -97.22835, y: 32.162876, z: 382.47165}
+  m_LocalRotation: {x: 0.011756934, y: 0.9948665, z: -0.0036368966, w: 0.100445814}
+  m_LocalPosition: {x: -97.22835, y: 32.162872, z: 382.47165}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

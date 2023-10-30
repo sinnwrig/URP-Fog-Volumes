@@ -8,7 +8,7 @@ SAMPLER(sampler_DitherTexture);
 float3 _LightColor;
 float3 _LightPos;
 
-float4 _VolumetricLight; // x: scattering coef, y: extinction coef, z: range w: skybox extinction coef
+float2 _VolumetricLight; // x: scattering coef, y: extinction coef
 float4 _MieG; // x: 1 - g^2, y: 1 + g^2, z: 2*g, w: 1/4pi
 
 float3 _NoiseData; // x: scale, y: intensity, z: intensity offset
@@ -19,15 +19,21 @@ int _SampleCount;
 
 float3 _LightDir;
 float2 _LightRange;
+
+int _LightIndex;
 float3x4 _InvLightMatrix;
 
-		
-// TODO: Get URP light index and shadow index, shove it in shader, and use builtins for light attenuations
-float GetLightAttenuation(float3 wpos)
-{
-	float atten = 1;
 
-	return atten;
+float4 GetLightAttenuation(float3 wpos)
+{
+	half3 lightCol = 0;
+
+	if (_LightIndex < 0)
+		lightCol = GetMainLightContribution(wpos);
+	else 
+		lightCol = GetAdditionalLightContribution(_LightIndex, wpos);
+
+	return float4(lightCol, 0.0);
 }
 
 
@@ -75,16 +81,17 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 	float extinction = length(_WorldSpaceCameraPos.xyz - currentPosition) * _VolumetricLight.y * 0.5;
 #endif
 
-	[unroll(MAX_STEPS)]
+	[loop]
 	for (int i = 0; i < stepCount; ++i)
 	{
-		float atten = GetLightAttenuation(currentPosition);
+		// Attenuation but actually just use color
+		float4 attenuatedLight = GetLightAttenuation(currentPosition);
 		float density = GetDensity(currentPosition);
 
         float scattering = _VolumetricLight.x * stepSize * density;
 		extinction += _VolumetricLight.y * stepSize * density;
 
-		float4 light = atten * scattering * exp(-extinction);
+		float4 light = attenuatedLight * scattering * exp(-extinction);
 
     #ifndef DIRECTIONAL_LIGHT
 		// phase function for spot and point lights
@@ -103,15 +110,12 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 	vlight *= MieScattering(cosAngle, _MieG);
 #endif
 
-	// apply light's color
-	vlight.xyz *= _LightColor;
-	vlight = max(0, vlight);
-	
+	vlight = max(0, vlight);	
 
 #ifdef DIRECTIONAL_LIGHT // use "proper" out-scattering/absorption for dir light 
     vlight.w = exp(-extinction);
 #else
-    vlight.w = 0;
+    vlight.w = 1;
 #endif
 
 	return vlight;
@@ -133,7 +137,7 @@ float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, floa
     #else
         #ifdef DIRECTIONAL_LIGHT 
             hit = true; 
-			far = 0.25; 
+			far = _MaxRayLength;
         #endif
     #endif
 #endif
@@ -143,7 +147,6 @@ float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, floa
         return source;
     
     far = min(far, linearDepth);
-
     float rayLength = (far - near);
 
     // Object is behind scene depth
@@ -153,19 +156,7 @@ float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, floa
     // Jump to point on intersection surface
     float3 rayStart = cameraPos + viewDir * near;
 
-	//return RayMarch(uv, rayStart, viewDir, rayLength);
-		
-	
-	if (far > _LightRange.x)
-		return source;
-
-	float fade = far - max(near, 0.0);
-
-	fade *= 1 - smoothstep(_LightRange.x - _LightRange.y, _LightRange.x, far);
-
-	fade *= 0.1;
-
-	return source + (float4)fade;
+	return source + RayMarch(uv, rayStart, viewDir, rayLength);
 }
 
 

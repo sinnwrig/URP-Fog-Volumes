@@ -15,9 +15,7 @@ public partial class VolumetricLight : MonoBehaviour
         get 
         {
             if (_light == null)
-            {
                 _light = GetComponent<Light>();
-            }
 
             return _light;
         }
@@ -26,88 +24,54 @@ public partial class VolumetricLight : MonoBehaviour
 
 
     [Range(1, 64)]
-    public int SampleCount = 8;
+    public int sampleCount = 16;
     [Range(0.0f, 1.0f)]
-    public float ScatteringCoef = 0.5f;
+    public float scatteringCoef = 0.5f;
     [Range(0.0f, 0.1f)]
-    public float ExtinctionCoef = 0.01f;
-    [Range(0.0f, 1.0f)]
-    public float SkyboxExtinctionCoef = 0.9f;
+    public float extinctionCoef = 0.01f;
     [Range(0.0f, 0.999f)]
-    public float MieG = 0.1f;
-    public bool HeightFog = false;
-    [Range(0, 0.5f)]
-    public float HeightScale = 0.10f;
-    public float GroundLevel = 0;
-    public bool Noise = false;
-    public float NoiseScale = 0.015f;
-    public float NoiseIntensity = 1.0f;
-    public float NoiseIntensityOffset = 0.3f;
-    public Vector2 NoiseVelocity = new(3.0f, 3.0f);   
-    public float MaxRayLength = 400.0f;    
+    public float mieG = 0.1f;
+
+    public float noiseScale = 1.0f;
+    public float noiseIntensity = 1.0f;
+    public float noiseIntensityOffset = 0.1f;
+    public Vector2 noiseVelocity = new(0.1f, 0.1f);   
 
 
-
-    public float coneAngle = 30.0f;
-    public float coneLength = 1.0f;
-
+    [Tooltip("Max directional light marching distance")]
+    public float maxRayLength = 400.0f;    
 
 
-    private void SetMaterialProperties(Material material)
-    {
-        material.SetInt("_SampleCount", SampleCount);
-
-        material.SetVector("_NoiseVelocity", new Vector4(NoiseVelocity.x, NoiseVelocity.y) * NoiseScale);
-        material.SetVector("_NoiseData", new Vector4(NoiseScale, NoiseIntensity, NoiseIntensityOffset));
-
-        material.SetVector("_MieG", new Vector4(1 - (MieG * MieG), 1 + (MieG * MieG), 2 * MieG, 1.0f / (4.0f * Mathf.PI)));
-        material.SetVector("_VolumetricLight", new Vector4(ScatteringCoef, ExtinctionCoef, _light.range, 1.0f - SkyboxExtinctionCoef));
-    }
-
-
-    public void DrawLight(Material volumetricMaterial, VolumetricLightPass pass)
+    public int SetShaderProperties(CommandBuffer cmd)
     {
         // Light was destroyed without deregistring, deregister and destroy component now
         if (Light == null)
         {
             DestroyImmediate(this);
-            return;
+            return -1;
         }
 
         if (!Light.enabled)
         {
-            return;
+            return -1;
         }
 
+        cmd.SetGlobalInt("_SampleCount", sampleCount);
 
-        SetMaterialProperties(volumetricMaterial);
+        cmd.SetGlobalVector("_NoiseVelocity", new Vector4(noiseVelocity.x, noiseVelocity.y) * noiseScale);
+        cmd.SetGlobalVector("_NoiseData", new Vector4(noiseScale, noiseIntensity, noiseIntensityOffset));
 
-        switch (Light.type)
+        cmd.SetGlobalVector("_MieG", new Vector4(1 - (mieG * mieG), 1 + (mieG * mieG), 2 * mieG, 1.0f / (4.0f * Mathf.PI)));
+        cmd.SetGlobalVector("_VolumetricLight", new Vector2(scatteringCoef, extinctionCoef));
+
+        cmd.SetGlobalVector("_LightDir", -transform.forward);
+
+        return Light.type switch
         {
-            case LightType.Point:
-                SetupPointLight(volumetricMaterial, pass);
-            break;
-
-            case LightType.Spot:
-                SetupSpotLight(volumetricMaterial, pass);
-            break;
-
-            case LightType.Directional:
-                SetupDirectionalLight(volumetricMaterial, pass);
-            break;
-        }
-    }
-
-
-    private bool HasShadows() 
-    {
-        if (Light.type == LightType.Directional) 
-        {
-            return Light.shadows != LightShadows.None;
-        }
-
-        bool hasShadows = (Light.transform.position - Camera.current.transform.position).magnitude <= QualitySettings.shadowDistance;
-
-        return hasShadows && Light.shadows != LightShadows.None;
+            LightType.Point => SetupPointLight(cmd),
+            LightType.Spot => SetupSpotLight(cmd),
+            LightType.Directional => SetupDirectionalLight(cmd),
+            _ => -1,
+        };
     }
 }

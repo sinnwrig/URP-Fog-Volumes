@@ -81,16 +81,16 @@ public partial class VolumetricLightPass
     private void DownsampleDepthBuffer()
     {
         // Downsample depth buffer
-        if (resolution == VolumetricResolution.Quarter)
-        {
-            // Downsample full depth to half and then quarter
-            DownsampleDepth(null, halfDepthBuffer);
-            DownsampleDepth(halfDepthBuffer, quarterDepthBuffer);
-        }
-        else if (resolution == VolumetricResolution.Half)
+        if (resolution == VolumetricResolution.Half || resolution == VolumetricResolution.Quarter)
         {
             // Downsample full depth to half
             DownsampleDepth(null, halfDepthBuffer);
+        }
+
+        if (resolution == VolumetricResolution.Quarter)
+        {
+            // Downsample half depth to quarter
+            DownsampleDepth(halfDepthBuffer, quarterDepthBuffer);
         }
     }
 

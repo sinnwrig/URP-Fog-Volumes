@@ -9,7 +9,6 @@ using System.Reflection;
 
 public partial class VolumetricLightPass : ScriptableRenderPass
 {
-    private static readonly FieldInfo shadowCasterField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
     private static readonly Plane[] frustumPlanes = new Plane[6];
 
 
@@ -17,19 +16,16 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     {
         public VisibleLight visibleLight;
         public int lightIndex;
-        public int shadowIndex;
-        public Light light => visibleLight.light;
+        public VolumetricLight volumeLight;
     }
 
 
-    public VolumetricResolution resolution;
     public VolumetricLightFeature feature;
-
-    public float lightRange, falloffRange;
+    public VolumetricResolution Resolution => feature.resolution;
 
 
     private static Material bilateralBlur;
-    private static Material volumetricLight;
+    private static Material lightMaterial;
 
 
     private static Texture3D noiseTexture;
@@ -39,26 +35,22 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     
 
 
-    public VolumetricLightPass(Shader blur, Shader light)
+    public VolumetricLightPass(VolumetricLightFeature feature, Shader blur, Shader light)
     {
+        this.feature = feature;
+
         if (bilateralBlur == null || bilateralBlur.shader != blur)
             bilateralBlur = new Material(blur);
 
-        if (volumetricLight == null || volumetricLight.shader != light)
-            volumetricLight = new Material(light);
+        if (lightMaterial == null || lightMaterial.shader != light)
+            lightMaterial = new Material(light);
 
-        ValidateResources();
-    }   
-
-
-    private void ValidateResources()
-    {
         if (noiseTexture == null)
             noiseTexture = Resources.Load("Noise3DTexture") as Texture3D;
 
         if (ditherTexture == null)
             ditherTexture = Resources.Load("DitherTex") as Texture2D;
-    }
+    }   
 
 
 
@@ -82,7 +74,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         float distanceToSphereBounds = (camera.transform.position - position).magnitude - light.range;
 
         // Cull faraway lights
-        if (distanceToSphereBounds > lightRange)
+        if (distanceToSphereBounds > feature.lightRange)
             return false;
 
 		return true;
@@ -91,30 +83,29 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
     private List<SortedLight> GetSortedLights(ref RenderingData renderingData)
     {
-        AdditionalLightsShadowCasterPass shadowCasterPass = (AdditionalLightsShadowCasterPass)shadowCasterField.GetValue(renderingData.cameraData.renderer);
-
-        ref LightData lightData = ref renderingData.lightData;
-        ref NativeArray<VisibleLight> visibleLights = ref lightData.visibleLights;
+        LightData lightData = renderingData.lightData;
+        NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
         List<SortedLight> sortedLights = new();
 
-
         GeometryUtility.CalculateFrustumPlanes(renderingData.cameraData.camera, frustumPlanes);
-
         
         for (int i = 0; i < visibleLights.Length; i++)
         {
             var visibleLight = visibleLights[i];
 
-            if (LightIsVisible(ref visibleLight, frustumPlanes, renderingData.cameraData.camera))
-            {   
-                sortedLights.Add(new SortedLight
-                {
-                    visibleLight = visibleLight,
-                    lightIndex = i,
-                    shadowIndex = shadowCasterPass.GetShadowLightIndexFromLightIndex(i)
-                });
-            }
+            if (!LightIsVisible(ref visibleLight, frustumPlanes, renderingData.cameraData.camera))
+                continue;
+            
+            if (!visibleLight.light.TryGetComponent(out VolumetricLight volumeLight))
+                continue;
+
+            sortedLights.Add(new SortedLight
+            {
+                visibleLight = visibleLight,
+                lightIndex = i,
+                volumeLight = volumeLight,
+            });
         }
 
         return sortedLights;
@@ -126,33 +117,41 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     {
         var source = renderingData.cameraData.renderer.cameraColorTargetHandle;
         var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-        ref var lightData = ref renderingData.lightData;
+
+        commandBuffer = CommandBufferPool.Get("Volumetric Light Pass");
+
 
         var lights = GetSortedLights(ref renderingData);
 
         if (lights.Count == 0)
-        {
             return;
-        }
-
-        commandBuffer = CommandBufferPool.Get("Volumetric Light Pass");
 
         DownsampleDepthBuffer();
-
-        DrawLights(ref lightData, lights);
-
-        // Blur and upsample volumetric light texture
+        DrawLights(ref renderingData.lightData, lights);
         BilateralBlur(descriptor.width, descriptor.height);
 
         commandBuffer.SetGlobalTexture("_SourceTexture", source);
         commandBuffer.SetGlobalTexture("_SourceAdd", volumeLightTexture);
 
         // Use blit add kernel to merge source color and the blurred light texture
-        commandBuffer.Blit(volumeLightTexture, source, volumetricLight, 3);
+        commandBuffer.Blit(volumeLightTexture, source, lightMaterial, 3);
 
         context.ExecuteCommandBuffer(commandBuffer);
 
         CommandBufferPool.Release(commandBuffer);
+    }
+
+
+    private void SetShaderProperties()
+    {
+        // Set global shader variables
+        commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange, feature.falloffRange));
+
+        commandBuffer.SetGlobalTexture("_DitherTexture", ditherTexture);
+        commandBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);
+
+        commandBuffer.SetGlobalVector("_NoiseVelocity", feature.noiseVelocity * feature.noiseScale);
+        commandBuffer.SetGlobalVector("_NoiseData", new Vector4(feature.noiseScale, feature.noiseIntensity, feature.noiseIntensityOffset));
     }
 
 
@@ -164,41 +163,44 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         var destinationB = tempHandle;
         var latestDest = tempHandle;
 
-        // Clear destination texture
-        commandBuffer.SetRenderTarget(latestDest);
-        commandBuffer.ClearRenderTarget(false, true, Color.black);
+        // Clear textures
+        ClearColor(commandBuffer, destinationA, Color.black);
+        ClearColor(commandBuffer, destinationB, Color.black);
 
-        // Set global shader variables
-        commandBuffer.SetGlobalVector("_LightRange", new Vector2(lightRange, falloffRange));
-        commandBuffer.SetGlobalTexture("_DitherTexture", ditherTexture);
-        commandBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);
+        SetShaderProperties();
 
         // Light loop
         for (int i = 0; i < lights.Count; i++)
         {
-            if (lights[i].light.TryGetComponent(out VolumetricLight lightComponent))
-            {
-                int lightIndex = lights[i].lightIndex;
-                commandBuffer.SetGlobalInt("_LightIndex", lightIndex == lightData.mainLightIndex ? -1 : lightIndex);
+            int pass = lights[i].volumeLight.SetShaderProperties(commandBuffer);
 
-                int pass = lightComponent.SetShaderProperties(commandBuffer);
+            if (pass < 0)
+                continue;
 
-                if (pass < 0)
-                    continue;
+            var source = latestDest;
+            var target = source == destinationA ? destinationB : destinationA;
 
-                var source = latestDest;
-                var target = source == destinationA ? destinationB : destinationA;
-
-                commandBuffer.SetGlobalTexture("_SourceTexture", source);
+            commandBuffer.SetGlobalTexture("_SourceTexture", source);
             
-                commandBuffer.Blit(source, target, volumetricLight, pass);
-                latestDest = target;
-            }
+            int lightIndex = lights[i].lightIndex;
+            lightIndex = lightIndex == lightData.mainLightIndex ? -1 : lightIndex;
+
+            commandBuffer.SetGlobalInt("_LightIndex", lightIndex);
+
+            commandBuffer.Blit(source, target, lightMaterial, pass);
+            latestDest = target;
         }
 
         if (latestDest == tempHandle)
             commandBuffer.Blit(latestDest, VolumeLightBuffer);
         
         commandBuffer.ReleaseTemporaryRT(tempId);
+    }
+
+
+    private void ClearColor(CommandBuffer cmd, RenderTargetIdentifier rt, Color color)
+    {
+        cmd.SetRenderTarget(rt);
+        cmd.ClearRenderTarget(RTClearFlags.Color, color, 1.0f, 0);
     }
 }

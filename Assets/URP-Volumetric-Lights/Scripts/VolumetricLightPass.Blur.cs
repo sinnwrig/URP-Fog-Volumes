@@ -15,18 +15,18 @@ public partial class VolumetricLightPass
     // Blurs the active resolution texture, then upscales and blits (if neccesary) to full resolution texture
     private void BilateralBlur(int width, int height)
     {
-        if (resolution == VolumetricResolution.Quarter)
+        if (Resolution == VolumetricResolution.Quarter)
         {
-            SetSingleKeyword(quarterResKernel); 
+            SetBlurKernel(quarterResKernel); 
             
             BilateralBlur(quarterVolumeLightTexture, quarterDepthBuffer, width / 4, height / 4); 
             
             // Upscale to full res
             Upsample(quarterVolumeLightTexture, quarterDepthBuffer, volumeLightTexture);
         }
-        else if (resolution == VolumetricResolution.Half)
+        else if (Resolution == VolumetricResolution.Half)
         {
-            SetSingleKeyword(halfResKernel);
+            SetBlurKernel(halfResKernel);
 
             BilateralBlur(halfVolumeLightTexture, halfDepthBuffer, width / 2, height / 2);
 
@@ -35,7 +35,7 @@ public partial class VolumetricLightPass
         }
         else
         {
-            SetSingleKeyword(fullResKernel);
+            SetBlurKernel(fullResKernel);
 
             // Blur full-scale texture- use full-scale depth texture from shader
             BilateralBlur(volumeLightTexture, null, width, height);
@@ -62,7 +62,7 @@ public partial class VolumetricLightPass
     }
 
 
-    private void SetSingleKeyword(GlobalKeyword keyword)
+    private void SetBlurKernel(GlobalKeyword keyword)
     {
         commandBuffer.EnableKeyword(keyword);
 
@@ -77,21 +77,14 @@ public partial class VolumetricLightPass
     }
 
 
-    // Downsamples depth texture to active resolution buffer
+    // Downsamples depth texture to active Resolution buffer
     private void DownsampleDepthBuffer()
     {
-        // Downsample depth buffer
-        if (resolution == VolumetricResolution.Half || resolution == VolumetricResolution.Quarter)
-        {
-            // Downsample full depth to half
+        if (Resolution == VolumetricResolution.Half || Resolution == VolumetricResolution.Quarter)
             DownsampleDepth(null, halfDepthBuffer);
-        }
 
-        if (resolution == VolumetricResolution.Quarter)
-        {
-            // Downsample half depth to quarter
+        if (Resolution == VolumetricResolution.Quarter)
             DownsampleDepth(halfDepthBuffer, quarterDepthBuffer);
-        }
     }
 
 
@@ -119,8 +112,6 @@ public partial class VolumetricLightPass
         commandBuffer.SetKeyword(fullDepthSource, !depth.HasValue);
 
         if (depth.HasValue)
-        {
             commandBuffer.SetGlobalTexture(textureId, depth.Value);
-        }
     }
 }

@@ -31,7 +31,7 @@ public partial class VolumetricLightPass
     {
         get 
         {
-            return resolution switch
+            return Resolution switch
             {
                 VolumetricResolution.Quarter => quarterVolumeLightTexture,
                 VolumetricResolution.Half => halfVolumeLightTexture,
@@ -60,7 +60,7 @@ public partial class VolumetricLightPass
         cmd.GetTemporaryRT(volumeLightId, descriptor, FilterMode.Bilinear);
 
 
-        if (resolution == VolumetricResolution.Half)
+        if (Resolution == VolumetricResolution.Half)
         {
             descriptor.width /= 2;
             descriptor.height /= 2;
@@ -68,14 +68,14 @@ public partial class VolumetricLightPass
         }
 
         // Half/Quarter res both need half-res depth buffer for downsampling
-        if (resolution == VolumetricResolution.Half || resolution == VolumetricResolution.Quarter) 
+        if (Resolution == VolumetricResolution.Half || Resolution == VolumetricResolution.Quarter) 
         {
             depthDescriptor.width /= 2;
             depthDescriptor.height /= 2;
             cmd.GetTemporaryRT(halfDepthId, depthDescriptor, FilterMode.Point);
         }
 
-        if (resolution == VolumetricResolution.Quarter)
+        if (Resolution == VolumetricResolution.Quarter)
         {
             descriptor.width /= 4;
             descriptor.height /= 4;
@@ -98,13 +98,13 @@ public partial class VolumetricLightPass
     {
         cmd.ReleaseTemporaryRT(volumeLightId);
 
-        if (resolution == VolumetricResolution.Half)
+        if (Resolution == VolumetricResolution.Half)
             cmd.ReleaseTemporaryRT(halfVolumeLightId);
 
-        if (resolution == VolumetricResolution.Half || resolution == VolumetricResolution.Quarter)
+        if (Resolution == VolumetricResolution.Half || Resolution == VolumetricResolution.Quarter)
             cmd.ReleaseTemporaryRT(halfDepthId);
 
-        if (resolution == VolumetricResolution.Quarter)
+        if (Resolution == VolumetricResolution.Quarter)
         {
             cmd.ReleaseTemporaryRT(quarterVolumeLightId);
             cmd.ReleaseTemporaryRT(quarterDepthId);

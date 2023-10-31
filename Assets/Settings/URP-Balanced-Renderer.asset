@@ -81,9 +81,9 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
-  m_RenderingMode: 0
+  m_RenderingMode: 1
   m_DepthPrimingMode: 0
-  m_CopyDepthMode: 0
+  m_CopyDepthMode: 1
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
 --- !u!114 &92985702146755445
@@ -99,6 +99,10 @@ MonoBehaviour:
   m_Name: VolumetricLightFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  resolution: 0
+  resolution: 2
   lightRange: 75
   falloffRange: 10
+  noiseScale: 0.15
+  noiseIntensity: 0.8
+  noiseIntensityOffset: 0.3
+  noiseVelocity: {x: 0.1, y: 0.1, z: 0.1}

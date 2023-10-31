@@ -601,67 +601,67 @@
         <HintPath>/home/amog_os/Unity/Hub/Editor/2022.3.10f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/mscorlib.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Sysroot.Linux_x86_64">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Sysroot.Linux_x86_64.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Sysroot.Linux_x86_64.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Runtime">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Toolchain.Linux-x86_64">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Toolchain.Linux-x86_64.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Toolchain.Linux-x86_64.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Runtime">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Burst.Editor">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Burst.Editor.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Burst.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.SysrootPackage.Editor">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.SysrootPackage.Editor.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.SysrootPackage.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Burst">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Burst.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Burst.dll</HintPath>
     </Reference>
     <Reference Include="Unity.ShaderGraph.Editor">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.ShaderGraph.Editor.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.ShaderGraph.Editor.dll</HintPath>
     </Reference>
     <Reference Include="PPv2URPConverters">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/PPv2URPConverters.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/PPv2URPConverters.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Shaders">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Searcher.Editor">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Searcher.Editor.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Searcher.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VSCode.Editor">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Editor">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Editor">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics.Editor">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Mathematics.Editor.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.Mathematics.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
-        <HintPath>/media/amog_os/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
+        <HintPath>/media/SSD/Unity Projects/URP Volumetric Lighting/Library/ScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

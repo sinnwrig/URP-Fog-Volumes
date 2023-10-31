@@ -3,7 +3,7 @@
 
 // URP keywords
 #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+#pragma multi_compile _ _ADDITIONAL_LIGHTS
 #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
 #pragma multi_compile_fragment _ _SHADOWS_SOFT
 #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
@@ -31,23 +31,37 @@ half3 GetLightAttenuation(Light light)
 
 
 half3 GetMainLightContribution(float3 worldPosition)
-{
+{    
     float4 shadowCoord = TransformWorldToShadowCoord(worldPosition);
     
-    Light mainLight = GetMainLight(shadowCoord, worldPosition, unity_ProbesOcclusion);
+    Light light = GetMainLight();
+    light.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
 
-    return GetLightAttenuation(mainLight);
+    #if defined(_LIGHT_COOKIES)
+        real3 cookieColor = SampleMainLightCookie(worldPosition);
+        light.color *= cookieColor;
+    #endif
+
+    return GetLightAttenuation(light);
 }
-
 
 
 half3 GetAdditionalLightContribution(uint lightIndex, float3 worldPosition)
 {
-    float4 shadowCoord = TransformWorldToShadowCoord(worldPosition);
-    
-    Light additionalLight = GetAdditionalLight(lightIndex, worldPosition, unity_ProbesOcclusion);
+    #if !defined(USE_FORWARD_PLUS)
+        lightIndex = GetPerObjectLightIndex(lightIndex);
+    #endif
 
-    return GetLightAttenuation(additionalLight);
+    Light light = GetAdditionalPerObjectLight(lightIndex, worldPosition);
+
+    light.shadowAttenuation = AdditionalLightRealtimeShadow(lightIndex, worldPosition, light.direction);
+
+    #if defined(_LIGHT_COOKIES)
+        real3 cookieColor = SampleAdditionalLightCookie(lightIndex, worldPosition);
+        light.color *= cookieColor;
+    #endif
+
+    return GetLightAttenuation(light);
 }
 
 #endif

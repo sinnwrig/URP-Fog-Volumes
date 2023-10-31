@@ -155,23 +155,6 @@ ENDHLSL
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
 				float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
 
-				/*float near, far;
-				if (RaySphere(_InvLightMatrix, _WorldSpaceCameraPos.xyz, rayDir, near, far))
-				{	
-					far = min(far, linearDepth);
-
-    				float rayLength = (far - near);
-
-    				// Object is behind scene depth
-    				if (rayLength > 0)
-					{
-						half3 col = GetMainLightContribution(_WorldSpaceCameraPos.xyz + rayDir * near);
-						scene = half4(col, 1.0);
-					}
-				}
-
-				return scene;*/
-
 				return CalculateVolumetricLight(scene, uv, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
 			}
 
@@ -208,7 +191,7 @@ ENDHLSL
 				float4 source = SAMPLE_TEXTURE2D(_SourceTexture, sampler_SourceTexture, i.uv);
 				float4 sourceAdd = SAMPLE_TEXTURE2D(_SourceAdd, sampler_SourceAdd, i.uv);
 
-				source.xyz += sourceAdd.xyz * sourceAdd.w;
+				source.xyz += sourceAdd.xyz * min(sourceAdd.w, 1.0);
 
 				return source;
 			}

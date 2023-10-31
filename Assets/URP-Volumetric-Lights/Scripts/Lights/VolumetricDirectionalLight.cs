@@ -4,10 +4,13 @@ using UnityEngine.Rendering;
 
 public partial class VolumetricLight
 {
+    [Tooltip("Max directional light marching distance")]
+    public float maxRayLength = 400.0f;  
+
+
     private int SetupDirectionalLight(CommandBuffer cmd)
     {
-        Matrix4x4 matrix = transform.worldToLocalMatrix;
-        cmd.SetGlobalMatrix("_InvLightMatrix", matrix);
+        cmd.SetGlobalFloat("_MaxRayLength", maxRayLength);
 
         // use pass 2 - directional
         return 2;

@@ -6,7 +6,7 @@
 
 // Added transformation matrices to allow positioning, rotating, and scaling the intersection domains.
 // NOTE : I'm not exactly sure myself how transforming a view ray by a matrix still gives valid near/far intersection results in world space, but it does. 
-// I assumed it would return warped values depending on scale and rotation, but the numbers properly interact with scene depth.
+// I assumed it would return warped values depending on scale and rotation, but the numbers function properly.
 
 
 // NOTE : Finding a way to multiply ray origin and direction in the vertex stage will be better for performance, but also likely not to be worth it.
@@ -41,9 +41,7 @@ bool RaySphere(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float
 	float delta = b * b - a * c;
 
 	if (delta < 0.0)
-    {
 		return false;
-    }
 
 	float deltasqrt = sqrt(delta);
 	float arcp = 1.0 / a;
@@ -51,6 +49,7 @@ bool RaySphere(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float
 	near = (-b - deltasqrt) * arcp;
 	far = (-b + deltasqrt) * arcp;
 
+	near = max(near, 0.0);
 	return far > 0.0;
 }
 
@@ -108,6 +107,7 @@ bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out flo
 	else if (zfar > zcap.x)
 		far = cap.x;
 	
+	near = max(near, 0.0);
 	return far > 0.0 && far > near;
 }
 
@@ -143,22 +143,20 @@ bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 		float z = rayOrigin.z + near * rayDir.z;
 
 		if (z < 0.0 || z > s)
-        {
 			return false; 
-        }
 
 		far = cap;
 		float temp = min(far, near); 
 		far = max(far, near);
-		near = temp;
+
+		near = max(temp, 0.0);
 		return far > 0.0;
 	}
 
 	float delta = b * b - a * c;
+
 	if (delta < 0.0)
-    {
 		return false;
-    }
 
 	// 2 roots
 	float deltasqrt = sqrt(delta);
@@ -177,9 +175,7 @@ bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 	if (xnear < 0.0)
 	{
 		if (xfar < 0.0 || xfar > s)
-        {
 			return false;
-        }
 
 		near = far;
 		far = cap;
@@ -187,9 +183,7 @@ bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 	else if (xnear > s)
 	{
 		if (xfar < 0.0 || xfar > s)
-        {
 			return false;
-        }
 
 		near = cap;
 	}
@@ -206,6 +200,7 @@ bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 		far = cap;
 	}
 	
+	near = max(near, 0.0);
 	return far > 0.0;
 }
 
@@ -228,6 +223,8 @@ bool RayCube(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 	float3 tmax = p + q;
     near = max(tmin.x, max(tmin.y,tmin.z));
 	far = min(tmax.x, min(tmax.y,tmax.z));
+
+	near = max(near, 0.0);
 	return near < far && far > 0.0;
 }
 

@@ -5,14 +5,13 @@ TEXTURE2D(_DitherTexture);
 SAMPLER(sampler_DitherTexture);
 
 
-float3 _LightColor;
 float3 _LightPos;
 
 float2 _VolumetricLight; // x: scattering coef, y: extinction coef
 float4 _MieG; // x: 1 - g^2, y: 1 + g^2, z: 2*g, w: 1/4pi
 
 float3 _NoiseData; // x: scale, y: intensity, z: intensity offset
-float2 _NoiseVelocity; // x: x velocity, y: z velocity
+float3 _NoiseVelocity; // noise move direction
 
 float _MaxRayLength;
 int _SampleCount;
@@ -26,7 +25,7 @@ float3x4 _InvLightMatrix;
 
 float4 GetLightAttenuation(float3 wpos)
 {
-	half3 lightCol = 0;
+	half3 lightCol = 1.0;
 
 	if (_LightIndex < 0)
 		lightCol = GetMainLightContribution(wpos);
@@ -42,7 +41,7 @@ float GetDensity(float3 wpos)
     float density = 1;
 
 #ifdef NOISE
-	float noise = SAMPLE_TEXTURE3D(_NoiseTexture, sampler_NoiseTexture, frac(wpos * _NoiseData.x + float3(_Time.y * _NoiseVelocity.x, 0, _Time.y * _NoiseVelocity.y)));
+	float noise = SAMPLE_TEXTURE3D(_NoiseTexture, sampler_NoiseTexture, frac(wpos * _NoiseData.x + (_Time.y * _NoiseVelocity)));
 	noise = saturate(noise - _NoiseData.z) * _NoiseData.y;
 	density = saturate(noise);
 #endif
@@ -144,7 +143,7 @@ float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, floa
 
     // No intersection
     if (!hit)
-        return source;
+        return source;	
     
     far = min(far, linearDepth);
     float rayLength = (far - near);
@@ -156,6 +155,7 @@ float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, floa
     // Jump to point on intersection surface
     float3 rayStart = cameraPos + viewDir * near;
 
+	// Additive blending
 	return source + RayMarch(uv, rayStart, viewDir, rayLength);
 }
 

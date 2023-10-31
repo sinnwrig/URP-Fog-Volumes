@@ -13,8 +13,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     public float lightRange;
     public float falloffRange;
 
-    private VolumetricLightPass lightPass;
+    public float noiseScale = 1.0f;
+    public float noiseIntensity = 1.0f;
+    public float noiseIntensityOffset = 0.1f;
+    public Vector3 noiseVelocity = Vector3.one * 0.1f;   
 
+
+    private VolumetricLightPass lightPass;
     private Shader bilateralBlur;
     private Shader volumetricLight;
 
@@ -23,13 +28,9 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     {
         ValidateShaders();
 
-        lightPass = new VolumetricLightPass(bilateralBlur, volumetricLight) 
+        lightPass = new VolumetricLightPass(this, bilateralBlur, volumetricLight) 
         { 
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
-            resolution = resolution,
-            feature = this,
-            lightRange = lightRange,
-            falloffRange = falloffRange
         };
     }
 

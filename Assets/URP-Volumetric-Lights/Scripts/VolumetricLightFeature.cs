@@ -39,7 +39,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     {
         if (!renderingData.cameraData.isPreviewCamera)
         {
-            lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+            lightPass.ConfigureInput(ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth);
             renderer.EnqueuePass(lightPass);
         }
     }

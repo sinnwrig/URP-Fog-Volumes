@@ -36,9 +36,12 @@ float4 GetLightAttenuation(float3 wpos)
 }
 
 
-float GetDensity(float3 wpos)
+float GetDensity(float3 wpos, float distance)
 {
     float density = 1;
+
+	// Fade density as position gets further from camera
+	float distanceFade = smoothstep(_LightRange.y, _LightRange.x, distance);
 
 #ifdef NOISE
 	float noise = SAMPLE_TEXTURE3D(_NoiseTexture, sampler_NoiseTexture, frac(wpos * _NoiseData.x + (_Time.y * _NoiseVelocity)));
@@ -46,7 +49,7 @@ float GetDensity(float3 wpos)
 	density = saturate(noise);
 #endif
     
-    return density;
+    return density * distanceFade;
 }        
 
 
@@ -56,7 +59,7 @@ float MieScattering(float cosAngle, float4 g)
 }
 
 
-float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLength)
+float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
 {
 	float2 interleavedPos = (fmod(floor(screenPos.xy), 8.0));
 	float offset = SAMPLE_TEXTURE2D(_DitherTexture, sampler_DitherTexture, interleavedPos / 8.0 + float2(0.5 / 8.0, 0.5 / 8.0)).w;
@@ -79,13 +82,16 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 	// we don't know about density between camera and light's volume, assume 0.5
 	float extinction = length(_WorldSpaceCameraPos.xyz - currentPosition) * _VolumetricLight.y * 0.5;
 #endif
+	float dist = length(cameraPos - currentPosition);
 
 	[loop]
 	for (int i = 0; i < stepCount; ++i)
 	{
+		dist += stepSize;
+
 		// Attenuation but actually just use color
 		float4 attenuatedLight = GetLightAttenuation(currentPosition);
-		float density = GetDensity(currentPosition);
+		float density = GetDensity(currentPosition, dist);
 
         float scattering = _VolumetricLight.x * stepSize * density;
 		extinction += _VolumetricLight.y * stepSize * density;
@@ -156,7 +162,7 @@ float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, floa
     float3 rayStart = cameraPos + viewDir * near;
 
 	// Additive blending
-	return source + RayMarch(uv, rayStart, viewDir, rayLength);
+	return source + RayMarch(uv, rayStart, viewDir, rayLength, cameraPos);
 }
 
 

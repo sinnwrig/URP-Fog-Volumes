@@ -99,9 +99,9 @@ MonoBehaviour:
   m_Name: VolumetricLightFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  resolution: 2
+  resolution: 0
   lightRange: 75
-  falloffRange: 10
+  falloffRange: 50
   noiseScale: 0.15
   noiseIntensity: 0.8
   noiseIntensityOffset: 0.3

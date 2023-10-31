@@ -115,11 +115,20 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
-        var source = renderingData.cameraData.renderer.cameraColorTargetHandle;
+        var renderer = renderingData.cameraData.renderer;
+
+        #if UNITY_2022_1_OR_NEWER
+            var cameraColor = renderer.cameraColorTargetHandle;
+            var cameraDepth = renderer.cameraDepthTargetHandle;
+        #else
+            var cameraColor = renderer.cameraColorTarget;
+            var cameraDepth = renderer.cameraDepthTarget;
+        #endif
+
+        var source = cameraColor;
         var descriptor = renderingData.cameraData.cameraTargetDescriptor;
 
         commandBuffer = CommandBufferPool.Get("Volumetric Light Pass");
-
 
         var lights = GetSortedLights(ref renderingData);
 
@@ -129,12 +138,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         DownsampleDepthBuffer();
         DrawLights(ref renderingData.lightData, lights);
         BilateralBlur(descriptor.width, descriptor.height);
-
-        commandBuffer.SetGlobalTexture("_SourceTexture", source);
-        commandBuffer.SetGlobalTexture("_SourceAdd", volumeLightTexture);
-
-        // Use blit add kernel to merge source color and the blurred light texture
-        commandBuffer.Blit(volumeLightTexture, source, lightMaterial, 3);
+        BlendLights(cameraColor, descriptor);
 
         context.ExecuteCommandBuffer(commandBuffer);
 
@@ -145,7 +149,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     private void SetShaderProperties()
     {
         // Set global shader variables
-        commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange, feature.falloffRange));
+        commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange - feature.falloffRange, feature.lightRange));
 
         commandBuffer.SetGlobalTexture("_DitherTexture", ditherTexture);
         commandBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);
@@ -163,9 +167,8 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         var destinationB = tempHandle;
         var latestDest = tempHandle;
 
-        // Clear textures
-        ClearColor(commandBuffer, destinationA, Color.black);
-        ClearColor(commandBuffer, destinationB, Color.black);
+        // Clear initial texture
+        ClearColor(commandBuffer, latestDest, Color.black);
 
         SetShaderProperties();
 
@@ -194,6 +197,21 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         if (latestDest == tempHandle)
             commandBuffer.Blit(latestDest, VolumeLightBuffer);
         
+        commandBuffer.ReleaseTemporaryRT(tempId);
+    }
+
+
+    private void BlendLights(RenderTargetIdentifier target, RenderTextureDescriptor targetDescriptor)
+    {
+        commandBuffer.GetTemporaryRT(tempId, targetDescriptor);
+        commandBuffer.Blit(target, tempHandle);
+
+        commandBuffer.SetGlobalTexture("_SourceTexture", tempHandle);
+        commandBuffer.SetGlobalTexture("_SourceAdd", volumeLightTexture);
+
+        // Use blit add kernel to merge target color and the light buffer
+        commandBuffer.Blit(volumeLightTexture, target, lightMaterial, 3);
+
         commandBuffer.ReleaseTemporaryRT(tempId);
     }
 

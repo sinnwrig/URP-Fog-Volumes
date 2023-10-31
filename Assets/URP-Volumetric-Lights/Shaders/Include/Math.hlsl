@@ -11,7 +11,7 @@ static const float RAD2DEG = 360 / (MATH_PI * 2);
 // Remap the components of a vector from one range to another
 float4 Remap(float4 v, float minOld, float maxOld, float minNew, float maxNew) 
 {
-	return saturate(minNew + (v - minOld) * (maxNew - minNew) / (maxOld - minOld));//
+	return saturate(minNew + (v - minOld) * (maxNew - minNew) / (maxOld - minOld));
 }
 
 // Remap a float value (with a known mininum and maximum) to a value between 0 and 1
@@ -37,12 +37,6 @@ float SmoothMax(float a, float b, float k)
 	k = min(0, -k);
 	float h = max(0, min(1, (b - a + k) / (2 * k)));
 	return a * h + b * (1 - h) - k * h * (1 - h);
-}
-
-
-float Blend(float startHeight, float blendDst, float height) 
-{
-	return smoothstep(startHeight - blendDst / 2, startHeight + blendDst / 2, height);
 }
 
 

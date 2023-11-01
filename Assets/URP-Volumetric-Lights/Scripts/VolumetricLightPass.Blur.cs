@@ -19,19 +19,19 @@ public partial class VolumetricLightPass
         {
             SetBlurKernel(quarterResKernel); 
             
-            BilateralBlur(quarterVolumeLightTexture, quarterDepthBuffer, width / 4, height / 4); 
+            BilateralBlur(quarterVolumeLightTexture, quarterDepthTarget, width / 4, height / 4); 
             
             // Upscale to full res
-            Upsample(quarterVolumeLightTexture, quarterDepthBuffer, volumeLightTexture);
+            Upsample(quarterVolumeLightTexture, quarterDepthTarget, volumeLightTexture);
         }
         else if (Resolution == VolumetricResolution.Half)
         {
             SetBlurKernel(halfResKernel);
 
-            BilateralBlur(halfVolumeLightTexture, halfDepthBuffer, width / 2, height / 2);
+            BilateralBlur(halfVolumeLightTexture, halfDepthTarget, width / 2, height / 2);
 
             // Upscale to full res
-            Upsample(halfVolumeLightTexture, halfDepthBuffer, volumeLightTexture);
+            Upsample(halfVolumeLightTexture, halfDepthTarget, volumeLightTexture);
         }
         else
         {
@@ -81,10 +81,10 @@ public partial class VolumetricLightPass
     private void DownsampleDepthBuffer()
     {
         if (Resolution == VolumetricResolution.Half || Resolution == VolumetricResolution.Quarter)
-            DownsampleDepth(null, halfDepthBuffer);
+            DownsampleDepth(null, halfDepthTarget);
 
         if (Resolution == VolumetricResolution.Quarter)
-            DownsampleDepth(halfDepthBuffer, quarterDepthBuffer);
+            DownsampleDepth(halfDepthTarget, quarterDepthTarget);
     }
 
 

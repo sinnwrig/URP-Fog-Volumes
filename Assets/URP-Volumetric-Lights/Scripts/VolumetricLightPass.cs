@@ -9,6 +9,7 @@ using System.Reflection;
 
 public partial class VolumetricLightPass : ScriptableRenderPass
 {
+    private static readonly FieldInfo shadowCasterField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
     private static readonly Plane[] frustumPlanes = new Plane[6];
 
 
@@ -16,7 +17,12 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     {
         public VisibleLight visibleLight;
         public int lightIndex;
+        public int shadowIndex;
         public VolumetricLight volumeLight;
+        public Vector4 position;
+        public Vector4 color;
+        public Vector4 attenuation;
+        public Vector4 spotDirection;
     }
 
 
@@ -83,6 +89,8 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
     private List<SortedLight> GetSortedLights(ref RenderingData renderingData)
     {
+        var shadowCasterPass = (AdditionalLightsShadowCasterPass)shadowCasterField.GetValue(renderingData.cameraData.renderer);
+
         LightData lightData = renderingData.lightData;
         NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
@@ -100,12 +108,17 @@ public partial class VolumetricLightPass : ScriptableRenderPass
             if (!visibleLight.light.TryGetComponent(out VolumetricLight volumeLight))
                 continue;
 
-            sortedLights.Add(new SortedLight
+            SortedLight light = new()
             {
                 visibleLight = visibleLight,
-                lightIndex = i,
+                lightIndex = i == lightData.mainLightIndex ? -1 : i,
+                shadowIndex = shadowCasterPass.GetShadowLightIndexFromLightIndex(i),
                 volumeLight = volumeLight,
-            });
+            };
+
+            UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, i, out light.position, out light.color, out light.attenuation, out light.spotDirection, out _);
+
+            sortedLights.Add(light);
         }
 
         return sortedLights;
@@ -136,7 +149,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
             return;
 
         DownsampleDepthBuffer();
-        DrawLights(ref renderingData.lightData, lights);
+        DrawLights(lights);
         BilateralBlur(descriptor.width, descriptor.height);
         BlendLights(cameraColor, descriptor);
 
@@ -159,45 +172,48 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     }
 
 
-    private void DrawLights(ref LightData lightData, List<SortedLight> lights)
+    private void DrawLights(List<SortedLight> lights)
     {
         commandBuffer.GetTemporaryRT(tempId, lightBufferDescriptor, FilterMode.Point);
 
-        var destinationA = VolumeLightBuffer;
-        var destinationB = tempHandle;
-        var latestDest = tempHandle;
+        var source = VolumeLightBuffer;
+        var target = tempHandle;
 
         // Clear initial texture
-        ClearColor(commandBuffer, latestDest, Color.black);
+        ClearColor(commandBuffer, target, Color.black);
 
         SetShaderProperties();
 
         // Light loop
         for (int i = 0; i < lights.Count; i++)
         {
-            int pass = lights[i].volumeLight.SetShaderProperties(commandBuffer);
-
-            if (pass < 0)
-                continue;
-
-            var source = latestDest;
-            var target = source == destinationA ? destinationB : destinationA;
-
-            commandBuffer.SetGlobalTexture("_SourceTexture", source);
-            
-            int lightIndex = lights[i].lightIndex;
-            lightIndex = lightIndex == lightData.mainLightIndex ? -1 : lightIndex;
-
-            commandBuffer.SetGlobalInt("_LightIndex", lightIndex);
-
-            commandBuffer.Blit(source, target, lightMaterial, pass);
-            latestDest = target;
+            (source, target) = (target, source);
+            DrawLight(lights[i], source, target);
         }
 
-        if (latestDest == tempHandle)
-            commandBuffer.Blit(latestDest, VolumeLightBuffer);
+        if (target == tempHandle)
+            commandBuffer.Blit(target, VolumeLightBuffer);
         
         commandBuffer.ReleaseTemporaryRT(tempId);
+    }
+
+
+    private void DrawLight(SortedLight light, RenderTargetIdentifier source, RenderTargetIdentifier target)
+    {
+        int pass = light.volumeLight.SetShaderProperties(commandBuffer);
+
+        if (pass < 0)
+            return;
+    
+        commandBuffer.SetGlobalInt("_LightIndex", light.lightIndex);
+        commandBuffer.SetGlobalInt("_ShadowIndex", light.shadowIndex);
+        commandBuffer.SetGlobalTexture("_SourceTexture", source);
+        commandBuffer.SetGlobalVector("_LightPosition", light.position);
+        commandBuffer.SetGlobalVector("_LightColor", light.color);
+        commandBuffer.SetGlobalVector("_LightAttenuation", light.attenuation);
+        commandBuffer.SetGlobalVector("_SpotDirection", light.spotDirection);
+
+        commandBuffer.Blit(source, target, lightMaterial, pass);
     }
 
 

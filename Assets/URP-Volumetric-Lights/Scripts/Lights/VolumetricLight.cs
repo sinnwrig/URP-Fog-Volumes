@@ -30,7 +30,7 @@ public partial class VolumetricLight : MonoBehaviour
 
     public int SetShaderProperties(CommandBuffer cmd)
     {
-        // Light was destroyed without deregistring, deregister and destroy component now
+        // Light was destroyed, so component must go too
         if (Light == null)
         {
             DestroyImmediate(this);

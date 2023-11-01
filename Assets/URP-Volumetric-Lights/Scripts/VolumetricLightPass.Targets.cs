@@ -5,14 +5,14 @@ using UnityEngine.Rendering.Universal;
 
 public partial class VolumetricLightPass
 {
-    // Depth buffers
-    private static readonly int halfDepthId = Shader.PropertyToID("_HalfDepthBuffer");
-    private static readonly RenderTargetIdentifier halfDepthBuffer = new(halfDepthId);
-    private static readonly int quarterDepthId = Shader.PropertyToID("_QuarterDepthBuffer");
-    private static readonly RenderTargetIdentifier quarterDepthBuffer = new(quarterDepthId);
+    // Depth render targets
+    private static readonly int halfDepthId = Shader.PropertyToID("_HalfDepthTarget");
+    private static readonly RenderTargetIdentifier halfDepthTarget = new(halfDepthId);
+    private static readonly int quarterDepthId = Shader.PropertyToID("_QuarterDepthTarget");
+    private static readonly RenderTargetIdentifier quarterDepthTarget = new(quarterDepthId);
 
 
-    // Light color buffers
+    // Light render targets
     private static readonly int volumeLightId = Shader.PropertyToID("_VolumeLightTexture");
     private static readonly RenderTargetIdentifier volumeLightTexture = new(volumeLightId);
     private static readonly int halfVolumeLightId = Shader.PropertyToID("_HalfVolumeLightTexture");
@@ -21,12 +21,12 @@ public partial class VolumetricLightPass
     private static readonly RenderTargetIdentifier quarterVolumeLightTexture = new(quarterVolumeLightId);
 
 
-    // Temp buffer
+    // Temp render target
     private static readonly int tempId = Shader.PropertyToID("_Temp");
     private RenderTargetIdentifier tempHandle = new(tempId);
 
 
-    // Active resolution light buffer
+    // Active resolution light target
     public RenderTargetIdentifier VolumeLightBuffer 
     {
         get 

@@ -19,21 +19,7 @@ int _SampleCount;
 float3 _LightDir;
 float2 _LightRange;
 
-int _LightIndex;
 float3x4 _InvLightMatrix;
-
-
-float4 GetLightAttenuation(float3 wpos)
-{
-	half3 lightCol = 1.0;
-
-	if (_LightIndex < 0)
-		lightCol = GetMainLightContribution(wpos);
-	else 
-		lightCol = GetAdditionalLightContribution(_LightIndex, wpos);
-
-	return float4(lightCol, 0.0);
-}
 
 
 float GetDensity(float3 wpos, float distance)
@@ -44,7 +30,8 @@ float GetDensity(float3 wpos, float distance)
 	float distanceFade = smoothstep(_LightRange.y, _LightRange.x, distance);
 
 #ifdef NOISE
-	float noise = SAMPLE_TEXTURE3D(_NoiseTexture, sampler_NoiseTexture, frac(wpos * _NoiseData.x + (_Time.y * _NoiseVelocity)));
+	// Prevent compiler from using gradient function by specifying mip level
+	float noise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, frac(wpos * _NoiseData.x + (_Time.y * _NoiseVelocity)), 0).x;
 	noise = saturate(noise - _NoiseData.z) * _NoiseData.y;
 	density = saturate(noise);
 #endif
@@ -55,14 +42,14 @@ float GetDensity(float3 wpos, float distance)
 
 float MieScattering(float cosAngle, float4 g)
 {
-    return g.w * (g.x / (pow(g.y - g.z * cosAngle, 1.5)));			
+    return g.w * (g.x / (pow(abs(g.y - g.z * cosAngle), 1.5)));
 }
 
 
 float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
 {
 	float2 interleavedPos = (fmod(floor(screenPos.xy), 8.0));
-	float offset = SAMPLE_TEXTURE2D(_DitherTexture, sampler_DitherTexture, interleavedPos / 8.0 + float2(0.5 / 8.0, 0.5 / 8.0)).w;
+	float offset = SAMPLE_TEXTURE2D_LOD(_DitherTexture, sampler_DitherTexture, interleavedPos / 8.0 + float2(0.5 / 8.0, 0.5 / 8.0), 0).w;
 
 	int stepCount = _SampleCount;
 
@@ -73,11 +60,8 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 
 	float4 vlight = 0;
 
-	float cosAngle;
-
 #ifdef DIRECTIONAL_LIGHT
     float extinction = 0;
-	cosAngle = dot(_LightDir.xyz, -rayDir);
 #else
 	// we don't know about density between camera and light's volume, assume 0.5
 	float extinction = length(_WorldSpaceCameraPos.xyz - currentPosition) * _VolumetricLight.y * 0.5;
@@ -98,22 +82,16 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 
 		float4 light = attenuatedLight * scattering * exp(-extinction);
 
-    #ifndef DIRECTIONAL_LIGHT
+
 		// phase function for spot and point lights
-        float3 tolight = normalize(currentPosition - _LightPos.xyz);
-        cosAngle = dot(tolight, -rayDir);
-		light *= MieScattering(cosAngle, _MieG);
-    #endif         
+        float3 tolight = -normalize(_LightPosition.xyz - currentPosition * _LightPosition.w);
+        float cosAngle = dot(tolight, -rayDir);
+		light *= MieScattering(cosAngle, _MieG);     
 
 		vlight += light;
 
 		currentPosition += step;				
 	}
-
-#ifdef DIRECTIONAL_LIGHT
-	// apply phase function for dir light
-	vlight *= MieScattering(cosAngle, _MieG);
-#endif
 
 	vlight = max(0, vlight);	
 
@@ -122,6 +100,9 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 #else
     vlight.w = 1;
 #endif
+
+	// Force 0-1 range
+	vlight.w = saturate(vlight.w);
 
 	return vlight;
 }
@@ -134,17 +115,13 @@ float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, floa
     float near = 0;
     float far = MAX_FLOAT;
 
-#ifdef POINT_LIGHT
+#if defined(POINT_LIGHT)
     hit = RaySphere(_InvLightMatrix, cameraPos, viewDir, near, far);
-#else
-    #ifdef SPOT_LIGHT
-        hit = RayCone(_InvLightMatrix, cameraPos, viewDir, near, far);
-    #else
-        #ifdef DIRECTIONAL_LIGHT 
-            hit = true; 
-			far = _MaxRayLength;
-        #endif
-    #endif
+#elif defined(SPOT_LIGHT)
+    hit = RayCone(_InvLightMatrix, cameraPos, viewDir, near, far);
+#elif defined(DIRECTIONAL_LIGHT)
+    hit = true; 
+	far = _MaxRayLength;
 #endif
 
     // No intersection

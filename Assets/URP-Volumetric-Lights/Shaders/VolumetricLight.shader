@@ -137,7 +137,6 @@ ENDHLSL
 			#pragma fragment frag
 			#pragma target 4.0
 
-
 			#define DIRECTIONAL_LIGHT
 
 			#include "Include/LightAttenuation.hlsl"

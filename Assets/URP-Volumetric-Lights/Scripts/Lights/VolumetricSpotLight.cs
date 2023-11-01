@@ -14,7 +14,7 @@ public partial class VolumetricLight
         Matrix4x4 matrix = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(height, height, range)).inverse;
         cmd.SetGlobalMatrix("_InvLightMatrix", matrix);
 
-        // Use pass o - spot
+        // Use pass 0 - spot
         return 0;
     }
 }

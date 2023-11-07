@@ -105,5 +105,5 @@ MonoBehaviour:
   noise: 1
   noiseScale: 0.15
   noiseIntensity: 0.8
-  noiseIntensityOffset: 0.3
+  noiseIntensityOffset: 0.33
   noiseVelocity: {x: 0.1, y: 0.1, z: 0.1}

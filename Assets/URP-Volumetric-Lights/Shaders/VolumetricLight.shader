@@ -12,7 +12,12 @@ HLSLINCLUDE
 #include "/Include/Intersection.hlsl"
 
 #define MAX_STEPS 25
-#define NOISE
+
+
+#pragma shader_feature SPOT_LIGHT
+#pragma shader_feature POINT_LIGHT
+#pragma shader_feature DIRECTIONAL_LIGHT
+#pragma shader_feature NOISE
 
 
 struct appdata
@@ -32,7 +37,7 @@ struct v2f
 
 v2f vert(appdata v)
 {
-	v2f output;
+	v2f output = (v2f)0;
 	output.vertex = TransformObjectToHClip(v.vertex.xyz);
 	output.uv = v.uv;
 
@@ -68,8 +73,6 @@ ENDHLSL
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma target 4.0
-
-			#define SPOT_LIGHT
 			
 			#include "Include/LightAttenuation.hlsl"
 			#include "Include/VolumetricLight.hlsl"	
@@ -92,75 +95,7 @@ ENDHLSL
 			ENDHLSL
 		}
 
-		// Pass 1 - Point Light
-		Pass
-		{
-			Cull Off ZWrite Off ZTest Always
-
-			HLSLPROGRAM
-
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-
-			#define POINT_LIGHT
-			
-			#include "Include/LightAttenuation.hlsl"
-			#include "Include/VolumetricLight.hlsl"	
-
-
-			half4 frag(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy;
-
-				float len = length(i.viewVector);
-				float3 rayDir = i.viewVector / len;				
-
-				half4 scene = SAMPLE_TEXTURE2D(_SourceTexture, sampler_SourceTexture, uv);
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-				float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
-
-				return CalculateVolumetricLight(scene, uv, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
-			}
-
-			ENDHLSL
-		}
-
-		// Pass 2 - Directional Light
-		Pass
-		{
-			Cull Off ZWrite Off ZTest Always
-
-			HLSLPROGRAM
-
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-
-			#define DIRECTIONAL_LIGHT
-
-			#include "Include/LightAttenuation.hlsl"
-			#include "Include/VolumetricLight.hlsl"	
-
-
-			half4 frag(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy;
-
-				float len = length(i.viewVector);
-				float3 rayDir = i.viewVector / len;				
-
-				half4 scene = SAMPLE_TEXTURE2D(_SourceTexture, sampler_SourceTexture, uv);
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-				float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
-
-				return CalculateVolumetricLight(scene, uv, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
-			}
-
-			ENDHLSL
-		}
-
-		// Pass 3 - Blit add into result
+		// Pass 1 - Blit add into result
 		Pass
 		{
 			ZTest Always Cull Off ZWrite Off
@@ -176,10 +111,9 @@ ENDHLSL
 
 			v2f addVert(appdata v)
 			{
-				v2f output;
+				v2f output = (v2f)0;
 				output.vertex = TransformObjectToHClip(v.vertex.xyz);
 				output.uv = v.uv;
-				output.viewVector = float3(0, 0, 0);
 
 				return output;
 			}

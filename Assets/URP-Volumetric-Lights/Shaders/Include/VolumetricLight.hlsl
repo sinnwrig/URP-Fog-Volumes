@@ -1,22 +1,21 @@
-TEXTURE3D(_NoiseTexture);
-SAMPLER(sampler_NoiseTexture);
+
+#if defined(NOISE)
+	TEXTURE3D(_NoiseTexture);
+	SAMPLER(sampler_NoiseTexture);
+	float3 _NoiseData; // x: scale, y: intensity, z: intensity offset
+	float3 _NoiseVelocity; // noise move direction
+#endif
+
 
 TEXTURE2D(_DitherTexture);
 SAMPLER(sampler_DitherTexture);
 
-
-float3 _LightPos;
-
 float2 _VolumetricLight; // x: scattering coef, y: extinction coef
-float4 _MieG; // x: 1 - g^2, y: 1 + g^2, z: 2*g, w: 1/4pi
-
-float3 _NoiseData; // x: scale, y: intensity, z: intensity offset
-float3 _NoiseVelocity; // noise move direction
+float3 _MieG; // x: 1 - g^2, y: 1 + g^2, z: 2*g
 
 float _MaxRayLength;
 int _SampleCount;
 
-float3 _LightDir;
 float2 _LightRange;
 
 float3x4 _InvLightMatrix;
@@ -29,9 +28,8 @@ float GetDensity(float3 wpos, float distance)
 	// Fade density as position gets further from camera
 	float distanceFade = smoothstep(_LightRange.y, _LightRange.x, distance);
 
-#ifdef NOISE
-	// Prevent compiler from using gradient function by specifying mip level
-	float noise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, frac(wpos * _NoiseData.x + (_Time.y * _NoiseVelocity)), 0).x;
+#if defined(NOISE)
+	float noise = SAMPLE_BASE3D(_NoiseTexture, sampler_NoiseTexture, frac(wpos * _NoiseData.x + _Time.y * _NoiseVelocity)).x;
 	noise = saturate(noise - _NoiseData.z) * _NoiseData.y;
 	density = saturate(noise);
 #endif
@@ -40,16 +38,18 @@ float GetDensity(float3 wpos, float distance)
 }        
 
 
-float MieScattering(float cosAngle, float4 g)
+float MieScattering(float cosAngle)
 {
-    return g.w * (g.x / (pow(abs(g.y - g.z * cosAngle), 1.5)));
+	float3 g = _MieG;
+	// Magic number is 1/4pi
+    return (0.07957747154) * (g.x / (pow(abs(g.y - g.z * cosAngle), 1.5)));
 }
 
 
 float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
 {
 	float2 interleavedPos = (fmod(floor(screenPos.xy), 8.0));
-	float offset = SAMPLE_TEXTURE2D_LOD(_DitherTexture, sampler_DitherTexture, interleavedPos / 8.0 + float2(0.5 / 8.0, 0.5 / 8.0), 0).w;
+	float offset = SAMPLE_BASE(_DitherTexture, sampler_DitherTexture, interleavedPos / 8.0 + (float2)(0.5 / 8.0)).w;
 
 	int stepCount = _SampleCount;
 
@@ -60,7 +60,7 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 
 	float4 vlight = 0;
 
-#ifdef DIRECTIONAL_LIGHT
+#if defined(DIRECTIONAL_LIGHT)
     float extinction = 0;
 #else
 	// we don't know about density between camera and light's volume, assume 0.5
@@ -86,7 +86,7 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 		// phase function for spot and point lights
         float3 tolight = -normalize(_LightPosition.xyz - currentPosition * _LightPosition.w);
         float cosAngle = dot(tolight, -rayDir);
-		light *= MieScattering(cosAngle, _MieG);     
+		light *= MieScattering(cosAngle);     
 
 		vlight += light;
 
@@ -95,7 +95,7 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 
 	vlight = max(0, vlight);	
 
-#ifdef DIRECTIONAL_LIGHT // use "proper" out-scattering/absorption for dir light 
+#if defined(DIRECTIONAL_LIGHT) // use "proper" out-scattering/absorption for dir light 
     vlight.w = exp(-extinction);
 #else
     vlight.w = 1;

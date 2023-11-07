@@ -49,10 +49,10 @@ v2fDownsample VertDownsampleDepth(appdata v)
 float DownsampleDepth(v2fDownsample input) : SV_TARGET
 {
 	float4 depth;
-	depth.x = SAMPLE_TEXTURE2D(_DownsampleSource, sampler_DownsampleSource, input.uv00).x;
-	depth.y = SAMPLE_TEXTURE2D(_DownsampleSource, sampler_DownsampleSource, input.uv01).x;
-	depth.z = SAMPLE_TEXTURE2D(_DownsampleSource, sampler_DownsampleSource, input.uv10).x;
-	depth.w = SAMPLE_TEXTURE2D(_DownsampleSource, sampler_DownsampleSource, input.uv11).x;
+	depth.x = SAMPLE_BASE(_DownsampleSource, sampler_DownsampleSource, input.uv00).x;
+	depth.y = SAMPLE_BASE(_DownsampleSource, sampler_DownsampleSource, input.uv01).x;
+	depth.z = SAMPLE_BASE(_DownsampleSource, sampler_DownsampleSource, input.uv10).x;
+	depth.w = SAMPLE_BASE(_DownsampleSource, sampler_DownsampleSource, input.uv11).x;
 
 #if DOWNSAMPLE_DEPTH_MODE == 0 // min depth
     return min(min(depth.x, depth.y), min(depth.z, depth.w));

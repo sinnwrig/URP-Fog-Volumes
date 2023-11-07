@@ -17,25 +17,25 @@ public partial class VolumetricLightPass
     {
         if (Resolution == VolumetricResolution.Quarter)
         {
-            SetBlurKernel(quarterResKernel); 
+            SetKeyword(quarterResKernel, fullResKernel, halfResKernel); 
             
             BilateralBlur(quarterVolumeLightTexture, quarterDepthTarget, width / 4, height / 4); 
             
-            // Upscale to full res
+            // Upsample to full res
             Upsample(quarterVolumeLightTexture, quarterDepthTarget, volumeLightTexture);
         }
         else if (Resolution == VolumetricResolution.Half)
         {
-            SetBlurKernel(halfResKernel);
+            SetKeyword(halfResKernel, fullResKernel, quarterResKernel);
 
             BilateralBlur(halfVolumeLightTexture, halfDepthTarget, width / 2, height / 2);
 
-            // Upscale to full res
+            // Upsample to full res
             Upsample(halfVolumeLightTexture, halfDepthTarget, volumeLightTexture);
         }
         else
         {
-            SetBlurKernel(fullResKernel);
+            SetKeyword(fullResKernel, halfResKernel, quarterResKernel);
 
             // Blur full-scale texture- use full-scale depth texture from shader
             BilateralBlur(volumeLightTexture, null, width, height);
@@ -50,11 +50,11 @@ public partial class VolumetricLightPass
 
         SetDepthTexture("_DepthTexture", depthBuffer);
 
-        // Horizontal bilateral blur
+        // Horizontal blur
         commandBuffer.SetGlobalTexture("_BlurSource", source);
         commandBuffer.Blit(null, tempHandle, bilateralBlur, 0);
 
-        // Vertical bilateral blur
+        // Vertical blur
         commandBuffer.SetGlobalTexture("_BlurSource", tempHandle);
         commandBuffer.Blit(null, source, bilateralBlur, 1);
 
@@ -62,36 +62,20 @@ public partial class VolumetricLightPass
     }
 
 
-    private void SetBlurKernel(GlobalKeyword keyword)
-    {
-        commandBuffer.EnableKeyword(keyword);
-
-        if (keyword.name != fullResKernel.name)
-            commandBuffer.DisableKeyword(fullResKernel);
-
-        if (keyword.name != halfResKernel.name)
-            commandBuffer.DisableKeyword(halfResKernel);
-
-        if (keyword.name != quarterResKernel.name)
-            commandBuffer.DisableKeyword(quarterResKernel);
-    }
-
-
-    // Downsamples depth texture to active Resolution buffer
+    // Downsamples depth texture to active resolution buffer
     private void DownsampleDepthBuffer()
     {
         if (Resolution == VolumetricResolution.Half || Resolution == VolumetricResolution.Quarter)
-            DownsampleDepth(null, halfDepthTarget);
+        {
+            SetDepthTexture("_DownsampleSource", null);
+            commandBuffer.Blit(null, halfDepthTarget, bilateralBlur, 2);
+        }
 
         if (Resolution == VolumetricResolution.Quarter)
-            DownsampleDepth(halfDepthTarget, quarterDepthTarget);
-    }
-
-
-    private void DownsampleDepth(RenderTargetIdentifier? source, RenderTargetIdentifier destination)
-    {
-        SetDepthTexture("_DownsampleSource", source);
-        commandBuffer.Blit(null, destination, bilateralBlur, 2);
+        {
+            SetDepthTexture("_DownsampleSource", halfDepthTarget);
+            commandBuffer.Blit(null, quarterDepthTarget, bilateralBlur, 2);
+        }
     }
 
 
@@ -106,7 +90,7 @@ public partial class VolumetricLightPass
 
     // Use shader variants to either 
     // 1: Use the depth texture being assigned 
-    // 2: Use the _CameraDepthTexture property if the texture is null
+    // 2: Use the _CameraDepthTexture property
     private void SetDepthTexture(string textureId, RenderTargetIdentifier? depth)
     {
         commandBuffer.SetKeyword(fullDepthSource, !depth.HasValue);

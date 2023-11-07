@@ -41,16 +41,12 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricDirectionalLight.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Targets.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightFeature.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricPointLight.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricSpotLight.cs" />
      <Compile Include="Assets/CorgiGodRays/Scripts/GodRaysRenderPass.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Blur.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/BlitUtility.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLight.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricResolution.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Lights/VolumetricLight.cs" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/VolumetricLight.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Math.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Intersection.hlsl" />

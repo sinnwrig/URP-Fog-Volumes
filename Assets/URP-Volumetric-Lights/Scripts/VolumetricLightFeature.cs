@@ -13,6 +13,9 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     public float lightRange;
     public float falloffRange;
 
+
+
+    public bool noise = true;
     public float noiseScale = 1.0f;
     public float noiseIntensity = 1.0f;
     public float noiseIntensityOffset = 0.1f;
@@ -39,7 +42,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     {
         if (!renderingData.cameraData.isPreviewCamera)
         {
-            lightPass.ConfigureInput(ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth);
+            lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
             renderer.EnqueuePass(lightPass);
         }
     }

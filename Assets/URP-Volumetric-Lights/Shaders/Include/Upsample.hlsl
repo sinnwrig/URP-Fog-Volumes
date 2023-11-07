@@ -42,17 +42,17 @@ v2fUpsample VertUpsample(appdata v)
 }
 
 
-float4 BilateralUpsample(v2fUpsample input) : SV_TARGET
+float4 DepthAwareUpsample(v2fUpsample input) : SV_TARGET
 {
     const float threshold = UPSAMPLE_DEPTH_THRESHOLD;
 
-    float4 highResDepth = LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_DownsampleDepth, input.uv).x).xxxx;
+    float4 highResDepth = LINEAR_EYE_DEPTH(SAMPLE_BASE(_CameraDepthTexture, sampler_DownsampleDepth, input.uv).x).xxxx;
 	float4 lowResDepth;
 
-    lowResDepth.x = LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_DownsampleDepth, sampler_DownsampleDepth, input.uv00).x);
-    lowResDepth.y = LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_DownsampleDepth, sampler_DownsampleDepth, input.uv10).x);
-    lowResDepth.z = LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_DownsampleDepth, sampler_DownsampleDepth, input.uv01).x);
-    lowResDepth.w = LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_DownsampleDepth, sampler_DownsampleDepth, input.uv11).x);
+    lowResDepth.x = LINEAR_EYE_DEPTH(SAMPLE_BASE(_DownsampleDepth, sampler_DownsampleDepth, input.uv00).x);
+    lowResDepth.y = LINEAR_EYE_DEPTH(SAMPLE_BASE(_DownsampleDepth, sampler_DownsampleDepth, input.uv10).x);
+    lowResDepth.z = LINEAR_EYE_DEPTH(SAMPLE_BASE(_DownsampleDepth, sampler_DownsampleDepth, input.uv01).x);
+    lowResDepth.w = LINEAR_EYE_DEPTH(SAMPLE_BASE(_DownsampleDepth, sampler_DownsampleDepth, input.uv11).x);
 
 	float4 depthDiff = abs(lowResDepth - highResDepth);
 	float accumDiff = dot(depthDiff, float4(1, 1, 1, 1));
@@ -60,7 +60,7 @@ float4 BilateralUpsample(v2fUpsample input) : SV_TARGET
 	[branch]
 	if (accumDiff < threshold) // small error, not an edge -> use bilinear filter
 	{
-		return SAMPLE_TEXTURE2D(_DownsampleColor, sampler_DownsampleColor, input.uv);
+		return SAMPLE_BASE(_DownsampleColor, sampler_DownsampleColor, input.uv);
 	}
     
 	// find nearest sample
@@ -85,5 +85,5 @@ float4 BilateralUpsample(v2fUpsample input) : SV_TARGET
 		minDepthDiff = depthDiff.w;
 	}
 
-    return SAMPLE_TEXTURE2D(_DownsampleColor, sampler_DownsampleDepth, nearestUv);
+    return SAMPLE_BASE(_DownsampleColor, sampler_DownsampleDepth, nearestUv);
 }

@@ -11,6 +11,10 @@ public partial class VolumetricLightPass
     private static readonly int quarterDepthId = Shader.PropertyToID("_QuarterDepthTarget");
     private static readonly RenderTargetIdentifier quarterDepthTarget = new(quarterDepthId);
 
+    private static int halfWidth;
+    private static int quarterWidth;
+
+
 
     // Light render targets
     private static readonly int volumeLightId = Shader.PropertyToID("_VolumeLightTexture");
@@ -21,7 +25,7 @@ public partial class VolumetricLightPass
     private static readonly RenderTargetIdentifier quarterVolumeLightTexture = new(quarterVolumeLightId);
 
 
-    // Temp render target
+    // Temp render target for temp stuff
     private static readonly int tempId = Shader.PropertyToID("_Temp");
     private RenderTargetIdentifier tempHandle = new(tempId);
 
@@ -72,6 +76,8 @@ public partial class VolumetricLightPass
         {
             depthDescriptor.width /= 2;
             depthDescriptor.height /= 2;
+
+            halfWidth = depthDescriptor.width;
             cmd.GetTemporaryRT(halfDepthId, depthDescriptor, FilterMode.Point);
         }
 
@@ -84,6 +90,7 @@ public partial class VolumetricLightPass
             depthDescriptor.width /= 2;
             depthDescriptor.height /= 2;
 
+            quarterWidth = depthDescriptor.width;
             cmd.GetTemporaryRT(quarterVolumeLightId, descriptor, FilterMode.Bilinear);
             cmd.GetTemporaryRT(quarterDepthId, depthDescriptor, FilterMode.Point);
         }
@@ -109,7 +116,5 @@ public partial class VolumetricLightPass
             cmd.ReleaseTemporaryRT(quarterVolumeLightId);
             cmd.ReleaseTemporaryRT(quarterDepthId);
         }
-
-        BlitUtility.ReleaseBlitTargets(cmd);
     }
 }

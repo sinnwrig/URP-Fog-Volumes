@@ -96,7 +96,7 @@ ENDHLSL
 			ENDHLSL
 		}
 
-		// pass 2 - downsample depth to half
+		// pass 2 - downsample depth
 		Pass
 		{
 			Name "Downsample Depth"
@@ -111,16 +111,16 @@ ENDHLSL
 			ENDHLSL
 		}
 
-		// pass 3 - bilateral upsample
+		// pass 3 - depth aware upsample
 		Pass
 		{
-			Name "Bilateral Upsample"
+			Name "Depth Aware Upsample"
 
 			Blend One Zero
 
 			HLSLPROGRAM
 			#pragma vertex VertUpsample
-			#pragma fragment BilateralUpsample	
+			#pragma fragment DepthAwareUpsample	
             #pragma target 4.0
 
 			#include "/Include/Upsample.hlsl"

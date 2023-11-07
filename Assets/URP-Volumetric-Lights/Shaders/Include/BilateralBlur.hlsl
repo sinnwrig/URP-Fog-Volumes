@@ -1,29 +1,12 @@
 #pragma once
 
-
-//--------------------------------------------------------------------------------------------
-// Downsample, bilateral blur and upsample config
-//--------------------------------------------------------------------------------------------        
-#define GAUSS_BLUR_DEVIATION 1.5
-#define BLUR_DEPTH_FACTOR 0.5 
-//--------------------------------------------------------------------------------------------
-
-// Check if full source depth should be used
-#if defined(SOURCE_FULL_DEPTH)
-	#define _DepthTexture _CameraDepthTexture
-	#define sampler_DepthTexture sampler_CameraDepthTexture
-	#define _DepthTexture_TexelSize _CameraDepthTexture_TexelSize
-#endif
+     
+#define GAUSS_BLUR_DEVIATION 2.5
 
 
 TEXTURE2D(_BlurSource);
 SAMPLER(sampler_BlurSource);
-
-
-TEXTURE2D(_DepthTexture);     
-SAMPLER(sampler_DepthTexture);
-float4 _DepthTexture_TexelSize;
-
+float4 _BlurSource_TexelSize;
 
 
 const float GaussianWeight(float offset, float deviation)
@@ -37,58 +20,27 @@ const float GaussianWeight(float offset, float deviation)
 
 float4 BilateralBlur(v2f input, int2 direction, const int kernelRadius)
 {
-	//const float deviation = kernelRadius / 2.5;
-	const float deviation = kernelRadius / GAUSS_BLUR_DEVIATION; // make it really strong
+	const float deviation = kernelRadius / GAUSS_BLUR_DEVIATION; 
 	
     float2 uv = input.uv;
-	float4 centerColor = SAMPLE_TEXTURE2D(_BlurSource, sampler_BlurSource, uv);
-	float3 color = centerColor.xyz;
 
-	float centerDepth = (LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_DepthTexture, sampler_DepthTexture, uv)));
+	float4 centerColor = SAMPLE_BASE(_BlurSource, sampler_BlurSource, uv);
 
+	float weight = 0;
 	float weightSum = 0;
 
-	// gaussian weight is computed from constants only -> will be computed in compile time
-    float weight = GaussianWeight(0, deviation);
-	color *= weight;
-	weightSum += weight;
+	float3 color = 0;
 
-	// Pixels to left/down of center pixel		
+	// Pixels from left/down to right/up of center pixel
 	[unroll] 
-	for (int i = -kernelRadius; i < 0; i++)
+	for (int i = -kernelRadius; i <= kernelRadius; i++)
 	{
-        float2 offset = (direction * i) * _DepthTexture_TexelSize.xy;
+        float2 offset = (direction * i) * _BlurSource_TexelSize.xy;
 
-        float3 sampleColor = SAMPLE_TEXTURE2D(_BlurSource, sampler_BlurSource, uv + offset);
-        float sampleDepth = (LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_DepthTexture, sampler_DepthTexture, input.uv + offset)));
-
-		float depthDiff = abs(centerDepth - sampleDepth);
-        float dFactor = depthDiff * BLUR_DEPTH_FACTOR;
-		float w = exp(-(dFactor * dFactor));
+        float3 sampleColor = SAMPLE_BASE(_BlurSource, sampler_BlurSource, uv + offset);
 
 	    // gaussian weight is computed from constants only -> will be computed in compile time
-	    weight = GaussianWeight(i, deviation) * w;
-
-		color += weight * sampleColor;
-		weightSum += weight;
-	}
-
-	
-	// Pixels to right/up of center pixel
-    [unroll] 
-    for (i = 1; i <= kernelRadius; i++)
-    {
-    	float2 offset = (direction * i) * _DepthTexture_TexelSize.xy;
-
-        float3 sampleColor = SAMPLE_TEXTURE2D(_BlurSource, sampler_BlurSource, input.uv + offset);
-        float sampleDepth = (LINEAR_EYE_DEPTH(SAMPLE_TEXTURE2D(_DepthTexture, sampler_DepthTexture, input.uv + offset)));
-
-		float depthDiff = abs(centerDepth - sampleDepth);
-        float dFactor = depthDiff * BLUR_DEPTH_FACTOR;
-		float w = exp(-(dFactor * dFactor));
-				
-	    // gaussian weight is computed from constants only -> will be computed in compile time
-	    weight = GaussianWeight(i, deviation) * w;
+	    weight = GaussianWeight(i, deviation);
 
 		color += weight * sampleColor;
 		weightSum += weight;

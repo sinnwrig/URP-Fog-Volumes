@@ -3,12 +3,18 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 using System.Collections.Generic;
-using System;
 using Unity.Collections;
 using System.Reflection;
 
+
 public partial class VolumetricLightPass : ScriptableRenderPass
 {
+    private static readonly GlobalKeyword spotLight = GlobalKeyword.Create("SPOT_LIGHT");
+    private static readonly GlobalKeyword pointLight = GlobalKeyword.Create("POINT_LIGHT");
+    private static readonly GlobalKeyword directionalLight = GlobalKeyword.Create("DIRECTIONAL_LIGHT");
+    private static readonly GlobalKeyword noiseKeyword = GlobalKeyword.Create("NOISE");
+
+
     private static readonly FieldInfo shadowCasterField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
     private static readonly Plane[] frustumPlanes = new Plane[6];
 
@@ -16,8 +22,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     public struct SortedLight
     {
         public VisibleLight visibleLight;
-        public int lightIndex;
-        public int shadowIndex;
+        public int index;
         public VolumetricLight volumeLight;
         public Vector4 position;
         public Vector4 color;
@@ -68,7 +73,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         Light light = visibleLight.light;
         Vector3 position = light.transform.position;
 
-		// Cull spherical range, ignoring camera far plane at index 5
+		// Cull light spheres with camera frustum
 		for (int i = 0; i < frustumPlanes.Length; i++) 
 		{
 			float distance = frustumPlanes[i].GetDistanceToPoint(position);
@@ -111,11 +116,12 @@ public partial class VolumetricLightPass : ScriptableRenderPass
             SortedLight light = new()
             {
                 visibleLight = visibleLight,
-                lightIndex = i == lightData.mainLightIndex ? -1 : i,
-                shadowIndex = shadowCasterPass.GetShadowLightIndexFromLightIndex(i),
+                index = i == lightData.mainLightIndex ? -1 : shadowCasterPass.GetShadowLightIndexFromLightIndex(i),
                 volumeLight = volumeLight,
             };
 
+
+            // Why do we have to get light and shadow constants ourselves? Because URP lighting doesn't work reliably in a post-fx shader.
             UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, i, out light.position, out light.color, out light.attenuation, out light.spotDirection, out _);
 
             sortedLights.Add(light);
@@ -129,6 +135,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         var renderer = renderingData.cameraData.renderer;
+        var descriptor = renderingData.cameraData.cameraTargetDescriptor;
 
         #if UNITY_2022_1_OR_NEWER
             var cameraColor = renderer.cameraColorTargetHandle;
@@ -138,10 +145,8 @@ public partial class VolumetricLightPass : ScriptableRenderPass
             var cameraDepth = renderer.cameraDepthTarget;
         #endif
 
-        var source = cameraColor;
-        var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-
         commandBuffer = CommandBufferPool.Get("Volumetric Light Pass");
+        commandBuffer.Clear();
 
         var lights = GetSortedLights(ref renderingData);
 
@@ -154,21 +159,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         BlendLights(cameraColor, descriptor);
 
         context.ExecuteCommandBuffer(commandBuffer);
-
         CommandBufferPool.Release(commandBuffer);
-    }
-
-
-    private void SetShaderProperties()
-    {
-        // Set global shader variables
-        commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange - feature.falloffRange, feature.lightRange));
-
-        commandBuffer.SetGlobalTexture("_DitherTexture", ditherTexture);
-        commandBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);
-
-        commandBuffer.SetGlobalVector("_NoiseVelocity", feature.noiseVelocity * feature.noiseScale);
-        commandBuffer.SetGlobalVector("_NoiseData", new Vector4(feature.noiseScale, feature.noiseIntensity, feature.noiseIntensityOffset));
     }
 
 
@@ -182,15 +173,27 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         // Clear initial texture
         ClearColor(commandBuffer, target, Color.black);
 
-        SetShaderProperties();
+
+        commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange - feature.falloffRange, feature.lightRange));
+        commandBuffer.SetGlobalTexture("_DitherTexture", ditherTexture);
+
+
+        commandBuffer.SetKeyword(noiseKeyword, feature.noise);
+        commandBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);
+        commandBuffer.SetGlobalVector("_NoiseVelocity", feature.noiseVelocity * feature.noiseScale);
+        commandBuffer.SetGlobalVector("_NoiseData", new Vector4(feature.noiseScale, feature.noiseIntensity, feature.noiseIntensityOffset));
 
         // Light loop
         for (int i = 0; i < lights.Count; i++)
         {
+            if (!lights[i].volumeLight.CanRender())
+                continue;
+
             (source, target) = (target, source);
-            DrawLight(lights[i], source, target);
+            DrawLight(lights[i], source, target);   
         }
 
+        // Source ends up as the final texture after swap
         if (target == tempHandle)
             commandBuffer.Blit(target, VolumeLightBuffer);
         
@@ -200,20 +203,39 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
     private void DrawLight(SortedLight light, RenderTargetIdentifier source, RenderTargetIdentifier target)
     {
-        int pass = light.volumeLight.SetShaderProperties(commandBuffer);
+        VolumetricLight volumeLight = light.volumeLight;
 
-        if (pass < 0)
-            return;
-    
-        commandBuffer.SetGlobalInt("_LightIndex", light.lightIndex);
-        commandBuffer.SetGlobalInt("_ShadowIndex", light.shadowIndex);
-        commandBuffer.SetGlobalTexture("_SourceTexture", source);
+        commandBuffer.SetGlobalInt("_SampleCount", volumeLight.sampleCount);
+
+        commandBuffer.SetGlobalVector("_MieG", volumeLight.GetMie());
+        commandBuffer.SetGlobalVector("_VolumetricLight", new Vector2(volumeLight.scatteringCoef, volumeLight.extinctionCoef));
+        commandBuffer.SetGlobalFloat("_MaxRayLength", volumeLight.maxRayLength);
+        commandBuffer.SetGlobalMatrix("_InvLightMatrix", volumeLight.GetLightMatrix());
+
+        // Attenuation sampling params
+        commandBuffer.SetGlobalInt("_LightIndex", light.index);
         commandBuffer.SetGlobalVector("_LightPosition", light.position);
         commandBuffer.SetGlobalVector("_LightColor", light.color);
         commandBuffer.SetGlobalVector("_LightAttenuation", light.attenuation);
         commandBuffer.SetGlobalVector("_SpotDirection", light.spotDirection);
 
-        commandBuffer.Blit(source, target, lightMaterial, pass);
+        switch (volumeLight.Light.type)
+        {
+            case LightType.Spot:
+                SetKeyword(spotLight, directionalLight, pointLight);
+            break;
+
+            case LightType.Point:
+                SetKeyword(pointLight, directionalLight, spotLight);
+            break;
+
+            case LightType.Directional:
+                SetKeyword(directionalLight, spotLight, pointLight);
+            break;
+        }
+        
+        commandBuffer.SetGlobalTexture("_SourceTexture", source); 
+        commandBuffer.Blit(source, target, lightMaterial, 0);
     }
 
 
@@ -226,15 +248,24 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         commandBuffer.SetGlobalTexture("_SourceAdd", volumeLightTexture);
 
         // Use blit add kernel to merge target color and the light buffer
-        commandBuffer.Blit(volumeLightTexture, target, lightMaterial, 3);
+        commandBuffer.Blit(volumeLightTexture, target, lightMaterial, 1);
 
         commandBuffer.ReleaseTemporaryRT(tempId);
+    }
+
+
+    private void SetKeyword(GlobalKeyword keyword, params GlobalKeyword[] other)
+    {
+        commandBuffer.EnableKeyword(keyword);
+
+        for (int i = 0; i < other.Length; i++)
+            commandBuffer.DisableKeyword(other[i]);
     }
 
 
     private void ClearColor(CommandBuffer cmd, RenderTargetIdentifier rt, Color color)
     {
         cmd.SetRenderTarget(rt);
-        cmd.ClearRenderTarget(RTClearFlags.Color, color, 1.0f, 0);
+        cmd.ClearRenderTarget(RTClearFlags.Color, color, 1, 0);
     }
 }

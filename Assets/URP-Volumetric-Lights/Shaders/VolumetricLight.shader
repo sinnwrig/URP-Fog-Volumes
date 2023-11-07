@@ -63,6 +63,8 @@ ENDHLSL
 
 	SubShader
 	{
+		Tags { "RenderType"="Opaque" }
+
 		// Pass 0 - Spot Light
 		Pass
 		{

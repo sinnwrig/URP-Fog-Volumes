@@ -11,9 +11,6 @@ public partial class VolumetricLightPass
     private static readonly int quarterDepthId = Shader.PropertyToID("_QuarterDepthTarget");
     private static readonly RenderTargetIdentifier quarterDepthTarget = new(quarterDepthId);
 
-    private static int halfWidth;
-    private static int quarterWidth;
-
 
 
     // Light render targets
@@ -77,7 +74,6 @@ public partial class VolumetricLightPass
             depthDescriptor.width /= 2;
             depthDescriptor.height /= 2;
 
-            halfWidth = depthDescriptor.width;
             cmd.GetTemporaryRT(halfDepthId, depthDescriptor, FilterMode.Point);
         }
 
@@ -90,7 +86,6 @@ public partial class VolumetricLightPass
             depthDescriptor.width /= 2;
             depthDescriptor.height /= 2;
 
-            quarterWidth = depthDescriptor.width;
             cmd.GetTemporaryRT(quarterVolumeLightId, descriptor, FilterMode.Bilinear);
             cmd.GetTemporaryRT(quarterDepthId, depthDescriptor, FilterMode.Point);
         }

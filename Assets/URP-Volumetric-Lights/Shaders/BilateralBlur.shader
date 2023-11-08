@@ -5,54 +5,54 @@
 
 Shader "Hidden/BilateralBlur"
 {
+	HLSLINCLUDE
+	
+	#include "/Include/Common.hlsl"	
+	
+	#pragma multi_compile FULL_RES_BLUR_KERNEL_SIZE
+	#pragma multi_compile HALF_RES_BLUR_KERNEL_SIZE
+	#pragma multi_compile QUARTER_RES_BLUR_KERNEL_SIZE
+	#pragma multi_compile SOURCE_FULL_DEPTH
+	
+	
+	#if defined(FULL_RES_BLUR_KERNEL_SIZE)
+		#define KERNEL_SIZE 7
+	#elif defined(HALF_RES_BLUR_KERNEL_SIZE)
+		#define KERNEL_SIZE 5
+	#elif defined(QUARTER_RES_BLUR_KERNEL_SIZE)
+		#define KERNEL_SIZE 6
+	#else
+		#define KERNEL_SIZE 0
+	#endif
+	
+	
+	struct appdata
+	{
+		float4 vertex : POSITION;
+		float2 uv : TEXCOORD0;
+	};
+	
+	
+	struct v2f
+	{
+		float2 uv : TEXCOORD0;
+		float4 vertex : SV_POSITION;
+	};
+	
+	
+	v2f vert(appdata v)
+	{
+		v2f o;
+		o.vertex = TransformObjectToHClip(v.vertex.xyz);
+		o.uv = v.uv;
+		return o;
+	}
+	
+	ENDHLSL
+
 	SubShader
 	{
 		Cull Off ZWrite Off ZTest Always
-
-HLSLINCLUDE
-
-#include "/Include/Common.hlsl"	
-
-#pragma multi_compile FULL_RES_BLUR_KERNEL_SIZE
-#pragma multi_compile HALF_RES_BLUR_KERNEL_SIZE
-#pragma multi_compile QUARTER_RES_BLUR_KERNEL_SIZE
-#pragma multi_compile SOURCE_FULL_DEPTH
-
-
-#if defined(FULL_RES_BLUR_KERNEL_SIZE)
-	#define KERNEL_SIZE 7
-#elif defined(HALF_RES_BLUR_KERNEL_SIZE)
-	#define KERNEL_SIZE 5
-#elif defined(QUARTER_RES_BLUR_KERNEL_SIZE)
-	#define KERNEL_SIZE 6
-#else
-	#define KERNEL_SIZE 0
-#endif
-
-
-struct appdata
-{
-	float4 vertex : POSITION;
-	float2 uv : TEXCOORD0;
-};
-
-
-struct v2f
-{
-	float2 uv : TEXCOORD0;
-	float4 vertex : SV_POSITION;
-};
-
-
-v2f vert(appdata v)
-{
-	v2f o;
-	o.vertex = TransformObjectToHClip(v.vertex.xyz);
-	o.uv = v.uv;
-	return o;
-}
-
-ENDHLSL
 
 		// Pass 0 - horizontal blur
 		Pass

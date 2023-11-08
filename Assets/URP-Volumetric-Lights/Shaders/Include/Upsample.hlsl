@@ -3,9 +3,9 @@
 #define UPSAMPLE_DEPTH_THRESHOLD 1.5f
 
 
-TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D_X(_CameraDepthTexture);
 
-TEXTURE2D(_DownsampleDepth); 
+TEXTURE2D_X(_DownsampleDepth); 
 SAMPLER(sampler_DownsampleDepth);
 float4 _DownsampleDepth_TexelSize;
 

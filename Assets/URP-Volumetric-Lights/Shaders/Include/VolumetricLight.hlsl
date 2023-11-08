@@ -52,8 +52,9 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 	float offset = SAMPLE_BASE(_DitherTexture, sampler_DitherTexture, interleavedPos / 8.0 + (float2)(0.5 / 8.0)).w;
 
 	int stepCount = _SampleCount;
-
 	float stepSize = rayLength / stepCount;
+
+
 	float3 step = rayDir * stepSize;
 
 	float3 currentPosition = rayStart + step * offset;

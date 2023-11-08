@@ -2,8 +2,11 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
+
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine.SceneManagement;
+using UnityEditor.SceneManagement;
 #endif
 
 
@@ -35,7 +38,28 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         { 
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
         };
+
+#if UNITY_EDITOR
+        EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
+#endif
     }
+
+#if UNITY_EDITOR
+
+    // For some reason, light pass must be refreshed on editor scene changes or else texture will output complete black
+    private void OnSceneChanged(Scene a, Scene b)
+    { 
+        lightPass = new VolumetricLightPass(this, bilateralBlur, volumetricLight) 
+        { 
+            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
+        };
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        EditorSceneManager.activeSceneChangedInEditMode -= OnSceneChanged;
+    }
+#endif
 
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)

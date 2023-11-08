@@ -17,20 +17,6 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     private static Texture2D ditherTexture;
 
     public CommandBuffer commandBuffer;
-
-
-    private static Mesh testMesh = new Mesh()
-    {
-        vertices = new Vector3[]
-        {
-
-        },
-
-        triangles = new int[]
-        {
-
-        }
-    };
     
 
 
@@ -75,7 +61,7 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         DownsampleDepthBuffer();
         DrawLights(lights);
         BilateralBlur(descriptor.width, descriptor.height);
-        BlendLights(cameraColor, descriptor);
+        BlendLights(cameraColor);
 
         context.ExecuteCommandBuffer(commandBuffer);
         CommandBufferPool.Release(commandBuffer);

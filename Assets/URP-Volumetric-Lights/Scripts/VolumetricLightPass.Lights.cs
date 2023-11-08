@@ -104,7 +104,9 @@ public partial class VolumetricLightPass
         var source = VolumeLightBuffer;
         var target = tempHandle;
 
+        ClearColor(commandBuffer, source, Color.black);
         ClearColor(commandBuffer, target, Color.black);
+
 
         commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange - feature.falloffRange, feature.lightRange));
         commandBuffer.SetGlobalTexture("_DitherTexture", ditherTexture);
@@ -166,20 +168,20 @@ public partial class VolumetricLightPass
         }
         
         commandBuffer.SetGlobalTexture("_SourceTexture", source); 
-        commandBuffer.Blit(source, target, lightMaterial, 0);
+        commandBuffer.Blit(null, target, lightMaterial, 0);
     }
 
 
-    private void BlendLights(RenderTargetIdentifier target, RenderTextureDescriptor targetDescriptor)
+    private void BlendLights(RTHandle target)
     {
-        commandBuffer.GetTemporaryRT(tempId, targetDescriptor);
+        commandBuffer.GetTemporaryRT(tempId, target.rt.descriptor);
         commandBuffer.Blit(target, tempHandle);
 
-        commandBuffer.SetGlobalTexture("_SourceTexture", tempHandle);
-        commandBuffer.SetGlobalTexture("_SourceAdd", volumeLightTexture);
+        commandBuffer.SetGlobalTexture("_BlitSource", tempHandle);
+        commandBuffer.SetGlobalTexture("_BlitAdd", volumeLightTexture);
 
         // Use blit add kernel to merge target color and the light buffer
-        commandBuffer.Blit(volumeLightTexture, target, lightMaterial, 1);
+        commandBuffer.Blit(null, target, lightMaterial, 1);
 
         commandBuffer.ReleaseTemporaryRT(tempId);
     }

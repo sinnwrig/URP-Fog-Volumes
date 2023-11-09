@@ -87,14 +87,19 @@ public partial class VolumetricLight : MonoBehaviour
         Block.SetVector("_LightAttenuation", light.attenuation);
         Block.SetVector("_SpotDirection", light.spotDirection);
 
+        Rect rect = light.visibleLight.screenRect;
+        Block.SetVector("_ViewportRect", new Vector4(rect.x, rect.y, rect.width, rect.height));
+
         switch (Light.type)
         {
             case LightType.Spot:
-                cmd.DrawMesh(MeshUtility.ConeMesh, SpotLightMatrix(), material, 0, 0, Block);
+                Block.SetMatrix("_InvLightMatrix", SpotLightMatrix().inverse);
+                cmd.DrawMesh(MeshUtility.FullscreenMesh, Matrix4x4.identity, material, 0, 0, Block);
             break;
 
             case LightType.Point:
-                cmd.DrawMesh(MeshUtility.SphereMesh, PointLightMatrix(), material, 0, 1, Block);
+                Block.SetMatrix("_InvLightMatrix", PointLightMatrix().inverse);
+                cmd.DrawMesh(MeshUtility.FullscreenMesh, Matrix4x4.identity, material, 0, 1, Block);
             break;
 
             case LightType.Directional:

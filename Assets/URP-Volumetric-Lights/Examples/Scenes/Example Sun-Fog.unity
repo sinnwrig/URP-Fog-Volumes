@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 973744429}
-  m_IndirectSpecularColor: {r: 0.08606988, g: 0.06924863, b: 0.14867143, a: 1}
+  m_IndirectSpecularColor: {r: 0.08606987, g: 0.06924862, b: 0.14867124, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -894,7 +894,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sampleCount: 30
-  scatteringCoef: 0.116
+  scatteringCoef: 0.247
   extinctionCoef: 0.963
   mieG: 0.468
   maxRayLength: 30

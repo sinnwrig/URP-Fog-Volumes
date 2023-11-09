@@ -4,51 +4,6 @@
 
 Shader "Hidden/VolumetricLight"
 {	
-
-	HLSLINCLUDE
-
-	#include "/Include/Common.hlsl"
-	#include "/Include/Math.hlsl"
-	#include "/Include/Intersection.hlsl"
-	#include "Include/LightAttenuation.hlsl"
-
-	#pragma multi_compile NOISE
-
-	struct appdata
-	{
-		float4 vertex : POSITION;
-		float2 uv : TEXCOORD0;
-	};
-
-
-	struct v2f
-	{
-		float4 vertex : SV_POSITION;
-		float3 worldPos : TEXCOORD0;
-		float2 uv : TEXCOORD1;
-	};
-
-
-	v2f vertObj(appdata v)
-	{
-		v2f output = (v2f)0;
-
-		output.worldPos = TransformObjectToWorld(v.vertex.xyz);
-		output.vertex = TransformWorldToHClip(output.worldPos);
-		
-		output.uv = output.vertex.xy / output.vertex.w * 0.5 + 0.5;
-
-	#if UNITY_UV_STARTS_AT_TOP
-		output.uv.y = 1 - output.uv.y;
-	#endif
-
-		return output;
-	}
-
-
-	ENDHLSL
-
-
 	SubShader
 	{
 		// Pass 0 - Spot Light
@@ -59,36 +14,19 @@ Shader "Hidden/VolumetricLight"
 
 			HLSLPROGRAM
 
-			#pragma vertex vertObj
-			#pragma fragment frag
+			#pragma vertex VolumetricVertex
+			#pragma fragment VolumetricFragment
 			#pragma target 4.0
 
-			
+			#pragma multi_compile NOISE
+
 			#define SPOT_LIGHT
+
+			#include "/Include/Common.hlsl"
+			#include "/Include/Math.hlsl"
+			#include "/Include/Intersection.hlsl"
+			#include "/Include/LightAttenuation.hlsl"
 			#include "Include/VolumetricLight.hlsl"
-
-			
-			TEXTURE2D_X(_CameraDepthTexture);
-			SAMPLER(sampler_CameraDepthTexture);
-
-
-			half4 frag(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy;
-
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.worldPos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-				float linearDepth = LINEAR_EYE_DEPTH(depth) * rayLength;
-
-				return CalculateVolumetricLight(uv, UNITY_MATRIX_I_M, rayStart, rayDir, linearDepth);
-			}
 
 			ENDHLSL
 		}
@@ -101,35 +39,19 @@ Shader "Hidden/VolumetricLight"
 
 			HLSLPROGRAM
 
-			#pragma vertex vertObj
-			#pragma fragment frag
+			#pragma vertex VolumetricVertex
+			#pragma fragment VolumetricFragment
 			#pragma target 4.0
 
+			#pragma multi_compile NOISE
+
 			#define POINT_LIGHT
+
+			#include "/Include/Common.hlsl"
+			#include "/Include/Math.hlsl"
+			#include "/Include/Intersection.hlsl"
+			#include "/Include/LightAttenuation.hlsl"
 			#include "Include/VolumetricLight.hlsl"
-
-			
-			TEXTURE2D_X(_CameraDepthTexture);
-			SAMPLER(sampler_CameraDepthTexture);
-
-
-			half4 frag(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy;
-
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.worldPos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-				float linearDepth = LINEAR_EYE_DEPTH(depth) * rayLength;
-
-				return CalculateVolumetricLight(uv, UNITY_MATRIX_I_M, rayStart, rayDir, linearDepth);
-			}
 
 			ENDHLSL
 		}
@@ -142,49 +64,19 @@ Shader "Hidden/VolumetricLight"
 
 			HLSLPROGRAM
 
-			#pragma vertex vert
-			#pragma fragment frag
+			#pragma vertex VolumetricVertex
+			#pragma fragment VolumetricFragment
 			#pragma target 4.0
 
+			#pragma multi_compile NOISE
+
 			#define DIRECTIONAL_LIGHT
+
+			#include "/Include/Common.hlsl"
+			#include "/Include/Math.hlsl"
+			#include "/Include/Intersection.hlsl"
+			#include "/Include/LightAttenuation.hlsl"
 			#include "Include/VolumetricLight.hlsl"
-
-			
-			TEXTURE2D_X(_CameraDepthTexture);
-			SAMPLER(sampler_CameraDepthTexture);
-
-
-			v2f vert(appdata v)
-			{
-				v2f output = (v2f)0;
-				output.vertex = v.vertex;
-				output.uv = v.uv;
-
-			#if UNITY_UV_STARTS_AT_TOP
-				output.uv.y = 1 - output.uv.y;
-			#endif
-
-			    // Get view vector using UV
-				float3 viewVector = mul(unity_CameraInvProjection, float4(output.uv * 2 - 1, 0, -1)).xyz;
-			    // Transform to world space
-				output.worldPos = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
-
-				return output;
-			}
-
-
-			half4 frag(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy;
-
-				float len = length(i.worldPos);
-				float3 rayDir = i.worldPos / len;				
-
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-				float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
-
-				return CalculateVolumetricLight(uv, UNITY_MATRIX_I_M, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
-			}
 
 			ENDHLSL
 		}
@@ -196,8 +88,24 @@ Shader "Hidden/VolumetricLight"
 
 			HLSLPROGRAM
 
-			#pragma vertex vert
+			#pragma vertex vertBlend
 			#pragma fragment frag
+
+			#include "/Include/Common.hlsl"
+
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+
+			struct v2f
+			{
+				float4 vertex : SV_POSITION;
+				float3 worldPos : TEXCOORD0;
+				float2 uv : TEXCOORD1;
+			};
 
 			TEXTURE2D(_BlitSource);
 			SAMPLER(sampler_BlitSource);
@@ -206,7 +114,7 @@ Shader "Hidden/VolumetricLight"
 			SAMPLER(sampler_BlitAdd);
 
 
-			v2f vert(appdata v)
+			v2f vertBlend(appdata v)
 			{
 				v2f output = (v2f)0;
 				output.vertex = TransformObjectToHClip(v.vertex.xyz);

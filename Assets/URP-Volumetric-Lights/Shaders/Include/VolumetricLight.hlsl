@@ -1,3 +1,19 @@
+#pragma once
+
+struct Attributes
+{
+	float4 vertex : POSITION;
+	float2 uv : TEXCOORD0;
+};
+
+
+struct Varyings
+{
+	float4 vertex : SV_POSITION;
+	float3 worldPos : TEXCOORD0;
+	float2 uv : TEXCOORD1;
+};
+
 
 #if defined(NOISE)
 	TEXTURE3D(_NoiseTexture);
@@ -6,17 +22,22 @@
 	float3 _NoiseVelocity; // noise move direction
 #endif
 
-
 TEXTURE2D(_DitherTexture);
 SAMPLER(sampler_DitherTexture);
 
+TEXTURE2D_X(_CameraDepthTexture);
+SAMPLER(sampler_CameraDepthTexture);
+
+int _SampleCount;
 float2 _VolumetricLight; // x: scattering coef, y: extinction coef
 float3 _MieG; // x: 1 - g^2, y: 1 + g^2, z: 2*g
 
 float _MaxRayLength;
-int _SampleCount;
 
 float2 _LightRange;
+
+float4 _ViewportRect;
+float3x4 _InvLightMatrix;
 
 
 float GetDensity(float3 wpos, float distance)
@@ -139,6 +160,49 @@ float4 CalculateVolumetricLight(float2 uv, float3x4 invLightMatrix, float3 camer
 
 	// Additive blending
 	return RayMarch(uv, rayStart, viewDir, rayLength, cameraPos);
+}
+
+
+Varyings VolumetricVertex(Attributes v)
+{
+	Varyings output = (Varyings)0;
+	output.vertex = v.vertex;
+
+#if UNITY_UV_STARTS_AT_TOP
+	output.vertex.y *= -1;
+#endif
+
+	float2 clip01 = output.vertex.xy * 0.5 + 0.5;
+
+	clip01 = min(max(clip01, _ViewportRect.xy), _ViewportRect.xy + _ViewportRect.zw);
+	output.uv = clip01;
+
+	output.vertex.xy = clip01 * 2 - 1;
+
+#if UNITY_UV_STARTS_AT_TOP
+	output.vertex.y *= -1;
+#endif
+
+	// Get view vector using UV
+	float3 viewVector = mul(unity_CameraInvProjection, float4(output.uv * 2 - 1, 0, -1)).xyz;
+	// Transform to world space
+	output.worldPos = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
+
+	return output;
+}
+
+
+half4 VolumetricFragment(Varyings i) : SV_Target
+{
+	float2 uv = i.uv.xy;
+
+	float len = length(i.worldPos);
+	float3 rayDir = i.worldPos / len;				
+
+	float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
+	float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
+
+	return CalculateVolumetricLight(uv, _InvLightMatrix, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
 }
 
 

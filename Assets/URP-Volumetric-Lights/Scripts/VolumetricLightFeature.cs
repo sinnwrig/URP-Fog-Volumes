@@ -17,7 +17,6 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     public float falloffRange;
 
 
-
     public bool noise = true;
     public float noiseScale = 1.0f;
     public float noiseIntensity = 1.0f;

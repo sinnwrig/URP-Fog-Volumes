@@ -59,7 +59,9 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         commandBuffer.Clear();
 
         DownsampleDepthBuffer();
+
         DrawLights(lights);
+
         BilateralBlur(descriptor.width, descriptor.height);
         BlendLights(cameraColor);
 

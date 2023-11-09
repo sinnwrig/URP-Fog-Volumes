@@ -45,7 +45,6 @@ public partial class VolumetricLightPass
     public RenderTextureDescriptor lightBufferDescriptor;
 
 
-
     // Get required temporary textures
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData data)
     {

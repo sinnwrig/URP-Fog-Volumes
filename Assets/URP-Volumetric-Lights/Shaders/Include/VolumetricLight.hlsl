@@ -18,8 +18,6 @@ int _SampleCount;
 
 float2 _LightRange;
 
-float3x4 _InvLightMatrix;
-
 
 float GetDensity(float3 wpos, float distance)
 {
@@ -110,16 +108,16 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
 
 
 
-float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, float3 viewDir, float linearDepth)
+float4 CalculateVolumetricLight(float2 uv, float3x4 invLightMatrix, float3 cameraPos, float3 viewDir, float linearDepth)
 {
     bool hit = false;
     float near = 0;
     float far = MAX_FLOAT;
 
 #if defined(POINT_LIGHT)
-    hit = RaySphere(_InvLightMatrix, cameraPos, viewDir, near, far);
+    hit = RaySphere(invLightMatrix, cameraPos, viewDir, near, far);
 #elif defined(SPOT_LIGHT)
-    hit = RayCone(_InvLightMatrix, cameraPos, viewDir, near, far);
+    hit = RayCone(invLightMatrix, cameraPos, viewDir, near, far);
 #elif defined(DIRECTIONAL_LIGHT)
     hit = true; 
 	far = _MaxRayLength;
@@ -127,20 +125,20 @@ float4 CalculateVolumetricLight(float4 source, float2 uv, float3 cameraPos, floa
 
     // No intersection
     if (!hit)
-        return source;	
+        return 0;	
     
     far = min(far, linearDepth);
     float rayLength = (far - near);
 
     // Object is behind scene depth
     if (rayLength < 0)
-        return source;
+        return 0;
 
     // Jump to point on intersection surface
     float3 rayStart = cameraPos + viewDir * near;
 
 	// Additive blending
-	return source + RayMarch(uv, rayStart, viewDir, rayLength, cameraPos);
+	return RayMarch(uv, rayStart, viewDir, rayLength, cameraPos);
 }
 
 

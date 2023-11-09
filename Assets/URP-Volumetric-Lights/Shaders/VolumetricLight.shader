@@ -8,6 +8,11 @@ Shader "Hidden/VolumetricLight"
 	HLSLINCLUDE
 
 	#include "/Include/Common.hlsl"
+	#include "/Include/Math.hlsl"
+	#include "/Include/Intersection.hlsl"
+	#include "Include/LightAttenuation.hlsl"
+
+	#pragma multi_compile NOISE
 
 	struct appdata
 	{
@@ -19,9 +24,26 @@ Shader "Hidden/VolumetricLight"
 	struct v2f
 	{
 		float4 vertex : SV_POSITION;
-		float2 uv : TEXCOORD0;
-		float3 viewVector : TEXCOORD2;
+		float3 worldPos : TEXCOORD0;
+		float2 uv : TEXCOORD1;
 	};
+
+
+	v2f vertObj(appdata v)
+	{
+		v2f output = (v2f)0;
+
+		output.worldPos = TransformObjectToWorld(v.vertex.xyz);
+		output.vertex = TransformWorldToHClip(output.worldPos);
+		
+		output.uv = output.vertex.xy / output.vertex.w * 0.5 + 0.5;
+
+	#if UNITY_UV_STARTS_AT_TOP
+		output.uv.y = 1 - output.uv.y;
+	#endif
+
+		return output;
+	}
 
 
 	ENDHLSL
@@ -37,63 +59,115 @@ Shader "Hidden/VolumetricLight"
 
 			HLSLPROGRAM
 
+			#pragma vertex vertObj
+			#pragma fragment frag
+			#pragma target 4.0
+
+			
+			#define SPOT_LIGHT
+			#include "Include/VolumetricLight.hlsl"
+
+			
+			TEXTURE2D_X(_CameraDepthTexture);
+			SAMPLER(sampler_CameraDepthTexture);
+
+
+			half4 frag(v2f i) : SV_Target
+			{
+				float2 uv = i.uv.xy;
+
+				float3 rayStart = _WorldSpaceCameraPos;
+				float3 rayEnd = i.worldPos;
+
+				float3 rayDir = (rayEnd - rayStart);
+				float rayLength = length(rayDir);
+
+				rayDir /= rayLength;
+
+				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
+				float linearDepth = LINEAR_EYE_DEPTH(depth) * rayLength;
+
+				return CalculateVolumetricLight(uv, UNITY_MATRIX_I_M, rayStart, rayDir, linearDepth);
+			}
+
+			ENDHLSL
+		}
+
+		// Pass 1 - Point Light
+		Pass
+		{
+			Cull Off ZWrite Off ZTest Always
+			Blend One One
+
+			HLSLPROGRAM
+
+			#pragma vertex vertObj
+			#pragma fragment frag
+			#pragma target 4.0
+
+			#define POINT_LIGHT
+			#include "Include/VolumetricLight.hlsl"
+
+			
+			TEXTURE2D_X(_CameraDepthTexture);
+			SAMPLER(sampler_CameraDepthTexture);
+
+
+			half4 frag(v2f i) : SV_Target
+			{
+				float2 uv = i.uv.xy;
+
+				float3 rayStart = _WorldSpaceCameraPos;
+				float3 rayEnd = i.worldPos;
+
+				float3 rayDir = (rayEnd - rayStart);
+				float rayLength = length(rayDir);
+
+				rayDir /= rayLength;
+
+				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
+				float linearDepth = LINEAR_EYE_DEPTH(depth) * rayLength;
+
+				return CalculateVolumetricLight(uv, UNITY_MATRIX_I_M, rayStart, rayDir, linearDepth);
+			}
+
+			ENDHLSL
+		}
+
+		// Pass 2 - Directional Light
+		Pass
+		{
+			Cull Off ZWrite Off ZTest Always
+			Blend One One
+
+			HLSLPROGRAM
+
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma target 4.0
 
-			#pragma multi_compile_fragment _ SPOT_LIGHT
-			#pragma multi_compile_fragment _ POINT_LIGHT
-			#pragma multi_compile_fragment _ DIRECTIONAL_LIGHT
-			#pragma multi_compile_fragment _ NOISE
-			
-			#include "/Include/Math.hlsl"
-			#include "/Include/Intersection.hlsl"
-			#include "Include/LightAttenuation.hlsl"
-			#include "Include/VolumetricLight.hlsl"	
+			#define DIRECTIONAL_LIGHT
+			#include "Include/VolumetricLight.hlsl"
 
-
-			TEXTURE2D(_SourceTexture);
-			SAMPLER(sampler_SourceTexture);
 			
 			TEXTURE2D_X(_CameraDepthTexture);
 			SAMPLER(sampler_CameraDepthTexture);
-			
-
-			float4 _ViewportRect;
-
-
-			void ClipViewport(inout float4 clipPos, inout float2 uv)
-			{
-			#if UNITY_UV_STARTS_AT_TOP
-				clipPos.y *= -1;
-			#endif
-
-				float2 clip01 = clipPos.xy * 0.5 + 0.5;
-
-				clip01 = min(max(clip01, _ViewportRect.xy), _ViewportRect.xy + _ViewportRect.zw);
-				uv = clip01;
-
-				clipPos.xy = clip01 * 2 - 1;
-
-			#if UNITY_UV_STARTS_AT_TOP
-				clipPos.y *= -1;
-			#endif
-			}
 
 
 			v2f vert(appdata v)
 			{
 				v2f output = (v2f)0;
-				output.vertex = TransformObjectToHClip(v.vertex.xyz);
+				output.vertex = v.vertex;
 				output.uv = v.uv;
 
-				//ClipViewport(output.vertex, output.uv);
+			#if UNITY_UV_STARTS_AT_TOP
+				output.uv.y = 1 - output.uv.y;
+			#endif
 
 			    // Get view vector using UV
 				float3 viewVector = mul(unity_CameraInvProjection, float4(output.uv * 2 - 1, 0, -1)).xyz;
-
 			    // Transform to world space
-				output.viewVector = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
+				output.worldPos = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
 
 				return output;
 			}
@@ -103,20 +177,19 @@ Shader "Hidden/VolumetricLight"
 			{
 				float2 uv = i.uv.xy;
 
-				float len = length(i.viewVector);
-				float3 rayDir = i.viewVector / len;				
+				float len = length(i.worldPos);
+				float3 rayDir = i.worldPos / len;				
 
-				half4 scene = SAMPLE_TEXTURE2D(_SourceTexture, sampler_SourceTexture, uv);
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
 				float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
 
-				return CalculateVolumetricLight(scene, uv, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
+				return CalculateVolumetricLight(uv, UNITY_MATRIX_I_M, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
 			}
 
 			ENDHLSL
 		}
 
-		// Pass 1 - Blit add into result
+		// Pass 3 - Blit add into result
 		Pass
 		{
 			Cull Off ZWrite Off ZTest Always

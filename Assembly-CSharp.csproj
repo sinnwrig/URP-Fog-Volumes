@@ -44,10 +44,14 @@
      <Compile Include="Assets/URP-Volumetric-Lights/Examples/SceneSwitcher.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Lights.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Targets.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/CullingUtility.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightFeature.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/MeshUtility.cs" />
+     <Compile Include="Assets/Test/TestFeature.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Blur.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLight.cs" />
      <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricResolution.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/SortedLight.cs" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/VolumetricLight.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Math.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Intersection.hlsl" />
@@ -57,6 +61,7 @@
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/LightAttenuation.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/BilateralBlur.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Downsample.hlsl" />
+     <None Include="Assets/Test/TestShader.shader" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Common.hlsl" />
     <Reference Include="UnityEngine">
         <HintPath>/home/amog_os/Unity/Hub/Editor/2022.3.10f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>

@@ -51,7 +51,6 @@ public static class MeshUtility
             if (_coneMesh != null)
                 return _coneMesh;
 
-            // copy & pasted from other project, the geometry is too complex, should be simplified
             _coneMesh = new Mesh() { name = "Cone" };
 
             const int segmentCount = 16;

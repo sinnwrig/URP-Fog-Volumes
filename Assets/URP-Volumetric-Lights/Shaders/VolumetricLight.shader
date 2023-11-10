@@ -18,7 +18,7 @@ Shader "Hidden/VolumetricLight"
 			#pragma fragment VolumetricFragment
 			#pragma target 4.0
 
-			#pragma multi_compile NOISE
+			#pragma multi_compile _ NOISE
 
 			#define SPOT_LIGHT
 
@@ -43,7 +43,7 @@ Shader "Hidden/VolumetricLight"
 			#pragma fragment VolumetricFragment
 			#pragma target 4.0
 
-			#pragma multi_compile NOISE
+			#pragma multi_compile _ NOISE
 
 			#define POINT_LIGHT
 
@@ -68,7 +68,7 @@ Shader "Hidden/VolumetricLight"
 			#pragma fragment VolumetricFragment
 			#pragma target 4.0
 
-			#pragma multi_compile NOISE
+			#pragma multi_compile _ NOISE
 
 			#define DIRECTIONAL_LIGHT
 

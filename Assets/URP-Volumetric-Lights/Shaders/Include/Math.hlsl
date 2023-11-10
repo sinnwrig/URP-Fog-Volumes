@@ -1,5 +1,4 @@
-#ifndef CUSTOM_MATH_INCLUDED
-#define CUSTOM_MATH_INCLUDED
+#pragma once
 
 static const float MATH_PI = 3.14159265359;
 static const float MATH_TAU = MATH_PI * 2;
@@ -38,6 +37,3 @@ float SmoothMax(float a, float b, float k)
 	float h = max(0, min(1, (b - a + k) / (2 * k)));
 	return a * h + b * (1 - h) - k * h * (1 - h);
 }
-
-
-#endif

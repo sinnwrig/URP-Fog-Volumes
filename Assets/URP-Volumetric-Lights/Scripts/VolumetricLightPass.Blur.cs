@@ -17,7 +17,9 @@ public partial class VolumetricLightPass
     {
         if (Resolution == VolumetricResolution.Quarter)
         {
-            SetKeyword(quarterResKernel, fullResKernel, halfResKernel); 
+            commandBuffer.EnableKeyword(quarterResKernel);
+            commandBuffer.DisableKeyword(fullResKernel);
+            commandBuffer.DisableKeyword(halfResKernel);
             
             BilateralBlur(quarterVolumeLightTexture, quarterDepthTarget, width / 4, height / 4); 
             
@@ -26,7 +28,9 @@ public partial class VolumetricLightPass
         }
         else if (Resolution == VolumetricResolution.Half)
         {
-            SetKeyword(halfResKernel, fullResKernel, quarterResKernel);
+            commandBuffer.EnableKeyword(halfResKernel);
+            commandBuffer.DisableKeyword(fullResKernel);
+            commandBuffer.DisableKeyword(quarterResKernel);
 
             BilateralBlur(halfVolumeLightTexture, halfDepthTarget, width / 2, height / 2);
 
@@ -35,7 +39,9 @@ public partial class VolumetricLightPass
         }
         else
         {
-            SetKeyword(fullResKernel, halfResKernel, quarterResKernel);
+            commandBuffer.EnableKeyword(fullResKernel);
+            commandBuffer.DisableKeyword(halfResKernel);
+            commandBuffer.DisableKeyword(quarterResKernel);
 
             // Blur full-scale texture- use full-scale depth texture from shader
             BilateralBlur(volumeLightTexture, null, width, height);

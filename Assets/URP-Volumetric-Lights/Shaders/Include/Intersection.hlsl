@@ -4,9 +4,7 @@
 
 // Original intersection functions from https://www.shadertoy.com/view/4s23DR
 
-// Added transformation matrices to allow positioning, rotating, and scaling the intersection domains.
-// NOTE : I'm not exactly sure myself how transforming a view ray by a matrix still gives working intersection results, but it does.
-
+// Added matrices to allow transforming the intersection domains.
 
 // Most intersection tests use this parameter format: 
 

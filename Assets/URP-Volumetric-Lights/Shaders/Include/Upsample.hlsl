@@ -57,11 +57,8 @@ float4 DepthAwareUpsample(v2fUpsample input) : SV_TARGET
 	float4 depthDiff = abs(lowResDepth - highResDepth);
 	float accumDiff = dot(depthDiff, float4(1, 1, 1, 1));
 
-	[branch]
 	if (accumDiff < threshold) // small error, not an edge -> use bilinear filter
-	{
 		return SAMPLE_BASE(_DownsampleColor, sampler_DownsampleColor, input.uv);
-	}
     
 	// find nearest sample
 	float minDepthDiff = depthDiff.x;

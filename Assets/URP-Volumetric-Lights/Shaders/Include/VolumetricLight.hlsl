@@ -37,7 +37,6 @@ float _MaxRayLength;
 float2 _LightRange;
 
 float4 _ViewportRect;
-float3x4 _InvLightMatrix;
 
 
 float GetDensity(float3 wpos, float distance)
@@ -202,7 +201,8 @@ half4 VolumetricFragment(Varyings i) : SV_Target
 	float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
 	float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
 
-	return CalculateVolumetricLight(uv, _InvLightMatrix, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
+	// Use inverse transform matrix for light
+	return CalculateVolumetricLight(uv, UNITY_MATRIX_I_M, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
 }
 
 

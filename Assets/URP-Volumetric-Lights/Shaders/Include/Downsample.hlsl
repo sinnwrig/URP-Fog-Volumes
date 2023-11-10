@@ -11,7 +11,7 @@
 #endif
 
 
-TEXTURE2D(_DownsampleSource);     
+TEXTURE2D_X(_DownsampleSource);     
 SAMPLER(sampler_DownsampleSource);
 float4 _DownsampleSource_TexelSize;
 
@@ -35,11 +35,11 @@ v2fDownsample VertDownsampleDepth(appdata v)
 	v2fDownsample o;
 	o.vertex = TransformObjectToHClip(v.vertex.xyz);
 	o.uv = v.uv;
-
-	o.uv00 = v.uv - 0.5 * texelSize.xy;
-	o.uv10 = o.uv00 + float2(texelSize.x, 0);
-	o.uv01 = o.uv00 + float2(0, texelSize.y);
-	o.uv11 = o.uv00 + texelSize.xy;
+	
+	o.uv00 = v.uv - 0.5 * texelSize.xy; // Offset bottom-left
+	o.uv10 = o.uv00 + float2(texelSize.x, 0); // Offset bottom right
+	o.uv01 = o.uv00 + float2(0, texelSize.y); // Offset top left
+	o.uv11 = o.uv00 + texelSize.xy; // Offset top right
     
 	return o;
 }
@@ -49,6 +49,8 @@ v2fDownsample VertDownsampleDepth(appdata v)
 float DownsampleDepth(v2fDownsample input) : SV_TARGET
 {
 	float4 depth;
+
+	// Sample pixels in corners
 	depth.x = SAMPLE_BASE(_DownsampleSource, sampler_DownsampleSource, input.uv00).x;
 	depth.y = SAMPLE_BASE(_DownsampleSource, sampler_DownsampleSource, input.uv01).x;
 	depth.z = SAMPLE_BASE(_DownsampleSource, sampler_DownsampleSource, input.uv10).x;

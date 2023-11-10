@@ -9,12 +9,7 @@ using System.Reflection;
 
 public partial class VolumetricLightPass
 {
-    private static readonly GlobalKeyword spotLight = GlobalKeyword.Create("SPOT_LIGHT");
-    private static readonly GlobalKeyword pointLight = GlobalKeyword.Create("POINT_LIGHT");
-    private static readonly GlobalKeyword directionalLight = GlobalKeyword.Create("DIRECTIONAL_LIGHT");
     private static readonly GlobalKeyword noiseKeyword = GlobalKeyword.Create("NOISE");
-
-
     private static readonly FieldInfo shadowCasterField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
 
 

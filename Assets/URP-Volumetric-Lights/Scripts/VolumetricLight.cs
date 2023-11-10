@@ -93,13 +93,11 @@ public partial class VolumetricLight : MonoBehaviour
         switch (Light.type)
         {
             case LightType.Spot:
-                Block.SetMatrix("_InvLightMatrix", SpotLightMatrix().inverse);
-                cmd.DrawMesh(MeshUtility.FullscreenMesh, Matrix4x4.identity, material, 0, 0, Block);
+                cmd.DrawMesh(MeshUtility.FullscreenMesh, SpotLightMatrix(), material, 0, 0, Block);
             break;
 
             case LightType.Point:
-                Block.SetMatrix("_InvLightMatrix", PointLightMatrix().inverse);
-                cmd.DrawMesh(MeshUtility.FullscreenMesh, Matrix4x4.identity, material, 0, 1, Block);
+                cmd.DrawMesh(MeshUtility.FullscreenMesh, PointLightMatrix(), material, 0, 1, Block);
             break;
 
             case LightType.Directional:

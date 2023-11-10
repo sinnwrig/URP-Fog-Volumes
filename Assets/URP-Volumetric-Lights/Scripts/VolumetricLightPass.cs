@@ -68,20 +68,4 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         context.ExecuteCommandBuffer(commandBuffer);
         CommandBufferPool.Release(commandBuffer);
     }
-
-
-    private void SetKeyword(GlobalKeyword keyword, params GlobalKeyword[] other)
-    {
-        commandBuffer.EnableKeyword(keyword);
-
-        for (int i = 0; i < other.Length; i++)
-            commandBuffer.DisableKeyword(other[i]);
-    }
-
-
-    private void ClearColor(CommandBuffer cmd, RenderTargetIdentifier rt, Color color)
-    {
-        cmd.SetRenderTarget(rt);
-        cmd.ClearRenderTarget(RTClearFlags.Color, color, 1, 0);
-    }
 }

@@ -12,7 +12,6 @@ public partial class VolumetricLightPass
     private static readonly RenderTargetIdentifier quarterDepthTarget = new(quarterDepthId);
 
 
-
     // Light render targets
     private static readonly int volumeLightId = Shader.PropertyToID("_VolumeLightTexture");
     private static readonly RenderTargetIdentifier volumeLightTexture = new(volumeLightId);
@@ -45,7 +44,7 @@ public partial class VolumetricLightPass
     public RenderTextureDescriptor lightBufferDescriptor;
 
 
-    // Get required temporary textures
+    // Get temporary textures
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData data)
     {
         RenderTextureDescriptor descriptor = data.cameraData.cameraTargetDescriptor;

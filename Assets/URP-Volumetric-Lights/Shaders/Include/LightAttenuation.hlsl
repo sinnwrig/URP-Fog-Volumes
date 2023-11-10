@@ -1,5 +1,4 @@
-#ifndef LIGHT_ATTEN_INCLUDED
-#define LIGHT_ATTEN_INCLUDED
+#pragma once
 
 // URP keywords
 #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
@@ -85,5 +84,3 @@ float4 GetLightAttenuation(float3 wpos)
 
 	return float4(lightCol, 0.0);
 }
-
-#endif

@@ -73,13 +73,14 @@ public partial class VolumetricLight : MonoBehaviour
     [Range(0.0f, 1.0f)] public float scatteringCoef = 0.5f;
     [Range(0.0f, 1f)] public float extinctionCoef = 0.01f;
     [Range(0.0f, 0.999f)] public float mieG = 0.1f;  
-    public float maxRayLength = 400.0f;  
+    public float maxRayLength = 25.0f;  
 
 
     public bool CanRender()
     {
         return Light != null && Light.enabled;
     }
+
 
     public Matrix4x4 PointLightMatrix()
     {
@@ -96,7 +97,6 @@ public partial class VolumetricLight : MonoBehaviour
 
         return Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(height, height, range));
     }
-
 
 
     public void RenderLight(CommandBuffer cmd, Material material, SortedLight light, float intensityModifier)

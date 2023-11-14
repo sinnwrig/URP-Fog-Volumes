@@ -83,7 +83,9 @@ public partial class VolumetricLightPass : ScriptableRenderPass
             lightMaterial = new Material(light);
 
         if (noiseTexture == null)
+        {
             noiseTexture = Resources.Load("Noise3DTexture") as Texture3D;
+        }   
     }   
 
 
@@ -232,8 +234,9 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         float lightIntensity = 1.0f;
 
         Vector3 noiseVelocity = Vector3.zero;
-        float noiseIntensity = 1;
+        float noiseIntensity = 0;
         float intensityOffset = 0;
+        float noiseScale = 0;
 
         if (VolumeManager.instance != null && VolumeManager.instance.stack != null)
         {
@@ -244,9 +247,13 @@ public partial class VolumetricLightPass : ScriptableRenderPass
                 dirLightIntensity = volumeSettings.directionalIntensityModifier.value;
                 lightIntensity = volumeSettings.intensityModifier.value;
 
-                noiseVelocity = volumeSettings.noiseDirection.value;
-                noiseIntensity = volumeSettings.noiseIntensity.value;
-                intensityOffset = volumeSettings.noiseIntensityOffset.value;
+                if (feature.noise)
+                {
+                    noiseScale = volumeSettings.noiseScale.value;
+                    noiseVelocity = volumeSettings.noiseDirection.value;
+                    noiseIntensity = volumeSettings.noiseIntensity.value;
+                    intensityOffset = volumeSettings.noiseIntensityOffset.value;
+                }
             }
         }
 
@@ -255,8 +262,8 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         commandBuffer.SetKeyword(noiseKeyword, feature.noise);
         commandBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);
-        commandBuffer.SetGlobalVector("_NoiseVelocity", noiseVelocity * feature.noiseScale);
-        commandBuffer.SetGlobalVector("_NoiseData", new Vector4(feature.noiseScale, noiseIntensity, intensityOffset));
+        commandBuffer.SetGlobalVector("_NoiseVelocity", noiseVelocity * noiseScale);
+        commandBuffer.SetGlobalVector("_NoiseData", new Vector3(noiseScale, noiseIntensity, intensityOffset));
 
         commandBuffer.SetRenderTarget(VolumeLightBuffer);
         commandBuffer.ClearRenderTarget(true, true, Color.black);

@@ -1,4 +1,8 @@
-#pragma once 
+// Original project by Michal Skalsky under the BSD license 
+// Modified by Kai Angulo
+
+#pragma once
+
 
 // method used to downsample depth buffer: 0 = min; 1 = max; 2 = min/max in chessboard pattern
 #define DOWNSAMPLE_DEPTH_MODE 2

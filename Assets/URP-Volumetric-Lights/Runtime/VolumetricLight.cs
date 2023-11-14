@@ -6,6 +6,42 @@ using UnityEngine.Rendering.Universal;
 [RequireComponent(typeof(Light)), ExecuteAlways]
 public partial class VolumetricLight : MonoBehaviour 
 {
+    private static Mesh _fullscreenMesh;
+
+    public static Mesh FullscreenMesh
+    {
+        get
+        {
+            if (_fullscreenMesh != null)
+                return _fullscreenMesh;
+
+            _fullscreenMesh = new Mesh
+            {
+                name = "Fullscreen Quad",
+                vertices = new Vector3[]
+                {
+                    new(-1.0f, -1.0f, 0.0f),
+                    new(-1.0f,  1.0f, 0.0f),
+                    new(1.0f, -1.0f, 0.0f),
+                    new(1.0f,  1.0f, 0.0f)
+                },
+
+                uv = new Vector2[]
+                {
+                    new(0.0f, 0.0f),
+                    new(0.0f, 1.0f),
+                    new(1.0f, 0.0f),
+                    new(1.0f, 1.0f)
+                },
+
+                triangles = new int[] { 0, 1, 2, 2, 1, 3 }
+            };
+
+            _fullscreenMesh.UploadMeshData(true);
+            return _fullscreenMesh;
+        }
+    }
+
     private Light _light;
     public Light Light
     {
@@ -63,7 +99,7 @@ public partial class VolumetricLight : MonoBehaviour
 
 
 
-    public void RenderLight(CommandBuffer cmd, Material material, SortedLight light)
+    public void RenderLight(CommandBuffer cmd, Material material, SortedLight light, float intensityModifier)
     {
         if (Light == null)
         {
@@ -74,16 +110,19 @@ public partial class VolumetricLight : MonoBehaviour
         if (!Light.enabled)
             return;
 
+        if (intensityModifier <= 0)
+            return;
+
         Block.SetInt("_SampleCount", sampleCount);
 
-        Block.SetVector("_MieG", new Vector3(1 - (mieG * mieG), 1 + (mieG * mieG), 2 * mieG));
+        Block.SetFloat("_MieG", mieG);
         Block.SetVector("_VolumetricLight", new Vector2(scatteringCoef, extinctionCoef));
         Block.SetFloat("_MaxRayLength", maxRayLength);
 
         // Attenuation sampling params
         Block.SetInt("_LightIndex", light.index);
         Block.SetVector("_LightPosition", light.position);
-        Block.SetVector("_LightColor", light.color);
+        Block.SetVector("_LightColor", light.color * intensityModifier);
         Block.SetVector("_LightAttenuation", light.attenuation);
         Block.SetVector("_SpotDirection", light.spotDirection);
 
@@ -93,15 +132,15 @@ public partial class VolumetricLight : MonoBehaviour
         switch (Light.type)
         {
             case LightType.Spot:
-                cmd.DrawMesh(MeshUtility.FullscreenMesh, SpotLightMatrix(), material, 0, 0, Block);
+                cmd.DrawMesh(FullscreenMesh, SpotLightMatrix(), material, 0, 0, Block);
             break;
 
             case LightType.Point:
-                cmd.DrawMesh(MeshUtility.FullscreenMesh, PointLightMatrix(), material, 0, 1, Block);
+                cmd.DrawMesh(FullscreenMesh, PointLightMatrix(), material, 0, 1, Block);
             break;
 
             case LightType.Directional:
-                cmd.DrawMesh(MeshUtility.FullscreenMesh, Matrix4x4.identity, material, 0, 2, Block);
+                cmd.DrawMesh(FullscreenMesh, Matrix4x4.identity, material, 0, 2, Block);
             break;
         }
     }

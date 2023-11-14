@@ -1,4 +1,8 @@
-#pragma once 
+// Original project by Michal Skalsky under the BSD license 
+// Modified by Kai Angulo
+
+#pragma once
+
 
 #define UPSAMPLE_DEPTH_THRESHOLD 1.5f
 
@@ -57,10 +61,10 @@ float4 DepthAwareUpsample(v2fUpsample input) : SV_TARGET
 	float4 depthDiff = abs(lowResDepth - highResDepth);
 	float accumDiff = dot(depthDiff, float4(1, 1, 1, 1));
 
-	if (accumDiff < threshold) // small error, not an edge -> use bilinear filter
+	if (accumDiff < threshold) // Small error, not an edge -> use bilinear filter
 		return SAMPLE_BASE(_DownsampleColor, sampler_DownsampleColor, input.uv);
     
-	// find nearest sample
+	// Find nearest sample
 	float minDepthDiff = depthDiff.x;
 	float2 nearestUv = input.uv00;
 

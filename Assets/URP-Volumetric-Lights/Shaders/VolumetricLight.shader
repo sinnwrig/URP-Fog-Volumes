@@ -1,4 +1,4 @@
-// Original project by Michal Skalsky, under the BSD license 
+// Original project by Michal Skalsky under the BSD license 
 // Modified by Kai Angulo
 
 
@@ -9,7 +9,7 @@ Shader "Hidden/VolumetricLight"
 		// Pass 0 - Spot Light
 		Pass
 		{
-			Cull Off ZWrite Off ZTest Always
+			Cull Off ZWrite Off ZTest Off
 			Blend One One
 
 			HLSLPROGRAM
@@ -34,7 +34,7 @@ Shader "Hidden/VolumetricLight"
 		// Pass 1 - Point Light
 		Pass
 		{
-			Cull Off ZWrite Off ZTest Always
+			Cull Off ZWrite Off ZTest Off
 			Blend One One
 
 			HLSLPROGRAM
@@ -59,7 +59,7 @@ Shader "Hidden/VolumetricLight"
 		// Pass 2 - Directional Light
 		Pass
 		{
-			Cull Off ZWrite Off ZTest Always
+			Cull Off ZWrite Off ZTest Off
 			Blend One One
 
 			HLSLPROGRAM
@@ -84,7 +84,7 @@ Shader "Hidden/VolumetricLight"
 		// Pass 3 - Blit add into result
 		Pass
 		{
-			Cull Off ZWrite Off ZTest Always
+			Cull Off ZWrite Off ZTest Off
 
 			HLSLPROGRAM
 

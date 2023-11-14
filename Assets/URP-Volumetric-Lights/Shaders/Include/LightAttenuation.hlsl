@@ -11,7 +11,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
 
 int _LightIndex;
@@ -20,26 +19,6 @@ float4 _LightPosition;
 half3 _LightColor;
 half4 _LightAttenuation;
 half4 _SpotDirection;
-
-
-// source: unity URP's lighting includes 
-Light GetLight(float3 positionWS)
-{
-    // Directional lights store direction in _LightPosition.xyz and have .w set to 0.0
-    float3 lightVector = _LightPosition.xyz - positionWS * _LightPosition.w;
-    float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
-
-    half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    half attenuation = half(DistanceAttenuation(distanceSqr, _LightAttenuation.xy) * AngleAttenuation(_SpotDirection.xyz, lightDirection, _LightAttenuation.zw));
-
-    Light light;
-    light.direction = lightDirection;
-    light.distanceAttenuation = attenuation;
-    light.shadowAttenuation = 1.0;
-    light.color = _LightColor;
-
-    return light;
-}
 
 
 
@@ -59,16 +38,22 @@ half3 GetMainLightColor(float3 worldPosition)
 
 half3 GetAdditionalLightColor(float3 worldPosition)
 {
-    Light light = GetLight(worldPosition);
+    float3 lightVector = _LightPosition.xyz - worldPosition * _LightPosition.w;
+    float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
-    light.shadowAttenuation = AdditionalLightRealtimeShadow(_LightIndex, worldPosition, light.direction);
+    half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
+    half distanceAttenuation = half(DistanceAttenuation(distanceSqr, _LightAttenuation.xy) * AngleAttenuation(_SpotDirection.xyz, lightDirection, _LightAttenuation.zw));
+
+    float shadowAttenuation = AdditionalLightRealtimeShadow(_LightIndex, worldPosition, lightDirection);
+
+    half3 color = _LightColor;
 
     #if defined(_LIGHT_COOKIES)
         real3 cookieColor = SampleAdditionalLightCookie(_LightIndex, worldPosition);
-        light.color *= cookieColor;
+        color *= cookieColor;
     #endif
 
-    return light.color * light.shadowAttenuation * light.distanceAttenuation;
+    return color * shadowAttenuation * distanceAttenuation;
 }
 
 

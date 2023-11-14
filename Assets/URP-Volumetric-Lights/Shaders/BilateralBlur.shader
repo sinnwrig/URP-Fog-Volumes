@@ -1,7 +1,6 @@
-// Original project copyrighted by Michal Skalsky under the BSD license 
+// Original project by Michal Skalsky under the BSD license 
 // Modified by Kai Angulo
 
-// NOTE : Have had experiences where Blit() in C# does not properly set _MainTex, so blur source texture is now explicitly set for material
 
 Shader "Hidden/BilateralBlur"
 {
@@ -9,10 +8,10 @@ Shader "Hidden/BilateralBlur"
 	
 	#include "/Include/Common.hlsl"	
 	
-	#pragma multi_compile FULL_RES_BLUR_KERNEL_SIZE
-	#pragma multi_compile HALF_RES_BLUR_KERNEL_SIZE
-	#pragma multi_compile QUARTER_RES_BLUR_KERNEL_SIZE
-	#pragma multi_compile SOURCE_FULL_DEPTH
+	#pragma multi_compile _ FULL_RES_BLUR_KERNEL_SIZE
+	#pragma multi_compile _ HALF_RES_BLUR_KERNEL_SIZE
+	#pragma multi_compile _ QUARTER_RES_BLUR_KERNEL_SIZE
+	#pragma multi_compile _ SOURCE_FULL_DEPTH
 	
 	
 	#if defined(FULL_RES_BLUR_KERNEL_SIZE)
@@ -52,7 +51,7 @@ Shader "Hidden/BilateralBlur"
 
 	SubShader
 	{
-		Cull Off ZWrite Off ZTest Always
+		Cull Off ZWrite Off ZTest Off
 
 		// Pass 0 - horizontal blur
 		Pass

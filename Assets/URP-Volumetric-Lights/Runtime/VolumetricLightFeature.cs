@@ -18,10 +18,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
 
     public bool noise = true;
-    public float noiseScale = 1.0f;
-    public float noiseIntensity = 1.0f;
-    public float noiseIntensityOffset = 0.1f;
-    public Vector3 noiseVelocity = Vector3.one * 0.1f;   
+    public float noiseScale = 1.0f;  
 
 
     private VolumetricLightPass lightPass;

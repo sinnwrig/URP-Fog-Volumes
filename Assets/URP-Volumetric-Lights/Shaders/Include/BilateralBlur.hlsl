@@ -1,3 +1,6 @@
+// Original project by Michal Skalsky under the BSD license 
+// Modified by Kai Angulo
+
 #pragma once
 
      

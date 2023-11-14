@@ -40,16 +40,12 @@
     <Analyzer Include="/home/amog_os/Unity/Hub/Editor/2022.3.10f1/Editor/Data/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Utility/CullingUtility.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Lights.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Targets.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightFeature.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLightPass.Blur.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricLight.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/Utility/MeshUtility.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/VolumetricResolution.cs" />
-     <Compile Include="Assets/URP-Volumetric-Lights/Scripts/SortedLight.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Runtime/VolumetricLightFeature.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Runtime/VolumetricLight.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Runtime/PostProcessLightVolume.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Runtime/VolumetricLightPass.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Runtime/VolumetricResolution.cs" />
+     <Compile Include="Assets/URP-Volumetric-Lights/Runtime/SortedLight.cs" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/VolumetricLight.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Math.hlsl" />
      <None Include="Assets/URP-Volumetric-Lights/Shaders/Include/Intersection.hlsl" />

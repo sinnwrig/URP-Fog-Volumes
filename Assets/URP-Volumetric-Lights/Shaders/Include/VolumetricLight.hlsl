@@ -1,4 +1,8 @@
+// Original project by Michal Skalsky under the BSD license 
+// Modified by Kai Angulo
+
 #pragma once
+
 
 struct Attributes
 {
@@ -22,15 +26,12 @@ struct Varyings
 	float3 _NoiseVelocity; // noise move direction
 #endif
 
-TEXTURE2D(_DitherTexture);
-SAMPLER(sampler_DitherTexture);
-
 TEXTURE2D_X(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
 int _SampleCount;
 float2 _VolumetricLight; // x: scattering coef, y: extinction coef
-float3 _MieG; // x: 1 - g^2, y: 1 + g^2, z: 2*g
+float _MieG;
 
 float _MaxRayLength;
 
@@ -39,77 +40,77 @@ float2 _LightRange;
 float4 _ViewportRect;
 
 
-float GetDensity(float3 wpos, float distance)
+
+float3 WindOffset(float3 worldPosition)
 {
-    float density = 1;
-
-	// Fade density as position gets further from camera
-	float distanceFade = smoothstep(_LightRange.y, _LightRange.x, distance);
-
 #if defined(NOISE)
-	float noise = SAMPLE_BASE3D(_NoiseTexture, sampler_NoiseTexture, frac(wpos * _NoiseData.x + _Time.y * _NoiseVelocity)).x;
-	noise = saturate(noise - _NoiseData.z) * _NoiseData.y;
-	density = saturate(noise);
+	return worldPosition * _NoiseData.x + _Time.y * _NoiseVelocity;
+#else
+	return worldPosition;
 #endif
-    
-    return density * distanceFade;
-}        
-
-
-float MieScattering(float cosAngle)
-{
-	float3 g = _MieG;
-	// Magic number is 1/4pi
-    return (0.07957747154) * (g.x / (pow(abs(g.y - g.z * cosAngle), 1.5)));
 }
 
 
-float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
+float GetDensity(float3 worldPosition, float distance)
 {
-	float2 interleavedPos = (fmod(floor(screenPos.xy), 8.0));
-	float offset = SAMPLE_BASE(_DitherTexture, sampler_DitherTexture, interleavedPos / 8.0 + (float2)(0.5 / 8.0)).w;
+    float density = 1;
+
+#if defined(NOISE)
+	float noise = SAMPLE_BASE3D(_NoiseTexture, sampler_NoiseTexture, WindOffset(worldPosition)).x;
+	density = saturate(noise - _NoiseData.z) * _NoiseData.y;
+#endif
+    
+	// Fade density as position gets further from camera
+    return density * smoothstep(_LightRange.y, _LightRange.x, distance);
+}        
+
+
+float MiePhase(float cosAngle)
+{
+	float gSqr = _MieG * _MieG;
+
+	// Magic number is 1/4pi
+    return (0.07957747154) * ((1 - gSqr) / (pow(abs((1 + gSqr) - (2 * _MieG) * cosAngle), 1.5)));
+}
+
+
+float4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
+{
+	float cameraDistance = length(cameraPos - rayStart);
 
 	int stepCount = _SampleCount;
 	float stepSize = rayLength / stepCount;
 
-
-	float3 step = rayDir * stepSize;
-
-	float3 currentPosition = rayStart + step * offset;
-
-	float4 vlight = 0;
-
 #if defined(DIRECTIONAL_LIGHT)
     float extinction = 0;
 #else
-	// we don't know about density between camera and light's volume, assume 0.5
-	float extinction = length(_WorldSpaceCameraPos.xyz - currentPosition) * _VolumetricLight.y * 0.5;
+	float extinction = cameraDistance * _VolumetricLight.y * 0.5; // Assume density of 0.5 between camera and light
 #endif
-	float dist = length(cameraPos - currentPosition);
+
+	float4 vlight = 0;
+	float distance = 0;
 
 	[loop]
 	for (int i = 0; i < stepCount; ++i)
 	{
-		dist += stepSize;
+		float3 currentPosition = rayStart + rayDir * distance;
 
-		// Attenuation but actually just use color
+		// Attenuated light color
 		float4 attenuatedLight = GetLightAttenuation(currentPosition);
-		float density = GetDensity(currentPosition, dist);
+		float density = GetDensity(currentPosition, distance + cameraDistance);
 
         float scattering = _VolumetricLight.x * stepSize * density;
 		extinction += _VolumetricLight.y * stepSize * density;
 
 		float4 light = attenuatedLight * scattering * exp(-extinction);
 
-
-		// phase function for spot and point lights
-        float3 tolight = -normalize(_LightPosition.xyz - currentPosition * _LightPosition.w);
-        float cosAngle = dot(tolight, -rayDir);
-		light *= MieScattering(cosAngle);     
+		// Apply mie phase to light
+        float3 toLight = -normalize(_LightPosition.xyz - currentPosition * _LightPosition.w);
+		light *= MiePhase(dot(toLight, -rayDir));     
 
 		vlight += light;
 
-		currentPosition += step;				
+		distance += stepSize;				
 	}
 
 	vlight = max(0, vlight);	
@@ -120,15 +121,12 @@ float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLengt
     vlight.w = 1;
 #endif
 
-	// Force 0-1 range
-	vlight.w = saturate(vlight.w);
-
 	return vlight;
 }
 
 
 
-float4 CalculateVolumetricLight(float2 uv, float3x4 invLightMatrix, float3 cameraPos, float3 viewDir, float linearDepth)
+float4 CalculateVolumetricLight(float3x4 invLightMatrix, float3 cameraPos, float3 viewDir, float linearDepth)
 {
     bool hit = false;
     float near = 0;
@@ -157,8 +155,7 @@ float4 CalculateVolumetricLight(float2 uv, float3x4 invLightMatrix, float3 camer
     // Jump to point on intersection surface
     float3 rayStart = cameraPos + viewDir * near;
 
-	// Additive blending
-	return RayMarch(uv, rayStart, viewDir, rayLength, cameraPos);
+	return RayMarch(rayStart, viewDir, rayLength, cameraPos);
 }
 
 
@@ -172,7 +169,8 @@ Varyings VolumetricVertex(Attributes v)
 #endif
 
 	float2 clip01 = output.vertex.xy * 0.5 + 0.5;
-
+	
+	// Clamp clip space position to inside of light viewport rect
 	clip01 = min(max(clip01, _ViewportRect.xy), _ViewportRect.xy + _ViewportRect.zw);
 	output.uv = clip01;
 
@@ -202,7 +200,7 @@ half4 VolumetricFragment(Varyings i) : SV_Target
 	float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
 
 	// Use inverse transform matrix for light
-	return CalculateVolumetricLight(uv, UNITY_MATRIX_I_M, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
+	return CalculateVolumetricLight(UNITY_MATRIX_I_M, _WorldSpaceCameraPos.xyz, rayDir, linearDepth);
 }
 
 

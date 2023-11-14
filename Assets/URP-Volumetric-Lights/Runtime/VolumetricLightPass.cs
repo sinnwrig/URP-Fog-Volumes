@@ -227,16 +227,13 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
     private void DrawLights(List<SortedLight> lights)
     {
-        commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange - feature.falloffRange, feature.lightRange));
-
-        commandBuffer.SetKeyword(noiseKeyword, feature.noise);
 
         float dirLightIntensity = 1.0f;
         float lightIntensity = 1.0f;
 
         Vector3 noiseVelocity = Vector3.zero;
-        float noiseIntensity = 1.0f;
-        float intensityOffset = 0.25f;
+        float noiseIntensity = 1;
+        float intensityOffset = 0;
 
         if (VolumeManager.instance != null && VolumeManager.instance.stack != null)
         {
@@ -253,6 +250,8 @@ public partial class VolumetricLightPass : ScriptableRenderPass
             }
         }
 
+
+        commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange - feature.falloffRange, feature.lightRange));
 
         commandBuffer.SetKeyword(noiseKeyword, feature.noise);
         commandBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);

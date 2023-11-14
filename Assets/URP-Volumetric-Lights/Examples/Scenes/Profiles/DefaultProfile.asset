@@ -89,10 +89,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   intensityModifier:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   directionalIntensityModifier:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0.25
   noiseDirection:
     m_OverrideState: 0

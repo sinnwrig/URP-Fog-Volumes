@@ -40,24 +40,17 @@ float2 _LightRange;
 float4 _ViewportRect;
 
 
-
-float3 WindOffset(float3 worldPosition)
-{
-#if defined(NOISE)
-	return worldPosition * _NoiseData.x + _Time.y * _NoiseVelocity;
-#else
-	return worldPosition;
-#endif
-}
-
-
 float GetDensity(float3 worldPosition, float distance)
 {
-    float density = 1;
+    float density = 1.0;
 
 #if defined(NOISE)
-	float noise = SAMPLE_BASE3D(_NoiseTexture, sampler_NoiseTexture, WindOffset(worldPosition)).x;
-	density = saturate(noise - _NoiseData.z) * _NoiseData.y;
+	float3 samplePos = worldPosition * _NoiseData.x + _Time.y * _NoiseVelocity;
+
+	float noise = SAMPLE_BASE3D(_NoiseTexture, sampler_NoiseTexture, samplePos).x;
+	noise = saturate(noise - _NoiseData.z);
+
+	density *= lerp(1.0, noise, _NoiseData.y);
 #endif
     
 	// Fade density as position gets further from camera

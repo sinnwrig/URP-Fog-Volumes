@@ -12,20 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949e51698f19f65488a7d3cbf912e046, type: 3}
   m_Name: GodRaysRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
-  settings: {renderData: {fileID: 0}, Jitter: 0.25, textureQuality: 2, stepQuality: 64,
-    blur: 1, BlurCount: 4, blurSamples: 7, depthAwareUpsampling: 1, allowMainLight: 1,
-    allowAdditionalLights: 1, temporallyRender: 0, temporalDuration: 2, temporalUseDiscard: 1,
-    temporalReprojection: 1, allowAdditionalLightShadows: 1, maxAdditionalLightCount: 10,
-    useUnityDepthDirectly: 0, supportUnityScreenSpaceShadows: 0, renderAfterTransparents: 1,
-    useVariableIntensity: 0, variableIntensityCurve:
-      m_Curve: []
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-, maxDistance: 256, encodeLightColor: 1, enableHighQualityTextures: 0, AdditionalLightLayers:
-      m_Bits: 4294967295
-, renderOrderOffset: 0}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,8 +85,7 @@ MonoBehaviour:
   m_Name: VolumetricLightFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  resolution: 0
+  resolution: 2
   lightRange: 75
   falloffRange: 15
   noise: 1
-  noiseScale: 0.15

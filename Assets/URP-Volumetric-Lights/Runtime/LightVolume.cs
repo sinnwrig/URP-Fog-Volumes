@@ -7,8 +7,8 @@ using UnityEngine.Rendering.Universal;
 public class LightVolume : VolumeComponent, IPostProcessComponent
 {
     [Header("Intensity Overrides")]
-    public FloatParameter intensityModifier = new FloatParameter(1, true);
     public FloatParameter directionalIntensityModifier = new FloatParameter(1, true);
+    public FloatParameter intensityModifier = new FloatParameter(1, true);
 
     [Header("Noise")]
     public FloatParameter noiseScale = new FloatParameter(0.1f);
@@ -28,3 +28,4 @@ public class LightVolume : VolumeComponent, IPostProcessComponent
     }
 }
 
+ 

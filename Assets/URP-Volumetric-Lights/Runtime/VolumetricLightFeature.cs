@@ -1,9 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 
 
 #if UNITY_EDITOR
@@ -20,25 +17,15 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     public float falloffRange;
 
 
-    public Texture3D noiseTex;
     public bool noise = true;
+    public Texture3D noiseTexture;
 
 
     private VolumetricLightPass lightPass;
     private Shader bilateralBlur;
     private Shader volumetricLight;
 
-
-    public static IEnumerable<ReadOnlyMemory<char>> SplitInParts(string s, int partLength)
-    {
-        if (s == null)
-            throw new ArgumentNullException(nameof(s));
-        if (partLength <= 0)
-            throw new ArgumentException("Part length has to be positive.", nameof(partLength));
-
-        for (var i = 0; i < s.Length; i += partLength)
-            yield return s.AsMemory().Slice(i, Math.Min(partLength, s.Length - i));
-    }
+    public bool createTex = false;
 
 
     public override void Create()
@@ -50,28 +37,23 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
         };
 
-
-        if (noiseTex == null)
+#if UNITY_EDITOR
+        if (noise && noiseTexture == null)
         {
-            int len = texString.Length / 6;
+            string[] assets = AssetDatabase.FindAssets("LightNoiseTexture");
 
-            Color[] colors = new Color[len];
-
-            int iter = 0;
-            foreach (ReadOnlyMemory<char> val in SplitInParts(texString, 6))
-            {   
-                ColorUtility.TryParseHtmlString(val.ToString(), out colors[iter]);
-                iter++;
-            }
+            if (assets.Length > 0)
+                noiseTexture = AssetDatabase.LoadAssetAtPath<Texture3D>(AssetDatabase.GUIDToAssetPath(assets[0]));
+            else    
+                Debug.LogWarning("Volumetric Light Feature is missing noise texture while noise is enabled - noise will not be applied in shader.", this);
         }
 
-#if UNITY_EDITOR
         EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
 #endif
     }
 
 #if UNITY_EDITOR
-    // For some reason, light pass must be refreshed on editor scene changes or else output will be complete black
+    // For some reason light pass must be refreshed on editor scene changes or else output color will be completely black
     private void OnSceneChanged(Scene a, Scene b)
     { 
         lightPass = new VolumetricLightPass(this, bilateralBlur, volumetricLight) 
@@ -99,24 +81,22 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
     void ValidateShaders() 
     {
-        bilateralBlur = AddAlwaysIncludedShader("Hidden/BilateralBlur");
-        volumetricLight = AddAlwaysIncludedShader("Hidden/VolumetricLight");
-
-        if (bilateralBlur == null) 
+        if (!AddAlwaysIncludedShader("Hidden/BilateralBlur", ref bilateralBlur)) 
             Debug.LogError($"BilateralBlur shader missing! Make sure 'Hidden/BilateralBlur' is located somewhere in your project and included in 'Always Included Shaders'", this);
 
-        if (volumetricLight == null)
+        if (!AddAlwaysIncludedShader("Hidden/VolumetricLight", ref volumetricLight))
             Debug.LogError($"VolumetricLight shader missing! Make sure 'Hidden/VolumetricLight' is located somewhere in your project and included in 'Always Included Shaders'", this);
     }
 
 
-    static Shader AddAlwaysIncludedShader(string shaderName)
+    static bool AddAlwaysIncludedShader(string shaderName, ref Shader shader)
     {
-        var shader = Shader.Find(shaderName);
+        if (shader != null)
+            return true;
+
+        shader = Shader.Find(shaderName);
         if (shader == null) 
-        {
-            return null;
-        }
+            return false;
      
 #if UNITY_EDITOR
         var graphicsSettingsObj = AssetDatabase.LoadAssetAtPath<GraphicsSettings>("ProjectSettings/GraphicsSettings.asset");
@@ -147,8 +127,6 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         }
 #endif
 
-        return shader;
+        return true;
     }
-
-    string texString = "";
 }

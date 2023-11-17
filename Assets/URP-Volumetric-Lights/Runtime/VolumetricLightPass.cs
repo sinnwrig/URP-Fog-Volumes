@@ -46,8 +46,6 @@ public partial class VolumetricLightPass : ScriptableRenderPass
     private static Material bilateralBlur;
     private static Material lightMaterial;
 
-    private static Texture3D noiseTexture;
-
 
     public VolumetricLightFeature feature;
     public VolumetricResolution Resolution => feature.resolution;
@@ -81,11 +79,6 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         if (lightMaterial == null || lightMaterial.shader != light)
             lightMaterial = new Material(light);
-
-        if (noiseTexture == null)
-        {
-            noiseTexture = Resources.Load("Noise3DTexture") as Texture3D;
-        }   
     }   
 
 
@@ -260,10 +253,14 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
         commandBuffer.SetGlobalVector("_LightRange", new Vector2(feature.lightRange - feature.falloffRange, feature.lightRange));
 
-        commandBuffer.SetKeyword(noiseKeyword, feature.noise);
-        commandBuffer.SetGlobalTexture("_NoiseTexture", noiseTexture);
-        commandBuffer.SetGlobalVector("_NoiseVelocity", noiseVelocity * noiseScale);
-        commandBuffer.SetGlobalVector("_NoiseData", new Vector3(noiseScale, noiseIntensity, intensityOffset));
+        commandBuffer.SetKeyword(noiseKeyword, feature.noise && feature.noiseTexture != null);
+
+        if (feature.noise && feature.noiseTexture != null)
+        {
+            commandBuffer.SetGlobalTexture("_NoiseTexture", feature.noiseTexture);
+            commandBuffer.SetGlobalVector("_NoiseVelocity", noiseVelocity * noiseScale);
+            commandBuffer.SetGlobalVector("_NoiseData", new Vector3(noiseScale, noiseIntensity, intensityOffset));
+        }
 
         commandBuffer.SetRenderTarget(VolumeLightBuffer);
         commandBuffer.ClearRenderTarget(true, true, Color.black);

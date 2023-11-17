@@ -60,23 +60,23 @@ MonoBehaviour:
   m_Name: LightVolume
   m_EditorClassIdentifier: 
   active: 1
+  directionalIntensityModifier:
+    m_OverrideState: 1
+    m_Value: 1.24
   intensityModifier:
     m_OverrideState: 1
     m_Value: 1
-  directionalIntensityModifier:
-    m_OverrideState: 1
-    m_Value: 0.1
   noiseScale:
-    m_OverrideState: 0
-    m_Value: 0.1
+    m_OverrideState: 1
+    m_Value: 0.25
   noiseDirection:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {x: 0.1, y: 0.1, z: 0.1}
   noiseIntensity:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   noiseIntensityOffset:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.25
 --- !u!114 &-7011558710299706105
 MonoBehaviour:

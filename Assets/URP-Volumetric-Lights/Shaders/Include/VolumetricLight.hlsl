@@ -117,6 +117,7 @@ float4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPo
 	return vlight;
 }
 
+float3x4 _SpotLight2;
 
 
 float4 CalculateVolumetricLight(float3x4 invLightMatrix, float3 cameraPos, float3 viewDir, float linearDepth)
@@ -162,9 +163,15 @@ Varyings VolumetricVertex(Attributes v)
 #endif
 
 	float2 clip01 = output.vertex.xy * 0.5 + 0.5;
-	
-	// Clamp clip space position to inside of light viewport rect
-	clip01 = min(max(clip01, _ViewportRect.xy), _ViewportRect.xy + _ViewportRect.zw);
+
+	// Only clip when camera is far enough from light to prevent invalid clipping when inside light
+	float3 distVec = _WorldSpaceCameraPos.xyz - _LightPosition.xyz;
+    if (dot(distVec, distVec) > 0.5)
+	{
+		// Clamp clip space position to inside of light viewport rect
+		clip01 = min(max(clip01, _ViewportRect.xy), _ViewportRect.xy + _ViewportRect.zw);
+	}
+
 	output.uv = clip01;
 
 	output.vertex.xy = clip01 * 2 - 1;

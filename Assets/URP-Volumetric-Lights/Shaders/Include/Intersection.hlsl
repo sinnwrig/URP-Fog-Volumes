@@ -105,12 +105,50 @@ bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out flo
 }
 
 
+float2 RayConeIntersect(in float3 f3ConeApex, in float3 f3ConeAxis, in float fCosAngle, in float3 f3RayStart, in float3 f3RayDir)
+{
+			f3RayStart -= f3ConeApex;
+			float a = dot(f3RayDir, f3ConeAxis);
+			float b = dot(f3RayDir, f3RayDir);
+			float c = dot(f3RayStart, f3ConeAxis);
+			float d = dot(f3RayStart, f3RayDir);
+			float e = dot(f3RayStart, f3RayStart);
+			fCosAngle *= fCosAngle;
+			float A = a*a - b*fCosAngle;
+			float B = 2 * (c*a - d*fCosAngle);
+			float C = c*c - e*fCosAngle;
+			float D = B*B - 4 * A*C;
+
+			if (D > 0)
+			{
+				D = sqrt(D);
+				float2 t = (-B + sign(A)*float2(-D, +D)) / (2 * A);
+				bool2 b2IsCorrect = c + a * t > 0 && t > 0;
+				t = t * b2IsCorrect + !b2IsCorrect * MAX_FLOAT;
+				return t;
+			}
+			else // no intersection
+				return MAX_FLOAT;
+}
+
+
+float RayPlaneIntersect(in float3 planeNormal, in float planeD, in float3 rayOrigin, in float3 rayDir)
+{
+	float NdotD = dot(planeNormal, rayDir);
+	float NdotO = dot(planeNormal, rayOrigin);
+	float t = -(NdotO + planeD) / NdotD;
+	if (t < 0)
+		t = 100000;
+	return t;
+}
+
+
 // Returns ray/cone intersection.
 bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {   
     TransformRay(invTransform, rayOrigin, rayDir);
 
-    float s = 0.5;
+	const float s = 0.5;
 	
 	rayOrigin.z *= s;
 	rayDir.z *= s;

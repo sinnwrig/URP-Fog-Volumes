@@ -234,7 +234,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 0
@@ -600,7 +600,7 @@ GameObject:
   - component: {fileID: 736972976}
   - component: {fileID: 736972974}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -704,7 +704,7 @@ Light:
   m_Color: {r: 0.99631375, g: 1, b: 0.7243975, a: 1}
   m_Intensity: 5
   m_Range: 7
-  m_SpotAngle: 65.07168
+  m_SpotAngle: 55.951416
   m_InnerSpotAngle: 38.559856
   m_CookieSize: 10
   m_Shadows:
@@ -760,13 +760,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 811935693}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7591494, y: 0.24953777, z: -0.33891526, w: 0.49654767}
-  m_LocalPosition: {x: 2.472, y: 4.93, z: 0.771}
+  m_LocalRotation: {x: 0.6331197, y: -0.34771776, z: -0.6756216, w: 0.14760526}
+  m_LocalPosition: {x: 2.4713, y: 5.502, z: -0.04}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 67.376, y: 223.905, z: 173.687}
+  m_LocalEulerAnglesHint: {x: -16.436, y: 267.401, z: 221.836}
 --- !u!114 &811935697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -805,7 +805,7 @@ MonoBehaviour:
   sampleCount: 15
   scatteringCoef: 0.871
   extinctionCoef: 0.01
-  mieG: 0.445
+  mieG: 0.39
   maxRayLength: 300
 --- !u!1 &1099493075
 GameObject:
@@ -920,7 +920,7 @@ Transform:
   m_GameObject: {fileID: 1099493075}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.24, y: 3.69, z: 0.03}
+  m_LocalPosition: {x: -7.39, y: 4.38, z: 0.03}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1136,7 +1136,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 0

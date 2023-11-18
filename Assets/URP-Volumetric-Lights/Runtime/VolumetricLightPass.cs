@@ -111,6 +111,9 @@ public partial class VolumetricLightPass : ScriptableRenderPass
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
+        if (!renderingData.cameraData.postProcessEnabled)
+            return;
+
         var lights = GetSortedLights(ref renderingData);
         if (lights.Count == 0)
             return;
@@ -269,7 +272,10 @@ public partial class VolumetricLightPass : ScriptableRenderPass
         for (int i = 0; i < lights.Count; i++)
         {
             VolumetricLight light = lights[i].volumeLight;
-            light.RenderLight(commandBuffer, lightMaterial, lights[i], light.Light.type == LightType.Directional ? dirLightIntensity : lightIntensity);
+
+            float intensity = light.Light.type == LightType.Directional ? dirLightIntensity : lightIntensity;
+
+            light.RenderLight(commandBuffer, lightMaterial, lights[i], intensity);
         }
     }
 

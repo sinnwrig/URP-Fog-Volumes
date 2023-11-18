@@ -41,8 +41,10 @@ half3 GetAdditionalLightColor(float3 worldPosition)
     float3 lightVector = _LightPosition.xyz - worldPosition * _LightPosition.w;
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
-    half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    half distanceAttenuation = half(DistanceAttenuation(distanceSqr, _LightAttenuation.xy) * AngleAttenuation(_SpotDirection.xyz, lightDirection, _LightAttenuation.zw));
+    float rsqr = rsqrt(distanceSqr);
+
+    half3 lightDirection = half3(lightVector * rsqr);
+    half distanceAttenuation = DistanceAttenuation(distanceSqr, _LightAttenuation.xy) * AngleAttenuation(_SpotDirection.xyz, lightDirection, _LightAttenuation.zw);
 
     float shadowAttenuation = AdditionalLightRealtimeShadow(_LightIndex, worldPosition, lightDirection);
 

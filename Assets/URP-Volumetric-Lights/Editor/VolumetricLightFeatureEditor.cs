@@ -1,10 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
 
-[CustomEditor(typeof(VolumetricLightFeature))]
+[CustomEditor(typeof(VolumetricFogFeature))]
 public class VolumetricLightFeatureEditor : Editor
 {
     SerializedProperty resolution;

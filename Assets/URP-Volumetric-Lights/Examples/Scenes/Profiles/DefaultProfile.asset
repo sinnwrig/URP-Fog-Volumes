@@ -62,10 +62,10 @@ MonoBehaviour:
   active: 1
   directionalIntensityModifier:
     m_OverrideState: 1
-    m_Value: 0.25
+    m_Value: 0
   intensityModifier:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   noiseScale:
     m_OverrideState: 1
     m_Value: 0.25

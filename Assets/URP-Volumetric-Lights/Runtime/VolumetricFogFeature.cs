@@ -10,44 +10,25 @@ using UnityEditor.SceneManagement;
 #endif
 
 
-public class VolumetricLightFeature : ScriptableRendererFeature
+public class VolumetricFogFeature : ScriptableRendererFeature
 {
     public VolumetricResolution resolution;
-    public float lightRange;
-    public float falloffRange;
-
-
-    public bool noise = true;
-    public Texture3D noiseTexture;
-
-
-    private VolumetricLightPass lightPass;
+    
+    private VolumetricFogPass lightPass;
     private Shader bilateralBlur;
-    private Shader volumetricLight;
-
-    public bool createTex = false;
+    private Shader volumetricFog;
 
 
     public override void Create()
     {
         ValidateShaders();
 
-        lightPass = new VolumetricLightPass(this, bilateralBlur, volumetricLight) 
+        lightPass = new VolumetricFogPass(this, bilateralBlur, volumetricFog) 
         { 
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
         };
 
 #if UNITY_EDITOR
-        if (noise && noiseTexture == null)
-        {
-            string[] assets = AssetDatabase.FindAssets("LightNoiseTexture");
-
-            if (assets.Length > 0)
-                noiseTexture = AssetDatabase.LoadAssetAtPath<Texture3D>(AssetDatabase.GUIDToAssetPath(assets[0]));
-            else    
-                Debug.LogWarning("Volumetric Light Feature is missing noise texture while noise is enabled - noise will not be applied in shader.", this);
-        }
-
         EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
 #endif
     }
@@ -56,7 +37,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     // For some reason light pass must be refreshed on editor scene changes or else output color will be completely black
     private void OnSceneChanged(Scene a, Scene b)
     { 
-        lightPass = new VolumetricLightPass(this, bilateralBlur, volumetricLight) 
+        lightPass = new VolumetricFogPass(this, bilateralBlur, volumetricFog) 
         { 
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
         };
@@ -84,8 +65,8 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         if (!AddAlwaysIncludedShader("Hidden/BilateralBlur", ref bilateralBlur)) 
             Debug.LogError($"BilateralBlur shader missing! Make sure 'Hidden/BilateralBlur' is located somewhere in your project and included in 'Always Included Shaders'", this);
 
-        if (!AddAlwaysIncludedShader("Hidden/VolumetricLight", ref volumetricLight))
-            Debug.LogError($"VolumetricLight shader missing! Make sure 'Hidden/VolumetricLight' is located somewhere in your project and included in 'Always Included Shaders'", this);
+        if (!AddAlwaysIncludedShader("Hidden/VolumetricFog", ref volumetricFog))
+            Debug.LogError($"VolumetricFog shader missing! Make sure 'Hidden/VolumetricFog' is located somewhere in your project and included in 'Always Included Shaders'", this);
     }
 
 

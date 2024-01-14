@@ -29,6 +29,8 @@ float4 BilateralBlur(v2f input, int2 direction, const int kernelRadius)
 
 	float4 centerColor = SAMPLE_BASE(_BlurSource, sampler_BlurSource, uv);
 
+	return centerColor;
+
 	float weight = 0;
 	float weightSum = 0;
 

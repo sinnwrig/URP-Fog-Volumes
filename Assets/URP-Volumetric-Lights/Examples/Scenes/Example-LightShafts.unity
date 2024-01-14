@@ -149,13 +149,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 440490023}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.28978845, y: -0.044128, z: -0.9197453, w: 0.26104403}
-  m_LocalPosition: {x: 0.85, y: 0.28, z: 1.18}
-  m_LocalScale: {x: 1.4077545, y: 1.4077545, z: 1.4077545}
+  m_LocalRotation: {x: 0.8462084, y: 0.013240275, z: -0.53185624, w: -0.029749732}
+  m_LocalPosition: {x: 1.49, y: 8.6, z: 27.87}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -13.442, y: 31.627, z: -152.133}
+  m_LocalEulerAnglesHint: {x: -2.078, y: -115.644, z: -183.101}
 --- !u!114 &440490026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -168,12 +168,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volumeType: 2
+  volumeType: 0
   ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
   edgeFade: 1
   lightIntensityModifier: 1
-  maxDistance: 0
+  maxDistance: 100000
   fadeDistance: 0
+  hasLighting: 0
   hasShadows: 0
   sampleCount: 16
   scatteringCoef: 0.5
@@ -563,7 +564,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &648100834
 Transform:
   m_ObjectHideFlags: 0
@@ -831,7 +832,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &798267753
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -916,7 +917,6 @@ GameObject:
   m_Component:
   - component: {fileID: 973744430}
   - component: {fileID: 973744429}
-  - component: {fileID: 973744431}
   - component: {fileID: 973744432}
   m_Layer: 0
   m_Name: Directional Light
@@ -1002,34 +1002,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 24.529, y: -10.823, z: -2.443}
---- !u!114 &973744431
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 973744428}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  volumeType: 0
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  edgeFade: 1
-  lightIntensityModifier: 1
-  maxDistance: 0
-  fadeDistance: 0
-  hasShadows: 0
-  sampleCount: 20
-  scatteringCoef: 0.626
-  extinctionCoef: 0.5
-  mieG: 0.25
-  noiseTexture: {fileID: 0}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 1
-  noiseIntensityOffset: 0.25
 --- !u!114 &973744432
 MonoBehaviour:
   m_ObjectHideFlags: 0

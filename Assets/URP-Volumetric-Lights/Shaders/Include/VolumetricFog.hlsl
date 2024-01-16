@@ -30,6 +30,9 @@ struct Varyings
 TEXTURE2D_X(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
+float4 _AmbientColor;
+float _IntensityModifier;
+
 int _SampleCount;
 float _Scattering;
 float _Extinction;
@@ -56,17 +59,8 @@ float GetDensity(float3 worldPosition, float distance)
 #endif
     
 	// Fade density as position gets further from camera
-    return density * smoothstep(_FogRange.y, _FogRange.x, distance);
+    return density * smoothstep(_FogRange.x, _FogRange.y, distance);
 }        
-
-
-float MiePhase(float cosAngle)
-{
-	float gSqr = _MieG * _MieG;
-
-	// Magic number is 1/4pi
-    return (0.07957747154) * ((1 - gSqr) / (pow(abs((1 + gSqr) - (2 * _MieG) * cosAngle), 1.5)));
-}
 
 
 float4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
@@ -87,20 +81,19 @@ float4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPo
 		float3 currentPosition = rayStart + rayDir * distance;
 
 		// Attenuated light color
-		float4 attenuatedLight = GetLightAttenuation(currentPosition);
+		float4 light = _AmbientColor;
+		
+		// Additive lighting
+		light += GetLightAttenuationMie(currentPosition, rayDir, _MieG) * _IntensityModifier;
+
 		float density = GetDensity(currentPosition, distance + cameraDistance);
 
         float scattering = _Scattering * stepSize * density;
 		extinction += _Extinction * stepSize * density;
 
-		float4 light = attenuatedLight * scattering * exp(-extinction);
-
-		// Apply mie phase to light
-        float3 toLight = -normalize(_LightPosition.xyz - currentPosition * _LightPosition.w);
-		light *= MiePhase(dot(toLight, -rayDir));     
+		light *= scattering * exp(-extinction);
 
 		vlight += light;
-
 		distance += stepSize;				
 	}
 
@@ -144,7 +137,7 @@ float4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDe
     // Jump to point on intersection surface 
     float3 rayStart = cameraPos + viewDir * near;
 
-	return (float4)far - max(near, 0.0);// RayMarch(rayStart, viewDir, rayLength, cameraPos);
+	return RayMarch(rayStart, viewDir, rayLength, cameraPos);
 }
 
 

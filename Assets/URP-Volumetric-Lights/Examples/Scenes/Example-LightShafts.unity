@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 973744429}
-  m_IndirectSpecularColor: {r: 0.08613773, g: 0.06922841, b: 0.14942753, a: 1}
+  m_IndirectSpecularColor: {r: 0.086180255, g: 0.06903744, b: 0.15034194, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -124,67 +124,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &440490023
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 440490025}
-  - component: {fileID: 440490026}
-  m_Layer: 0
-  m_Name: Capsule
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &440490025
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 440490023}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.6572577, y: 0.33116153, z: -0.41638723, w: -0.53382224}
-  m_LocalPosition: {x: -22.38, y: 7.34, z: 5.48}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -25.21, y: -95.283, z: -256.531}
---- !u!114 &440490026
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 440490023}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  volumeType: 0
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  edgeFade: 1
-  lightIntensityModifier: 1
-  maxDistance: 100000
-  fadeDistance: 0
-  hasLighting: 0
-  hasShadows: 0
-  sampleCount: 16
-  scatteringCoef: 0.5
-  extinctionCoef: 0.01
-  mieG: 0.1
-  noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 1
-  noiseIntensityOffset: 0.25
 --- !u!1 &448033209
 GameObject:
   m_ObjectHideFlags: 0
@@ -500,67 +439,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 648100834}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &525664195
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 525664197}
-  - component: {fileID: 525664196}
-  m_Layer: 0
-  m_Name: Capsule (3)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &525664196
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 525664195}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  volumeType: 3
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  edgeFade: 1
-  lightIntensityModifier: 1
-  maxDistance: 100000
-  fadeDistance: 0
-  hasLighting: 0
-  hasShadows: 0
-  sampleCount: 16
-  scatteringCoef: 0.5
-  extinctionCoef: 0.01
-  mieG: 0.1
-  noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 1
-  noiseIntensityOffset: 0.25
---- !u!4 &525664197
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 525664195}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.8462084, y: 0.013240275, z: -0.53185624, w: -0.029749732}
-  m_LocalPosition: {x: -21.79, y: 8.18, z: 6.83}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -2.078, y: -115.644, z: -183.101}
 --- !u!1 &585558508
 GameObject:
   m_ObjectHideFlags: 0
@@ -810,8 +688,8 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
-  m_Range: 3.827897
+  m_Intensity: 5
+  m_Range: 4
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -869,13 +747,13 @@ Transform:
   m_GameObject: {fileID: 676539385}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 4.82, y: 1.3, z: 7.53}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &798267752
+--- !u!1 &687866593
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -883,91 +761,30 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 798267755}
-  - component: {fileID: 798267754}
-  - component: {fileID: 798267756}
-  - component: {fileID: 798267753}
+  - component: {fileID: 687866594}
   m_Layer: 0
-  m_Name: Room Volume
+  m_Name: Fog Volumes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &798267753
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 798267752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_IsGlobal: 0
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: 4b415c959c475179d9bc6bce53b389ad, type: 2}
---- !u!65 &798267754
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 798267752}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 10, y: 5, z: 13}
-  m_Center: {x: 0, y: 0, z: 2}
---- !u!4 &798267755
+--- !u!4 &687866594
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 798267752}
+  m_GameObject: {fileID: 687866593}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.05, y: 4, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 891921083}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &798267756
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 798267752}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 6.829854
-  m_Center: {x: 0, y: 0, z: 11.364179}
 --- !u!1 &891921081
 GameObject:
   m_ObjectHideFlags: 0
@@ -979,7 +796,7 @@ GameObject:
   - component: {fileID: 891921083}
   - component: {fileID: 891921082}
   m_Layer: 0
-  m_Name: Capsule (1)
+  m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -998,14 +815,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   volumeType: 1
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  edgeFade: 1
-  lightIntensityModifier: 1
-  maxDistance: 100000
-  fadeDistance: 0
-  hasLighting: 0
-  hasShadows: 0
-  sampleCount: 16
+  ambientFogColor: {r: 0, g: 0, b: 0, a: 1}
+  lightIntensityModifier: 3.5
+  maxDistance: 100
+  fadeDistance: 90
+  hasLighting: 1
+  hasShadows: 1
+  sampleCount: 25
   scatteringCoef: 0.5
   extinctionCoef: 0.01
   mieG: 0.1
@@ -1022,13 +838,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 891921081}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.42371017, y: 0.6869265, z: -0.57263505, w: -0.14384292}
-  m_LocalPosition: {x: -9.7, y: 3.59, z: 11.43}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 4.5, z: 2}
+  m_LocalScale: {x: 15, y: 8, z: 19}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 65.314, y: -223.53, z: -452.042}
+  m_Father: {fileID: 687866594}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &973744428
 GameObject:
   m_ObjectHideFlags: 0
@@ -1117,13 +933,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 973744428}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.21339472, y: 0.08762585, z: 0.0007134039, w: -0.97302824}
+  m_LocalRotation: {x: -0.25033107, y: 0.08758937, z: -0.0026273744, w: -0.9641865}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 24.529, y: -10.823, z: -2.443}
+  m_LocalEulerAnglesHint: {x: 28.894, y: -11.036, z: -2.539}
 --- !u!114 &973744432
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1357,67 +1173,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 648100834}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
---- !u!1 &1449197997
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1449197999}
-  - component: {fileID: 1449197998}
-  m_Layer: 0
-  m_Name: Capsule (2)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1449197998
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1449197997}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  volumeType: 2
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  edgeFade: 1
-  lightIntensityModifier: 1
-  maxDistance: 100000
-  fadeDistance: 0
-  hasLighting: 0
-  hasShadows: 0
-  sampleCount: 16
-  scatteringCoef: 0.5
-  extinctionCoef: 0.01
-  mieG: 0.1
-  noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 1
-  noiseIntensityOffset: 0.25
---- !u!4 &1449197999
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1449197997}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.8432638, y: -0.05352615, z: -0.5293218, w: 0.07654725}
-  m_LocalPosition: {x: -22.38, y: 7.97, z: 1.9}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 4.154, y: -115.407, z: -170.11}
 --- !u!1 &1476498313
 GameObject:
   m_ObjectHideFlags: 0
@@ -2079,9 +1834,5 @@ SceneRoots:
   - {fileID: 973744430}
   - {fileID: 648100834}
   - {fileID: 585558510}
-  - {fileID: 798267755}
-  - {fileID: 440490025}
-  - {fileID: 891921083}
-  - {fileID: 1449197999}
-  - {fileID: 525664197}
   - {fileID: 676539388}
+  - {fileID: 687866594}

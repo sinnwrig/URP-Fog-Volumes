@@ -92,6 +92,8 @@ Shader "Hidden/VolumetricFog"
    			#pragma multi_compile _ CAPSULE_VOLUME
 			#pragma multi_compile _ CYLINDER_VOLUME
 
+			#define MAX_LIGHT_COUNT 64
+
 
 			#include "/Include/Common.hlsl"
 			#include "/Include/Math.hlsl"

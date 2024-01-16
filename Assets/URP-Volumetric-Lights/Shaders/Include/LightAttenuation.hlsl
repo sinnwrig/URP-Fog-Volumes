@@ -4,19 +4,46 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 
 
-int _LightIndex;
+int _LightCount;
 
-float4 _LightPosition;
-half3 _LightColor;
-half4 _LightAttenuation;
-half4 _SpotDirection;
+int _LightToShadowIndices[MAX_LIGHT_COUNT];  
+float4 _LightPositions[MAX_LIGHT_COUNT];      
+half3 _LightColors[MAX_LIGHT_COUNT];          
+half4 _LightAttenuations[MAX_LIGHT_COUNT];    
+half4 _SpotDirections[MAX_LIGHT_COUNT];       
 
 
+struct VolumeLight
+{
+    int shadowIndex;
+    float4 position;
+    half3 color;
+    half4 attenuation;
+    half4 spotDirection;
+};
 
-half3 GetMainLightColor(float3 worldPosition)
+
+VolumeLight GetAdditionalLight(int index)
+{
+    VolumeLight output;
+
+    output.shadowIndex = _LightToShadowIndices[index];
+    output.position = _LightPositions[index];
+    output.color = _LightColors[index];
+    output.attenuation = _LightAttenuations[index];
+    output.spotDirection = _SpotDirections[index];
+
+    return output;
+}
+
+
+half3 GetMainLightColor(half3 color, float3 worldPosition)
 {    
     float4 shadowCoord = TransformWorldToShadowCoord(worldPosition);
-    half3 color = _LightColor * MainLightRealtimeShadow(shadowCoord);
+
+    #if defined(SHADOWS_ENABLED)
+        color *= MainLightRealtimeShadow(shadowCoord);
+    #endif
 
     #if defined(_LIGHT_COOKIES)
         real3 cookieColor = SampleMainLightCookie(worldPosition);
@@ -27,38 +54,78 @@ half3 GetMainLightColor(float3 worldPosition)
 }
 
 
-half3 GetAdditionalLightColor(float3 worldPosition)
+half3 GetAdditionalLightColor(float3 worldPosition, int additionalLightIndex, out float3 lightDirection)
 {
-    float3 lightVector = _LightPosition.xyz - worldPosition * _LightPosition.w;
-    float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
+    VolumeLight light = GetAdditionalLight(additionalLightIndex);
+
+    if (light.shadowIndex < 0)
+        return GetMainLightColor(light.color, worldPosition);
+    
+    lightDirection = light.position.xyz - worldPosition * light.position.w;
+    float distanceSqr = max(dot(lightDirection, lightDirection), HALF_MIN);
 
     float rsqr = rsqrt(distanceSqr);
 
-    half3 lightDirection = half3(lightVector * rsqr);
-    half distanceAttenuation = DistanceAttenuation(distanceSqr, _LightAttenuation.xy) * AngleAttenuation(_SpotDirection.xyz, lightDirection, _LightAttenuation.zw);
+    half3 color = light.color;
 
-    float shadowAttenuation = AdditionalLightRealtimeShadow(_LightIndex, worldPosition, lightDirection);
+    half3 lightVector = half3(lightDirection * rsqr);
+    half distanceAttenuation = DistanceAttenuation(distanceSqr, light.attenuation.xy) * AngleAttenuation(light.spotDirection.xyz, lightVector, light.attenuation.zw);
+    color *= distanceAttenuation;
 
-    half3 color = _LightColor;
+    #if defined(SHADOWS_ENABLED)
+        float shadowAttenuation = AdditionalLightRealtimeShadow(light.shadowIndex, worldPosition, lightVector);
+        color *= shadowAttenuation;
+    #endif
 
     #if defined(_LIGHT_COOKIES)
-        real3 cookieColor = SampleAdditionalLightCookie(_LightIndex, worldPosition);
+        real3 cookieColor = SampleAdditionalLightCookie(light.shadowIndex, worldPosition);
         color *= cookieColor;
     #endif
 
-    return color * shadowAttenuation * distanceAttenuation;
+    return color;
 }
 
 
-
-float4 GetLightAttenuation(float3 wpos)
+float MiePhase(float cosAngle, float mieG)
 {
-	half3 lightCol = 1.0;
+	float gSqr = mieG * mieG;
 
-	if (_LightIndex < 0)
-		lightCol = GetMainLightColor(wpos);
-	else 
-		lightCol = GetAdditionalLightColor(wpos);
+	// Magic number is 1/4pi
+    return (0.07957747154) * ((1 - gSqr) / (pow(abs((1 + gSqr) - (2 * mieG) * cosAngle), 1.5)));
+}
+
+
+float4 GetLightAttenuation(float3 worldPosition)
+{
+	half3 lightCol = 0.0;
+
+    #if defined(LIGHTING_ENABLED)
+        for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
+        {
+            float3 direction;
+            lightCol += GetAdditionalLightColor(worldPosition, i, direction);
+        }
+    #endif
 
 	return float4(lightCol, 0.0);
+}
+
+
+float4 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
+{
+    half3 lightCol = 0.0;
+
+    #if defined(LIGHTING_ENABLED)
+        for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
+        {
+            float3 lightDir;
+            half3 lightColor = GetAdditionalLightColor(worldPosition, i, lightDir);
+
+            lightColor *= MiePhase(dot(-lightDir, -direction), mieG);  
+
+            lightCol += lightColor;
+        }
+    #endif
+
+	return float4(lightCol, 0.0);    
 }

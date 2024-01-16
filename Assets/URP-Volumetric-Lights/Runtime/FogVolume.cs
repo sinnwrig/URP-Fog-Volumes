@@ -1,37 +1,16 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 
-#if UNITY_EDITOR
-    using UnityEditor;
-#endif
-
 [ExecuteAlways]
 public partial class FogVolume : MonoBehaviour 
 {
-    public enum VolumeType
-    {
-        Sphere = 0, 
-        Cube = 1,
-        Capsule = 2, 
-        Cylinder = 3, 
-    }
-
-
-    public static void SetVolumeKeyword(VolumeType type, CommandBuffer cmd)
-    {
-        for (int i = 0; i < 4; i++)
-            cmd.SetKeyword(VolumetricFogPass.shapeKeywords[i], i == (int)type);
-    }
-
-
-
     [Header("Appearance")]
     public VolumeType volumeType;
     public Color ambientFogColor = Color.white;
-    public float edgeFade = 1;
     public float lightIntensityModifier = 1;
 
 
@@ -48,7 +27,6 @@ public partial class FogVolume : MonoBehaviour
     [Range(0.0f, 1f)] public float extinctionCoef = 0.01f;
     [Range(0.0f, 0.999f)] public float mieG = 0.1f;  
 
-
     
     [Header("Noise")]
     public Texture3D noiseTexture;
@@ -63,19 +41,15 @@ public partial class FogVolume : MonoBehaviour
         VolumetricFogPass.AddVolume(this);
     }
 
-
     void OnDisable()
     {
         VolumetricFogPass.RemoveVolume(this);
     }
 
-
     void OnDestroy()
     {
         OnDisable();
     }
-
-
 
     void SetupNoise(CommandBuffer cmd)
     {
@@ -88,9 +62,19 @@ public partial class FogVolume : MonoBehaviour
         }
     }
 
+    const int maxLightCount = 64;
+
+    float[] lightsToShadow = new float[maxLightCount];
+    Vector4[] lightPositions  = new Vector4[maxLightCount];
+    Vector4[] lightColors = new Vector4[maxLightCount];
+    Vector4[] lightAttenuations = new Vector4[maxLightCount];
+    Vector4[] spotDirections = new Vector4[maxLightCount];
+
 
     void SetupLighting(CommandBuffer cmd, List<NativeLight> lights, int maxLights)
     {
+        cmd.SetGlobalVector("_AmbientColor", ambientFogColor);
+        cmd.SetGlobalFloat("_IntensityModifier", lightIntensityModifier);
         cmd.SetGlobalInt("_SampleCount", sampleCount);
 
         cmd.SetGlobalFloat("_MieG", mieG);
@@ -102,26 +86,45 @@ public partial class FogVolume : MonoBehaviour
 
         if (hasLighting)
         {
+            cmd.SetGlobalInteger("_LightCount", lights.Count);  
+
+            for (int i = 0; i < lights.Count; i++)
+            {   
+                NativeLight light = lights[i];
+
+                lightsToShadow[i] = light.shadowIndex;
+                lightPositions[i] = light.position;
+                lightColors[i] = light.color;
+                lightAttenuations[i] = light.attenuation;
+                spotDirections[i] = light.spotDirection;
+            }
+
             // Initialize the shader light arrays
+            cmd.SetGlobalFloatArray("_LightToShadowIndices", lightsToShadow);
+            cmd.SetGlobalVectorArray("_LightPositions", lightPositions);   
+            cmd.SetGlobalVectorArray("_LightColors", lightColors);        
+            cmd.SetGlobalVectorArray("_LightAttenuations", lightAttenuations);  
+            cmd.SetGlobalVectorArray("_SpotDirections", spotDirections); 
         }
     }
 
 
     public void RenderVolume(ref RenderingData renderingData, CommandBuffer cmd, Material material, List<NativeLight> lights, int maxLights)
     {
-        Vector4 viewport = GetViewportRect(renderingData.cameraData.camera);
+        Vector3[] boundsPoints = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? ShapeBounds.capsuleCorners : ShapeBounds.cubeCorners;
+
+        Vector4 viewport = ShapeBounds.GetViewportRect(transform, renderingData.cameraData.camera, boundsPoints);
 
         cmd.SetGlobalVector("_ViewportRect", viewport);
         cmd.SetGlobalVector("_FogRange", new Vector2(maxDistance, fadeDistance));
 
-        SetVolumeKeyword(volumeType, cmd);
+        volumeType.SetVolumeKeyword(cmd);
 
         SetupNoise(cmd);
         SetupLighting(cmd, lights, maxLights);
 
         cmd.DrawMesh(MeshUtility.FullscreenMesh, transform.localToWorldMatrix, material, 0, 1);
     }
-
 
 
     public Bounds GetBounds()
@@ -141,80 +144,5 @@ public partial class FogVolume : MonoBehaviour
 
         // Default to cube
         return ShapeBounds.GetCubeAABB(transform.localToWorldMatrix);
-    }
-
-
-
-    Vector4 GetViewportRect(Camera camera)
-    {
-        Vector3[] bounds = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? ShapeBounds.capsuleCorners : ShapeBounds.cubeCorners;
-
-        Vector4 viewportRect = new Vector4(1, 1, 0, 0);
-
-        for (int i = 0; i < bounds.Length; i++)
-        {
-            Vector3 worldPos = transform.localToWorldMatrix.MultiplyPoint3x4(bounds[i]);
-            Vector4 posLocal = camera.worldToCameraMatrix.MultiplyPoint3x4(worldPos);
-            Vector4 viewport = camera.projectionMatrix * posLocal;
-
-            viewport.x /= viewport.w;
-            viewport.y /= viewport.w;
-
-            viewport.x = viewport.x * 0.5f + 0.5f;
-            viewport.y = viewport.y * 0.5f + 0.5f;
-
-            // When corner is behind, clamp to a screen edge to prevent the rect from clipping the bounding box
-            if (posLocal.z > 0)
-            {
-                viewport.x = posLocal.x < 0 ? 0 : 1;
-                viewport.y = posLocal.y < 0 ? 0 : 1;
-            }
-            
-            viewportRect.x = Mathf.Min(viewport.x, viewportRect.x);
-            viewportRect.y = Mathf.Min(viewport.y, viewportRect.y);
-
-            viewportRect.z = Mathf.Max(viewport.x, viewportRect.z);
-            viewportRect.w = Mathf.Max(viewport.y, viewportRect.w);
-        }
-
-        viewportRect.z -= viewportRect.x;
-        viewportRect.w -= viewportRect.y;
-
-        return viewportRect;
-    }
-
-
-    void OnDrawGizmosSelected()
-    {
-#if UNITY_EDITOR
-        Matrix4x4 trsMatrix = transform.localToWorldMatrix;
-        Handles.matrix = trsMatrix;
-
-        Handles.color = Color.gray;
-
-        Bounds bounds = GetBounds();
-        Handles.DrawWireCube(bounds.center, bounds.size);
-
-        Handles.color = Color.white;
-
-        switch (volumeType)
-        {
-            case VolumeType.Sphere:
-                HandleExtensions.DrawWireSphere(trsMatrix);
-            break;
-
-            case VolumeType.Cube:
-                HandleExtensions.DrawWireCube(trsMatrix);
-            break;
-
-            case VolumeType.Capsule:
-                HandleExtensions.DrawWireCapsule(trsMatrix);
-            break;
-
-            case VolumeType.Cylinder:
-                HandleExtensions.DrawWireCylinder(trsMatrix);
-            break;
-        }
-#endif
     }
 }

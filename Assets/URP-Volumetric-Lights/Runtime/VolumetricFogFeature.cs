@@ -4,9 +4,9 @@ using UnityEngine.Rendering.Universal;
 
 
 #if UNITY_EDITOR
-using UnityEditor;
-using UnityEngine.SceneManagement;
-using UnityEditor.SceneManagement;
+    using UnityEditor;
+    using UnityEngine.SceneManagement;
+    using UnityEditor.SceneManagement;
 #endif
 
 
@@ -15,26 +15,34 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     public VolumetricResolution resolution;
     
     private VolumetricFogPass lightPass;
+
     private Shader bilateralBlur;
     private Shader volumetricFog;
 
 
     public override void Create()
     {
-        ValidateShaders();
+        try
+        {
+            ValidateShaders();
+        }
+        catch (MissingReferenceException)
+        {
+            ValidateShaders();
+        }
 
         lightPass = new VolumetricFogPass(this, bilateralBlur, volumetricFog) 
         { 
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
         };
-
+ 
 #if UNITY_EDITOR
         EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
 #endif
     }
 
 #if UNITY_EDITOR
-    // For some reason light pass must be refreshed on editor scene changes or else output color will be completely black
+    // For some reason light pass must be refreshed on editor scene change or output textures will be completely black
     private void OnSceneChanged(Scene a, Scene b)
     { 
         lightPass = new VolumetricFogPass(this, bilateralBlur, volumetricFog) 
@@ -62,11 +70,19 @@ public class VolumetricFogFeature : ScriptableRendererFeature
 
     void ValidateShaders() 
     {
-        if (!AddAlwaysIncludedShader("Hidden/BilateralBlur", ref bilateralBlur)) 
-            Debug.LogError($"BilateralBlur shader missing! Make sure 'Hidden/BilateralBlur' is located somewhere in your project and included in 'Always Included Shaders'", this);
+        if (!AddAlwaysIncludedShader("Hidden/BilateralBlur", ref bilateralBlur))
+        {
+            throw new MissingReferenceException(
+                $"BilateralBlur shader missing! Make sure 'Hidden/BilateralBlur' is located somewhere in your project and included in 'Always Included Shaders'"
+            );
+        } 
 
         if (!AddAlwaysIncludedShader("Hidden/VolumetricFog", ref volumetricFog))
-            Debug.LogError($"VolumetricFog shader missing! Make sure 'Hidden/VolumetricFog' is located somewhere in your project and included in 'Always Included Shaders'", this);
+        {
+            throw new MissingReferenceException(
+                $"VolumetricFog shader missing! Make sure 'Hidden/VolumetricFog' is located somewhere in your project and included in 'Always Included Shaders'"
+            );
+        }
     }
 
 

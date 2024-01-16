@@ -1,10 +1,5 @@
 using UnityEngine;
 
-#if UNITY_EDITOR
-    using UnityEditor;
-#endif
-
-
 public static class ShapeBounds
 {
     public static readonly Vector3[] cubeCorners = new Vector3[]
@@ -64,11 +59,39 @@ public static class ShapeBounds
     };
 
 
-    public static bool BoundsWithinDistance(Vector3 point, float distance, Bounds bounds, Matrix4x4 transform, Matrix4x4 invTransform)
+    public static Vector4 GetViewportRect(Transform transform, Camera camera, Vector3[] boundsPoints)
     {
-        // Transform the point into the local space of the box
-        Vector3 localPoint = invTransform.MultiplyPoint3x4(point);
-        Vector3 closest = transform.MultiplyPoint3x4(bounds.ClosestPoint(localPoint));
-        return (point - closest).sqrMagnitude < distance * distance;
+        Vector4 viewportRect = new Vector4(1, 1, 0, 0);
+
+        for (int i = 0; i < boundsPoints.Length; i++)
+        {
+            Vector3 worldPos = transform.localToWorldMatrix.MultiplyPoint3x4(boundsPoints[i]);
+            Vector4 posLocal = camera.worldToCameraMatrix.MultiplyPoint3x4(worldPos);
+            Vector4 viewport = camera.projectionMatrix * posLocal;
+
+            viewport.x /= viewport.w;
+            viewport.y /= viewport.w;
+
+            viewport.x = viewport.x * 0.5f + 0.5f;
+            viewport.y = viewport.y * 0.5f + 0.5f;
+
+            // When corner is behind, clamp to a screen edge to prevent the rect from clipping the bounding box
+            if (posLocal.z > 0)
+            {
+                viewport.x = posLocal.x < 0 ? 0 : 1;
+                viewport.y = posLocal.y < 0 ? 0 : 1;
+            }
+            
+            viewportRect.x = Mathf.Min(viewport.x, viewportRect.x);
+            viewportRect.y = Mathf.Min(viewport.y, viewportRect.y);
+
+            viewportRect.z = Mathf.Max(viewport.x, viewportRect.z);
+            viewportRect.w = Mathf.Max(viewport.y, viewportRect.w);
+        }
+
+        viewportRect.z -= viewportRect.x;
+        viewportRect.w -= viewportRect.y;
+
+        return viewportRect;
     }
 }

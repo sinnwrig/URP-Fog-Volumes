@@ -5,17 +5,24 @@ using UnityEngine.Rendering.Universal;
 
 public partial class VolumetricFogPass : ScriptableRenderPass
 {
+    // If full res:
+    // 3 full-res color copies (blit to final texture, bilateral blur, fog fullres texture)
+
+    // If half res:
+    // 2 full-res color copies (blit to final texture, fog fullres texture)
+    // 2 half-res color copies (bilateral blur, fog lowres texture)
+    // 1 half-res depth copy
+
+    // If quarter res:
+    // 2 full-res color copies (blit to final texture, fog fullres texture)
+    // 2 quarter-res color copies (bilateral blur, fog lowres texture)
+    // 1 half-res depth copy
+    // 1 quarter-res depth copy
+
     public static readonly GlobalKeyword noiseKeyword = GlobalKeyword.Create("NOISE_ENABLED");
     public static readonly GlobalKeyword lightingKeyword = GlobalKeyword.Create("LIGHTING_ENABLED");
     public static readonly GlobalKeyword shadowsKeyword = GlobalKeyword.Create("SHADOWS_ENABLED");
 
-    public static readonly GlobalKeyword[] shapeKeywords = new GlobalKeyword[]
-    {
-        GlobalKeyword.Create("SPHERE_VOLUME"),
-        GlobalKeyword.Create("CUBE_VOLUME"),
-        GlobalKeyword.Create("CAPSULE_VOLUME"),
-        GlobalKeyword.Create("CYLINDER_VOLUME")
-    };
 
     // Blur keywords
     private static readonly GlobalKeyword fullResKernel = GlobalKeyword.Create("FULL_RES_BLUR_KERNEL_SIZE");
@@ -178,41 +185,38 @@ public partial class VolumetricFogPass : ScriptableRenderPass
     }
 
 
-
     // Blurs the active resolution texture, then upscales and blits (if neccesary) to full resolution texture
     private void BilateralBlur(int width, int height)
     {
+        commandBuffer.DisableKeyword(fullResKernel);
+        commandBuffer.DisableKeyword(halfResKernel);
+        commandBuffer.DisableKeyword(quarterResKernel);
+
+        // Blur quarter-res texture and upsample to full res
         if (Resolution == VolumetricResolution.Quarter)
         {
             commandBuffer.EnableKeyword(quarterResKernel);
-            commandBuffer.DisableKeyword(fullResKernel);
-            commandBuffer.DisableKeyword(halfResKernel);
-            
             BilateralBlur(quarterVolumeFogTexture, quarterDepthTarget, width / 4, height / 4); 
             
             // Upsample to full res
             Upsample(quarterVolumeFogTexture, quarterDepthTarget, volumeFogTexture);
+            return;
         }
-        else if (Resolution == VolumetricResolution.Half)
+        
+        // Blur half-res texture and upsample to full res
+        if (Resolution == VolumetricResolution.Half)
         {
             commandBuffer.EnableKeyword(halfResKernel);
-            commandBuffer.DisableKeyword(fullResKernel);
-            commandBuffer.DisableKeyword(quarterResKernel);
-
             BilateralBlur(halfVolumeFogTexture, halfDepthTarget, width / 2, height / 2);
 
             // Upsample to full res
             Upsample(halfVolumeFogTexture, halfDepthTarget, volumeFogTexture);
+            return;
         }
-        else
-        {
-            commandBuffer.EnableKeyword(fullResKernel);
-            commandBuffer.DisableKeyword(halfResKernel);
-            commandBuffer.DisableKeyword(quarterResKernel);
 
-            // Blur full-scale texture- use full-scale depth texture from shader
-            BilateralBlur(volumeFogTexture, null, width, height);
-        }
+        // Blur full-scale texture- use full-scale depth texture from shader
+        commandBuffer.EnableKeyword(fullResKernel);
+        BilateralBlur(volumeFogTexture, null, width, height);
     }
 
 
@@ -271,5 +275,4 @@ public partial class VolumetricFogPass : ScriptableRenderPass
         if (depth.HasValue)
             commandBuffer.SetGlobalTexture(textureId, depth.Value);
     }
-
 }

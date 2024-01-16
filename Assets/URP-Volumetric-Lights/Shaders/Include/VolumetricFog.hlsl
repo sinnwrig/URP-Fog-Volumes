@@ -110,7 +110,7 @@ float4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDe
 {
 	bool hit = false;
     float near = 0;
-    float far = MAX_FLOAT;
+    float far = _FogRange.x;
 
 #if defined(CUBE_VOLUME)
 	hit = RayCube(UNITY_MATRIX_I_M, cameraPos, viewDir, near, far);

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -86,9 +87,11 @@ public partial class FogVolume : MonoBehaviour
 
         if (hasLighting)
         {
-            cmd.SetGlobalInteger("_LightCount", lights.Count);  
+            int lightCount = Math.Min(maxLights, lights.Count);
 
-            for (int i = 0; i < lights.Count; i++)
+            cmd.SetGlobalInteger("_LightCount", lightCount);  
+
+            for (int i = 0; i < lightCount; i++)
             {   
                 NativeLight light = lights[i];
 
@@ -113,10 +116,13 @@ public partial class FogVolume : MonoBehaviour
     {
         Vector3[] boundsPoints = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? ShapeBounds.capsuleCorners : ShapeBounds.cubeCorners;
 
-        Vector4 viewport = ShapeBounds.GetViewportRect(transform, renderingData.cameraData.camera, boundsPoints);
+        Vector4 viewport = ShapeBounds.GetViewportRect(transform.localToWorldMatrix, renderingData.cameraData.camera, boundsPoints);
+
+        if (ShapeBounds.InsideBounds(transform.worldToLocalMatrix, renderingData.cameraData.camera.transform.position, GetBounds()))
+            viewport = new Vector4(0, 0, 1, 1);
 
         cmd.SetGlobalVector("_ViewportRect", viewport);
-        cmd.SetGlobalVector("_FogRange", new Vector2(maxDistance, fadeDistance));
+        cmd.SetGlobalVector("_FogRange", new Vector2(maxDistance, maxDistance - fadeDistance));
 
         volumeType.SetVolumeKeyword(cmd);
 

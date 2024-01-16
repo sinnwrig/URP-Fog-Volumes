@@ -59,13 +59,13 @@ public static class ShapeBounds
     };
 
 
-    public static Vector4 GetViewportRect(Transform transform, Camera camera, Vector3[] boundsPoints)
+    public static Vector4 GetViewportRect(Matrix4x4 transform, Camera camera, Vector3[] boundsPoints)
     {
         Vector4 viewportRect = new Vector4(1, 1, 0, 0);
 
         for (int i = 0; i < boundsPoints.Length; i++)
         {
-            Vector3 worldPos = transform.localToWorldMatrix.MultiplyPoint3x4(boundsPoints[i]);
+            Vector3 worldPos = transform.MultiplyPoint3x4(boundsPoints[i]);
             Vector4 posLocal = camera.worldToCameraMatrix.MultiplyPoint3x4(worldPos);
             Vector4 viewport = camera.projectionMatrix * posLocal;
 
@@ -93,5 +93,12 @@ public static class ShapeBounds
         viewportRect.w -= viewportRect.y;
 
         return viewportRect;
+    }
+
+
+    public static bool InsideBounds(Matrix4x4 invTransform, Vector3 point, Bounds bounds)
+    {
+        Vector3 localPoint = invTransform.MultiplyPoint3x4(point);
+        return bounds.Contains(localPoint);
     }
 }

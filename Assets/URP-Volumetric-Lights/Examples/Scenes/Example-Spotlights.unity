@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 660239750}
-  m_IndirectSpecularColor: {r: 0.007678246, g: 0.00032602137, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.007678247, g: 0.00032602123, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -155,11 +155,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  volumeType: 0
+  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
+  lightIntensityModifier: 1
+  maxDistance: 0
+  fadeDistance: 0
+  hasLighting: 0
+  hasShadows: 0
   sampleCount: 15
   scatteringCoef: 0.39
   extinctionCoef: 0.01
   mieG: 0.459
-  maxRayLength: 300
+  noiseTexture: {fileID: 0}
+  noiseScale: 0.1
+  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  noiseIntensity: 1
+  noiseIntensityOffset: 0.25
 --- !u!114 &160863931
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -802,11 +813,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  volumeType: 0
+  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
+  lightIntensityModifier: 1
+  maxDistance: 0
+  fadeDistance: 0
+  hasLighting: 0
+  hasShadows: 0
   sampleCount: 15
   scatteringCoef: 0.871
   extinctionCoef: 0.01
   mieG: 0.39
-  maxRayLength: 300
+  noiseTexture: {fileID: 0}
+  noiseScale: 0.1
+  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  noiseIntensity: 1
+  noiseIntensityOffset: 0.25
 --- !u!1 &1099493075
 GameObject:
   m_ObjectHideFlags: 0
@@ -938,11 +960,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  volumeType: 0
+  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
+  lightIntensityModifier: 1
+  maxDistance: 0
+  fadeDistance: 0
+  hasLighting: 0
+  hasShadows: 0
   sampleCount: 15
   scatteringCoef: 0.39
   extinctionCoef: 0.01
   mieG: 0.286
-  maxRayLength: 300
+  noiseTexture: {fileID: 0}
+  noiseScale: 0.1
+  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  noiseIntensity: 1
+  noiseIntensityOffset: 0.25
 --- !u!1 &1337299047
 GameObject:
   m_ObjectHideFlags: 0
@@ -1026,6 +1059,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 314343681}
   m_LocalEulerAnglesHint: {x: 0.054, y: 0, z: -2.622}
+--- !u!1 &1859192031
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1859192033}
+  - component: {fileID: 1859192032}
+  m_Layer: 0
+  m_Name: Fog Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1859192032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1859192031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volumeType: 1
+  ambientFogColor: {r: 0, g: 0, b: 0, a: 1}
+  lightIntensityModifier: 5
+  maxDistance: 100
+  fadeDistance: 5
+  hasLighting: 1
+  hasShadows: 1
+  sampleCount: 34
+  scatteringCoef: 0.5
+  extinctionCoef: 0.01
+  mieG: 0.1
+  noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
+  noiseScale: 0.1
+  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  noiseIntensity: 0.989
+  noiseIntensityOffset: 0.431
+--- !u!4 &1859192033
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1859192031}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 3.84, z: 0}
+  m_LocalScale: {x: 8.083289, y: 10.629276, z: 10.810537}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2018805994
 GameObject:
   m_ObjectHideFlags: 0
@@ -1057,11 +1150,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  volumeType: 0
+  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
+  lightIntensityModifier: 1
+  maxDistance: 0
+  fadeDistance: 0
+  hasLighting: 0
+  hasShadows: 0
   sampleCount: 15
   scatteringCoef: 0.39
   extinctionCoef: 0.01
   mieG: 0.461
-  maxRayLength: 300
+  noiseTexture: {fileID: 0}
+  noiseScale: 0.1
+  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  noiseIntensity: 1
+  noiseIntensityOffset: 0.25
 --- !u!114 &2018805996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1174,3 +1278,4 @@ SceneRoots:
   - {fileID: 1099493078}
   - {fileID: 314343681}
   - {fileID: 608245794}
+  - {fileID: 1859192033}

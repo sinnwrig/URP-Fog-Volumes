@@ -68,12 +68,12 @@ half3 GetAdditionalLightColor(float3 worldPosition, int additionalLightIndex, ou
 
     half3 color = light.color;
 
-    half3 lightVector = half3(lightDirection * rsqr);
-    half distanceAttenuation = DistanceAttenuation(distanceSqr, light.attenuation.xy) * AngleAttenuation(light.spotDirection.xyz, lightVector, light.attenuation.zw);
+    lightDirection = half3(lightDirection * rsqr);
+    half distanceAttenuation = DistanceAttenuation(distanceSqr, light.attenuation.xy) * AngleAttenuation(light.spotDirection.xyz, lightDirection, light.attenuation.zw);
     color *= distanceAttenuation;
 
     #if defined(SHADOWS_ENABLED)
-        float shadowAttenuation = AdditionalLightRealtimeShadow(light.shadowIndex, worldPosition, lightVector);
+        float shadowAttenuation = AdditionalLightRealtimeShadow(light.shadowIndex, worldPosition, lightDirection);
         color *= shadowAttenuation;
     #endif
 
@@ -121,7 +121,7 @@ float4 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG
             float3 lightDir;
             half3 lightColor = GetAdditionalLightColor(worldPosition, i, lightDir);
 
-            lightColor *= MiePhase(dot(-lightDir, -direction), mieG);  
+            lightColor *= MiePhase(dot(lightDir, direction), mieG);  
 
             lightCol += lightColor;
         }

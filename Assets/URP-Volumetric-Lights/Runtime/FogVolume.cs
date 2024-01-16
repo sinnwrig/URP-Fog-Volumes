@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 
 #if UNITY_EDITOR
-using UnityEditor;
+    using UnityEditor;
 #endif
 
 [ExecuteAlways]
@@ -109,6 +109,9 @@ public partial class FogVolume : MonoBehaviour
 
     public void RenderVolume(ref RenderingData renderingData, CommandBuffer cmd, Material material, List<NativeLight> lights, int maxLights)
     {
+        Vector4 viewport = GetViewportRect(renderingData.cameraData.camera);
+
+        cmd.SetGlobalVector("_ViewportRect", viewport);
         cmd.SetGlobalVector("_FogRange", new Vector2(maxDistance, fadeDistance));
 
         SetVolumeKeyword(volumeType, cmd);
@@ -116,7 +119,7 @@ public partial class FogVolume : MonoBehaviour
         SetupNoise(cmd);
         SetupLighting(cmd, lights, maxLights);
 
-        cmd.DrawMesh(MeshUtility.CubeMesh, transform.localToWorldMatrix, material, 0, 1);
+        cmd.DrawMesh(MeshUtility.FullscreenMesh, transform.localToWorldMatrix, material, 0, 1);
     }
 
 
@@ -142,18 +145,54 @@ public partial class FogVolume : MonoBehaviour
 
 
 
+    Vector4 GetViewportRect(Camera camera)
+    {
+        Vector3[] bounds = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? ShapeBounds.capsuleCorners : ShapeBounds.cubeCorners;
+
+        Vector4 viewportRect = new Vector4(1, 1, 0, 0);
+
+        for (int i = 0; i < bounds.Length; i++)
+        {
+            Vector3 worldPos = transform.localToWorldMatrix.MultiplyPoint3x4(bounds[i]);
+            Vector4 posLocal = camera.worldToCameraMatrix.MultiplyPoint3x4(worldPos);
+            Vector4 viewport = camera.projectionMatrix * posLocal;
+
+            viewport.x /= viewport.w;
+            viewport.y /= viewport.w;
+
+            viewport.x = viewport.x * 0.5f + 0.5f;
+            viewport.y = viewport.y * 0.5f + 0.5f;
+
+            // When corner is behind, clamp to a screen edge to prevent the rect from clipping the bounding box
+            if (posLocal.z > 0)
+            {
+                viewport.x = posLocal.x < 0 ? 0 : 1;
+                viewport.y = posLocal.y < 0 ? 0 : 1;
+            }
+            
+            viewportRect.x = Mathf.Min(viewport.x, viewportRect.x);
+            viewportRect.y = Mathf.Min(viewport.y, viewportRect.y);
+
+            viewportRect.z = Mathf.Max(viewport.x, viewportRect.z);
+            viewportRect.w = Mathf.Max(viewport.y, viewportRect.w);
+        }
+
+        viewportRect.z -= viewportRect.x;
+        viewportRect.w -= viewportRect.y;
+
+        return viewportRect;
+    }
+
+
     void OnDrawGizmosSelected()
     {
+#if UNITY_EDITOR
+        Matrix4x4 trsMatrix = transform.localToWorldMatrix;
+        Handles.matrix = trsMatrix;
+
         Handles.color = Color.gray;
 
         Bounds bounds = GetBounds();
-
-        Bounds aabb = GetAABB();
-
-        Handles.DrawWireCube(aabb.center, aabb.size);
-
-        Matrix4x4 trsMatrix = transform.localToWorldMatrix;
-        Handles.matrix = trsMatrix;
         Handles.DrawWireCube(bounds.center, bounds.size);
 
         Handles.color = Color.white;
@@ -176,5 +215,6 @@ public partial class FogVolume : MonoBehaviour
                 HandleExtensions.DrawWireCylinder(trsMatrix);
             break;
         }
+#endif
     }
 }

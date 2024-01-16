@@ -39,22 +39,4 @@ public static class MeshUtility
             return _fullscreenMesh;
         }
     }
-
-
-
-    private static Mesh _cubeMesh;
-
-    public static Mesh CubeMesh
-    {
-        get
-        {
-            if (_cubeMesh != null)
-                return _cubeMesh;
-
-            _cubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-
-            _cubeMesh.UploadMeshData(true);
-            return _cubeMesh;
-        }
-    }
 }

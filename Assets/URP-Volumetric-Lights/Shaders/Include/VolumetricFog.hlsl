@@ -15,7 +15,7 @@ struct Varyings
 {
 	float4 vertex : SV_POSITION;
 	float3 viewVector : TEXCOORD0;
-	float4 uv : TEXCOORD1;
+	float2 uv : TEXCOORD1;
 };
 
 
@@ -34,6 +34,8 @@ int _SampleCount;
 float _Scattering;
 float _Extinction;
 float _MieG;
+
+float4 _ViewportRect;
 
 float _MaxRayLength;
 
@@ -113,8 +115,6 @@ float3x4 _SpotLight2;
 
 float4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDepth)
 {
-	//return 1;
-
 	bool hit = false;
     float near = 0;
     float far = MAX_FLOAT;
@@ -141,7 +141,7 @@ float4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDe
     if (rayLength < 0)
         return 0;
 
-    // Jump to point on intersection surface
+    // Jump to point on intersection surface 
     float3 rayStart = cameraPos + viewDir * near;
 
 	return (float4)far - max(near, 0.0);// RayMarch(rayStart, viewDir, rayLength, cameraPos);
@@ -152,17 +152,25 @@ float4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDe
 Varyings VolumetricVertex(Attributes v)
 {
 	Varyings output = (Varyings)0;
-		
-	float4 clipPos = TransformObjectToHClip(v.vertex);
+	output.vertex = v.vertex;
 
-	output.vertex = clipPos;
+#if UNITY_UV_STARTS_AT_TOP
+	output.vertex.y *= -1;
+#endif
 
-	float4 screenUV = ComputeScreenPos(clipPos);
+	float2 clip01 = output.vertex.xy * 0.5 + 0.5;
 
-	output.uv = screenUV;
+	clip01 = min(max(clip01, _ViewportRect.xy), _ViewportRect.xy + _ViewportRect.zw);
+	output.uv = clip01;
+
+	output.vertex.xy = clip01 * 2 - 1;
+
+#if UNITY_UV_STARTS_AT_TOP
+	output.vertex.y *= -1;
+#endif
 
 	// Get view vector using UV
-	float3 viewVector = mul(unity_CameraInvProjection, float4((screenUV.xy / screenUV.w) * 2 - 1, 0, -1)).xyz;
+	float3 viewVector = mul(unity_CameraInvProjection, float4(output.uv * 2 - 1, 0, -1)).xyz;
 	// Transform to world space
 	output.viewVector = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
 
@@ -170,9 +178,9 @@ Varyings VolumetricVertex(Attributes v)
 }
 
 
-half2 VolumetricFragment(Varyings i) : SV_Target
+half4 VolumetricFragment(Varyings i) : SV_Target
 {
-	float2 uv = i.uv.xy / i.uv.w;
+	float2 uv = i.uv;
 
 	float len = length(i.viewVector);
 	float3 rayDir = i.viewVector / len;				

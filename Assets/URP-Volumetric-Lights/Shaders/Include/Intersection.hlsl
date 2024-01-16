@@ -24,7 +24,7 @@ void TransformRay(float3x4 invTransform, inout float3 rayOrigin, inout float3 ra
 }
 
 
-// Returns ray/sphere intersection.
+// Returns raw ray/sphere intersection
 bool RaySphere(float3 spherePos, float sphereRad, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
 	rayOrigin -= spherePos;
@@ -51,7 +51,7 @@ bool RaySphere(float3 spherePos, float sphereRad, float3 rayOrigin, float3 rayDi
 }
 
 
-// Returns ray/sphere intersection.
+// Returns ray/sphere intersection with a transform
 bool RaySphere(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
     // Transform ray into sphere space
@@ -60,18 +60,15 @@ bool RaySphere(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float
 }
 
 
-// Returns ray/cylinder intersection.
-bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
+// Returns raw ray/cylinder intersection
+bool RayCylinder(float2 caps, float radius, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
-	// Transform ray into cylinder space
-    TransformRay(invTransform, rayOrigin, rayDir);
-
 	// quadratic x^2 + y^2 = 0.5^2 => (rayOrigin.x + t*rayDir.x)^2 + (rayOrigin.y + t*rayDir.y)^2 = 0.5
 
 	// Only use x-y to orient cylinder in the z axis
 	float a = dot(rayDir.xz, rayDir.xz);
 	float b = dot(rayOrigin.xz, rayDir.xz);
-	float c = dot(rayOrigin.xz, rayOrigin.xz) - 0.25;
+	float c = dot(rayOrigin.xz, rayOrigin.xz) - (radius * radius);
 
 	float delta = b * b - a * c;
 
@@ -94,7 +91,7 @@ bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out flo
 	float zfar = rayOrigin.y + far * rayDir.y;
 
 	// Top, Bottom
-	float2 zcap = float2(1, -1);
+	float2 zcap = caps;
 	float2 cap = (zcap - rayOrigin.y) / rayDir.y;
 
 	// Range tests
@@ -113,7 +110,17 @@ bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out flo
 }
 
 
-// Returns ray/cone intersection.
+// Returns ray/cylinder intersection with a transform
+bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
+{
+	// Transform ray into cylinder space
+    TransformRay(invTransform, rayOrigin, rayDir);
+
+	return RayCylinder(float2(1, -1), 0.5, rayOrigin, rayDir, near, far);
+}
+
+
+// Returns ray/cone intersection with a transform
 bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {   
     TransformRay(invTransform, rayOrigin, rayDir);
@@ -196,147 +203,46 @@ bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 }
 
 
-// Ray-Capsule intersection
+// Returns ray/capsule intersection with a transform
 bool RayCapsule(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
 	TransformRay(invTransform, rayOrigin, rayDir);
 
-	// http://pastebin.com/2XrrNcxb
+	near = MAX_FLOAT;
+	far = -MAX_FLOAT;
 
-	// Substituting equ. (1) - (6) to equ. (I) and solving for t' gives:
-	//
-	// t' = (t * dot(AB, d) + dot(AB, AO)) / dot(AB, AB); (7) or
-	// t' = t * m + n where 
-	// m = dot(AB, d) / dot(AB, AB) and 
-	// n = dot(AB, AO) / dot(AB, AB)
-	//
-	
-	const float radius = 1;
-	const float3 pointA = float3(0, -2, 0);
-	const float3 pointB = float3(0, 2, 0);
+	float s1n, s1f;
+	bool s1Hit = RaySphere(float3(0, 0.5, 0), 0.5, rayOrigin, rayDir, s1n, s1f);
 
-	float3 AB = pointB - pointA;
-	float3 AO = rayOrigin - pointA;
+	float s2n, s2f;
+	bool s2Hit = RaySphere(float3(0, -0.5, 0), 0.5, rayOrigin, rayDir, s2n, s2f);
 
-	float AB_dot_d = dot(rayDir, rayDir);
-	float AB_dot_AO = dot(AO, AO);
-	float AB_dot_AB = dot(AB, AB);
-	
-	float m = AB_dot_d / AB_dot_AB;
-	float n = AB_dot_AO / AB_dot_AB;
+	float c1n, c1f;
+	bool cylHit = RayCylinder(float2(0.5, -0.5), 0.5, rayOrigin, rayDir, c1n, c1f);
 
-	// Substituting (7) into (II) and solving for t gives:
-	//
-	// dot(Q, Q)*t^2 + 2*dot(Q, R)*t + (dot(R, R) - r^2) = 0
-	// where
-	// Q = d - AB * m
-	// R = AO - AB * n
-	float3 Q = rayDir - (AB * m);
-	float3 R = AO - (AB * n);
-
-	float a = dot(Q, Q);
-	float b = 2.0f * dot(R, R);
-	float c = dot(R, R) - (radius * radius);
-
-	if (a == 0.0f)
+	if (s1Hit)
 	{
-		// Special case: AB and ray direction are parallel. If there is an intersection it will be on the end spheres...
-		// NOTE: Why is that?
-		// Q = d - AB * m =>
-		// Q = d - AB * (|AB|*|d|*cos(AB,d) / |AB|^2) => |d| == 1.0
-		// Q = d - AB * (|AB|*cos(AB,d)/|AB|^2) =>
-		// Q = d - AB * cos(AB, d) / |AB| =>
-		// Q = d - unit(AB) * cos(AB, d)
-		//
-		// |Q| == 0 means Q = (0, 0, 0) or d = unit(AB) * cos(AB,d)
-		// both d and unit(AB) are unit vectors, so cos(AB, d) = 1 => AB and d are parallel.
-		// 
-
-		float atmin, atmax, btmin, btmax;
-		if(!RaySphere(pointA, radius, rayOrigin, rayDir, atmin, atmax) || !RaySphere(pointB, radius, rayOrigin, rayDir, atmin, atmax))
-			return false;
-
-		near = min(atmin, btmin);
-		far = max(atmax, btmax);
-
-		return true;
+		near = min(s1n, near);
+		far = max(s1f, far);
 	}
 
-	float discriminant = b * b - 4.0f * a * c;
-
-	if (discriminant < 0.0f)
+	if (s2Hit)
 	{
-		// The ray doesn't hit the infinite cylinder defined by (A, B).
-		// No intersection.
-		return false;
+		near = min(s2n, near);
+		far = max(s2f, far);
 	}
 
-	float rsqr = rsqrt(discriminant);
-	float tmin = (-b - (rsqr)) / (2.0f * a);
-	float tmax = (-b + (rsqr)) / (2.0f * a);
-
-	if (tmin > tmax)
+	if (cylHit)
 	{
-		float temp = tmin;
-		tmin = tmax;
-		tmax = temp;
+		near = min(c1n, near);
+		far = max(c1f, far);
 	}
 
-	// Now check to see if K1 and K2 are inside the line segment defined by A,B
-	float t_k1 = tmin * m + n;
-
-	if (t_k1 < 0.0f)
-	{
-		float stmin, stmax;
-
-		if (!RaySphere(pointA, radius, rayOrigin, rayDir, stmin, stmax))
-			return false;
-
-		near = stmin;
-	}
-	else if (t_k1 > 1.0f)
-	{
-		float stmin, stmax;
-
-		if (!RaySphere(pointB, radius, rayOrigin, rayDir, stmin, stmax))
-			return false;
-
-		near = stmin;
-	}
-	else
-	{
-		near = tmin;
-	}
-
-	float t_k2 = tmax * m + n;
-
-	if (t_k2 < 0.0f)
-	{
-		float stmin, stmax;
-		if (!RaySphere(pointA, radius, rayOrigin, rayDir, stmin, stmax))
-			return false;
-		
-		far = stmax;
-	}
-	else if (t_k2 > 1.0f)
-	{
-		float stmin, stmax;
-
-		if (!RaySphere(pointB, radius, rayOrigin, rayDir, stmin, stmax))
-			return false;
-
-		far = stmax;
-	}
-	else
-	{
-		far = tmax;
-	}
-
-	return true;
+	return s1Hit || s2Hit || cylHit;
 }
 
 
-// Returns ray/cube intersection.
+// Returns ray/cube intersection with a transform
 bool RayCube(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
     TransformRay(invTransform, rayOrigin, rayDir);
@@ -353,14 +259,7 @@ bool RayCube(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 }
 
 
-// Returns ray/plane intersection.
-
-// planePos: the world position of the plane.
-// planeNormal: the world normal of the plane.
-// rayOrigin: the origin of the intersection ray.
-// rayDir: the normalized direction of the intersection ray.
-// out distance: the distance along {rayDir} to the plane.
-
+// Returns ray/plane intersection
 bool RayPlane(float3 planePos, float3 planeNormal, float3 rayOrigin, float3 rayDir, out float distance)
 {
 	float denom = dot(planeNormal, rayDir);
@@ -378,15 +277,7 @@ bool RayPlane(float3 planePos, float3 planeNormal, float3 rayOrigin, float3 rayD
 }
 
 
-// Returns ray/disk intersection.
-
-// diskPos: the world position of the disk.
-// diskNormal: the world normal of the disk.
-// diskRadius: the radius of the disk.
-// rayOrigin: the origin of the intersection ray.
-// rayDir: the normalized direction of the intersection ray.
-// out distance: the distance along {rayDir} to the disk.
-
+// Returns ray/disk intersection
 bool RayDisk(float3 diskPos, float3 diskNormal, float diskRadius, float3 rayOrigin, float3 rayDir, out float distance)
 {
 	if (RayPlane(diskPos, diskNormal, rayOrigin, rayDir, distance))

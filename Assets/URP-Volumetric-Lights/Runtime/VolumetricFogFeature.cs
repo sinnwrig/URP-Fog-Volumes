@@ -12,7 +12,7 @@ using UnityEngine.Rendering.Universal;
 
 public class VolumetricFogFeature : ScriptableRendererFeature
 {
-    public VolumetricResolution resolution;
+    public VolumetricFogPass.VolumetricResolution resolution;
     
     private VolumetricFogPass lightPass;
 
@@ -28,6 +28,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
         }
         catch (MissingReferenceException)
         {
+            // Try again, just in case
             ValidateShaders();
         }
 
@@ -42,7 +43,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     }
 
 #if UNITY_EDITOR
-    // For some reason light pass must be refreshed on editor scene change or output textures will be completely black
+    // For some reason our custom rendering pass must be refreshed on editor scene change or the output textures will be completely black
     private void OnSceneChanged(Scene a, Scene b)
     { 
         lightPass = new VolumetricFogPass(this, bilateralBlur, volumetricFog) 
@@ -67,7 +68,8 @@ public class VolumetricFogFeature : ScriptableRendererFeature
         }
     }
 
-
+    
+    // Ehsure both neccesary shaders are included in the GraphicsSettings- to prevent users from having to keep track of references
     void ValidateShaders() 
     {
         if (!AddAlwaysIncludedShader("Hidden/BilateralBlur", ref bilateralBlur))
@@ -86,6 +88,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     }
 
 
+    // From https://forum.unity.com/threads/modify-always-included-shaders-with-pre-processor.509479/
     static bool AddAlwaysIncludedShader(string shaderName, ref Shader shader)
     {
         if (shader != null)

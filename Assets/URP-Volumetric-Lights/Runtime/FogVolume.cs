@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -13,44 +13,58 @@ public partial class FogVolume : MonoBehaviour
     public VolumeType volumeType;
     public Color ambientFogColor = Color.white;
     public float lightIntensityModifier = 1;
+    public Vector3 edgeFade;
 
 
     [Header("Culling")]
-    public float maxDistance;
-    public float fadeDistance;
+    public float maxDistance = 100.0f;
+    public float fadeDistance = 15.0f;
 
 
-    [Header("Lighting Calculation")]
-    public bool hasLighting;
-    public bool hasShadows;
+    [Header("Lighting")]
+    public bool hasLighting = true;
+    public bool hasShadows = false;
     [Range(1, 64)] public int sampleCount = 16;
+    [Range(0, 1)] public float jitterStrength = 0.05f;
     [Range(0.0f, 1.0f)] public float scatteringCoef = 0.5f;
-    [Range(0.0f, 1f)] public float extinctionCoef = 0.01f;
+    [Range(0.0f, 1f)] public float extinctionCoef = 0.05f;
     [Range(0.0f, 0.999f)] public float mieG = 0.1f;  
 
     
     [Header("Noise")]
     public Texture3D noiseTexture;
-    public float noiseScale = 0.1f;
-    public Vector3 noiseDirection = Vector3.one * 0.1f;
-    [Range(0, 1)] public float noiseIntensity = 1.0f;
-    [Range(0, 1)] public float noiseIntensityOffset = 0.25f;
+    public float scale = 0.1f;
+    public Vector3 noiseScroll = new Vector3(0, -0.15f, 0);
+    [Range(0, 1)] public float noiseIntensity = 1;
+    [Range(0, 1)] public float intensityOffset = 0.5f;
 
 
-    void OnEnable()
+    private const int maxLightCount = 64;
+    private float[] lightsToShadow = new float[maxLightCount];
+    private Vector4[] lightPositions  = new Vector4[maxLightCount];
+    private Vector4[] lightColors = new Vector4[maxLightCount];
+    private Vector4[] lightAttenuations = new Vector4[maxLightCount];
+    private Vector4[] spotDirections = new Vector4[maxLightCount];
+
+
+
+    void OnEnable() => VolumetricFogPass.AddVolume(this);
+    void OnDisable() => VolumetricFogPass.RemoveVolume(this);
+    void OnDestroy() => OnDisable();
+
+
+    void SetupViewport(CommandBuffer cmd, ref RenderingData renderingData)
     {
-        VolumetricFogPass.AddVolume(this);
+        Vector3[] boundsPoints = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? ShapeBounds.capsuleCorners : ShapeBounds.cubeCorners;
+
+        Vector4 viewport = ShapeBounds.GetViewportRect(transform.localToWorldMatrix, renderingData.cameraData.camera, boundsPoints);
+
+        if (ShapeBounds.InsideBounds(transform.worldToLocalMatrix, renderingData.cameraData.camera.transform.position, GetBounds()))
+            viewport = new Vector4(0, 0, 1, 1);
+
+        cmd.SetGlobalVector("_ViewportRect", viewport);
     }
 
-    void OnDisable()
-    {
-        VolumetricFogPass.RemoveVolume(this);
-    }
-
-    void OnDestroy()
-    {
-        OnDisable();
-    }
 
     void SetupNoise(CommandBuffer cmd)
     {
@@ -58,23 +72,17 @@ public partial class FogVolume : MonoBehaviour
         if (noiseTexture != null)
         {
             cmd.SetGlobalTexture("_NoiseTexture", noiseTexture);
-            cmd.SetGlobalVector("_NoiseVelocity", noiseDirection * noiseScale);
-            cmd.SetGlobalVector("_NoiseData", new Vector3(noiseScale, noiseIntensity, noiseIntensityOffset));
+            cmd.SetGlobalVector("_NoiseVelocity", (-noiseScroll) * scale);
+            cmd.SetGlobalVector("_NoiseData", new Vector3(scale, noiseIntensity, intensityOffset));
         }
     }
 
-    const int maxLightCount = 64;
 
-    float[] lightsToShadow = new float[maxLightCount];
-    Vector4[] lightPositions  = new Vector4[maxLightCount];
-    Vector4[] lightColors = new Vector4[maxLightCount];
-    Vector4[] lightAttenuations = new Vector4[maxLightCount];
-    Vector4[] spotDirections = new Vector4[maxLightCount];
-
-
+    // Upload the list of affecting lights to the shader
     void SetupLighting(CommandBuffer cmd, List<NativeLight> lights, int maxLights)
     {
         cmd.SetGlobalVector("_AmbientColor", ambientFogColor);
+        cmd.SetGlobalVector("_EdgeFade", edgeFade);
         cmd.SetGlobalFloat("_IntensityModifier", lightIntensityModifier);
         cmd.SetGlobalInt("_SampleCount", sampleCount);
 
@@ -87,20 +95,28 @@ public partial class FogVolume : MonoBehaviour
 
         if (hasLighting)
         {
-            int lightCount = Math.Min(maxLights, lights.Count);
+            Bounds bounds = GetBounds();
+            Matrix4x4 trs = transform.localToWorldMatrix;
+            Matrix4x4 invTrs = transform.worldToLocalMatrix;
 
-            cmd.SetGlobalInteger("_LightCount", lightCount);  
-
-            for (int i = 0; i < lightCount; i++)
+            int lightCount = 0;
+            for (int i = 0; i < Math.Min(lights.Count, maxLights); i++)
             {   
                 NativeLight light = lights[i];
 
-                lightsToShadow[i] = light.shadowIndex;
-                lightPositions[i] = light.position;
-                lightColors[i] = light.color;
-                lightAttenuations[i] = light.attenuation;
-                spotDirections[i] = light.spotDirection;
+                if (light.isDirectional || ShapeBounds.WithinDistance(trs, invTrs, light.position, light.range, bounds))
+                {
+                    lightsToShadow[lightCount] = light.shadowIndex;
+                    lightPositions[lightCount] = light.position;
+                    lightColors[lightCount] = light.color;
+                    lightAttenuations[lightCount] = light.attenuation;
+                    spotDirections[lightCount] = light.spotDirection;
+
+                    lightCount++;
+                }
             }
+
+            cmd.SetGlobalInteger("_LightCount", lightCount);  
 
             // Initialize the shader light arrays
             cmd.SetGlobalFloatArray("_LightToShadowIndices", lightsToShadow);
@@ -112,20 +128,14 @@ public partial class FogVolume : MonoBehaviour
     }
 
 
-    public void RenderVolume(ref RenderingData renderingData, CommandBuffer cmd, Material material, List<NativeLight> lights, int maxLights)
+    public void DrawVolume(ref RenderingData renderingData, CommandBuffer cmd, Material material, List<NativeLight> lights, int maxLights)
     {
-        Vector3[] boundsPoints = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? ShapeBounds.capsuleCorners : ShapeBounds.cubeCorners;
-
-        Vector4 viewport = ShapeBounds.GetViewportRect(transform.localToWorldMatrix, renderingData.cameraData.camera, boundsPoints);
-
-        if (ShapeBounds.InsideBounds(transform.worldToLocalMatrix, renderingData.cameraData.camera.transform.position, GetBounds()))
-            viewport = new Vector4(0, 0, 1, 1);
-
-        cmd.SetGlobalVector("_ViewportRect", viewport);
         cmd.SetGlobalVector("_FogRange", new Vector2(maxDistance, maxDistance - fadeDistance));
+        cmd.SetGlobalFloat("_Jitter", jitterStrength);
 
         volumeType.SetVolumeKeyword(cmd);
 
+        SetupViewport(cmd, ref renderingData);
         SetupNoise(cmd);
         SetupLighting(cmd, lights, maxLights);
 
@@ -146,9 +156,9 @@ public partial class FogVolume : MonoBehaviour
     public Bounds GetAABB()
     {
         if (volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder) 
-            return ShapeBounds.GetCapsuleAABB(transform.localToWorldMatrix);
+            return GeometryUtility.CalculateBounds(ShapeBounds.capsuleCorners, transform.localToWorldMatrix);
 
         // Default to cube
-        return ShapeBounds.GetCubeAABB(transform.localToWorldMatrix);
+        return GeometryUtility.CalculateBounds(ShapeBounds.cubeCorners, transform.localToWorldMatrix);
     }
 }

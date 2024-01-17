@@ -64,11 +64,12 @@ half3 GetAdditionalLightColor(float3 worldPosition, int additionalLightIndex, ou
     lightDirection = light.position.xyz - worldPosition * light.position.w;
     float distanceSqr = max(dot(lightDirection, lightDirection), HALF_MIN);
 
+    // A reciprocal square root in a nested shader loop is kind of scary... But it seems to not be too bad.
     float rsqr = rsqrt(distanceSqr);
 
     half3 color = light.color;
 
-    lightDirection = half3(lightDirection * rsqr);
+    lightDirection = lightDirection * rsqr;
     half distanceAttenuation = DistanceAttenuation(distanceSqr, light.attenuation.xy) * AngleAttenuation(light.spotDirection.xyz, lightDirection, light.attenuation.zw);
     color *= distanceAttenuation;
 
@@ -86,6 +87,7 @@ half3 GetAdditionalLightColor(float3 worldPosition, int additionalLightIndex, ou
 }
 
 
+// Original from https://github.com/SlightlyMad/VolumetricLights/blob/master/Assets/Shaders/VolumetricLight.shader
 float MiePhase(float cosAngle, float mieG)
 {
 	float gSqr = mieG * mieG;
@@ -95,7 +97,7 @@ float MiePhase(float cosAngle, float mieG)
 }
 
 
-float4 GetLightAttenuation(float3 worldPosition)
+half3 GetLightAttenuation(float3 worldPosition)
 {
 	half3 lightCol = 0.0;
 
@@ -107,11 +109,11 @@ float4 GetLightAttenuation(float3 worldPosition)
         }
     #endif
 
-	return float4(lightCol, 0.0);
+	return lightCol;
 }
 
 
-float4 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
+half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
 {
     half3 lightCol = 0.0;
 
@@ -127,5 +129,5 @@ float4 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG
         }
     #endif
 
-	return float4(lightCol, 0.0);    
+	return lightCol;    
 }

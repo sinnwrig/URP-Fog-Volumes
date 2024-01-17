@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 660239750}
-  m_IndirectSpecularColor: {r: 0.007678247, g: 0.00032602123, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.007417611, g: 0.0002921649, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -135,7 +135,6 @@ GameObject:
   - component: {fileID: 160863933}
   - component: {fileID: 160863932}
   - component: {fileID: 160863931}
-  - component: {fileID: 160863930}
   m_Layer: 0
   m_Name: Spotlight
   m_TagString: Untagged
@@ -143,34 +142,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &160863930
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 160863929}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  volumeType: 0
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  lightIntensityModifier: 1
-  maxDistance: 0
-  fadeDistance: 0
-  hasLighting: 0
-  hasShadows: 0
-  sampleCount: 15
-  scatteringCoef: 0.39
-  extinctionCoef: 0.01
-  mieG: 0.459
-  noiseTexture: {fileID: 0}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 1
-  noiseIntensityOffset: 0.25
 --- !u!114 &160863931
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -205,7 +176,7 @@ Light:
   serializedVersion: 10
   m_Type: 0
   m_Shape: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.5436804, g: 0.9247789, b: 1, a: 1}
   m_Intensity: 5
   m_Range: 12
   m_SpotAngle: 75.89235
@@ -431,7 +402,7 @@ Transform:
   m_GameObject: {fileID: 618457759}
   serializedVersion: 2
   m_LocalRotation: {x: 0.030779567, y: 0.9682852, z: -0.16416173, w: 0.18581556}
-  m_LocalPosition: {x: -4.1979065, y: 5.939683, z: 7.090764}
+  m_LocalPosition: {x: -4.1979065, y: 6.701, z: 7.090764}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -460,7 +431,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -498,7 +469,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &660239749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -592,13 +563,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 660239747}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.9659258, y: 0, z: 0, w: 0.2588191}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -150, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!1 &736972973
 GameObject:
   m_ObjectHideFlags: 0
@@ -693,7 +664,6 @@ GameObject:
   - component: {fileID: 811935696}
   - component: {fileID: 811935695}
   - component: {fileID: 811935697}
-  - component: {fileID: 811935698}
   m_Layer: 0
   m_Name: Spotlight
   m_TagString: Untagged
@@ -771,13 +741,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 811935693}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.6331197, y: -0.34771776, z: -0.6756216, w: 0.14760526}
+  m_LocalRotation: {x: 0.71964216, y: 0.062157117, z: -0.4800779, w: 0.4977719}
   m_LocalPosition: {x: 2.4713, y: 5.502, z: -0.04}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -16.436, y: 267.401, z: 221.836}
+  m_LocalEulerAnglesHint: {x: 50.906, y: 266.04498, z: 218.028}
 --- !u!114 &811935697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -801,181 +771,6 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
---- !u!114 &811935698
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 811935693}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  volumeType: 0
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  lightIntensityModifier: 1
-  maxDistance: 0
-  fadeDistance: 0
-  hasLighting: 0
-  hasShadows: 0
-  sampleCount: 15
-  scatteringCoef: 0.871
-  extinctionCoef: 0.01
-  mieG: 0.39
-  noiseTexture: {fileID: 0}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 1
-  noiseIntensityOffset: 0.25
---- !u!1 &1099493075
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1099493078}
-  - component: {fileID: 1099493077}
-  - component: {fileID: 1099493076}
-  - component: {fileID: 1099493079}
-  m_Layer: 0
-  m_Name: Point Light
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1099493076
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1099493075}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Version: 3
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_LightLayerMask: 1
-  m_RenderingLayers: 1
-  m_CustomShadowLayers: 0
-  m_ShadowLayerMask: 1
-  m_ShadowRenderingLayers: 1
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
---- !u!108 &1099493077
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1099493075}
-  m_Enabled: 1
-  serializedVersion: 10
-  m_Type: 2
-  m_Shape: 0
-  m_Color: {r: 0.8867924, g: 0.88619184, b: 0.8826094, a: 1}
-  m_Intensity: 5
-  m_Range: 2.8650312
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 1
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 0
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
---- !u!4 &1099493078
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1099493075}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.39, y: 4.38, z: 0.03}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1099493079
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1099493075}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  volumeType: 0
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  lightIntensityModifier: 1
-  maxDistance: 0
-  fadeDistance: 0
-  hasLighting: 0
-  hasShadows: 0
-  sampleCount: 15
-  scatteringCoef: 0.39
-  extinctionCoef: 0.01
-  mieG: 0.286
-  noiseTexture: {fileID: 0}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 1
-  noiseIntensityOffset: 0.25
 --- !u!1 &1337299047
 GameObject:
   m_ObjectHideFlags: 0
@@ -1090,20 +885,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   volumeType: 1
   ambientFogColor: {r: 0, g: 0, b: 0, a: 1}
-  lightIntensityModifier: 5
+  lightIntensityModifier: 25
   maxDistance: 100
   fadeDistance: 5
   hasLighting: 1
   hasShadows: 1
-  sampleCount: 34
-  scatteringCoef: 0.5
-  extinctionCoef: 0.01
-  mieG: 0.1
+  sampleCount: 18
+  jitterStrength: 0.65
+  scatteringCoef: 0.526
+  extinctionCoef: 0.039
+  mieG: 0.592
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 0.989
-  noiseIntensityOffset: 0.431
+  scale: 0.1
+  noiseScroll: {x: 0, y: -0.25, z: 0}
+  noiseIntensity: 1
+  intensityOffset: 0.395
 --- !u!4 &1859192033
 Transform:
   m_ObjectHideFlags: 0
@@ -1113,8 +909,8 @@ Transform:
   m_GameObject: {fileID: 1859192031}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3.84, z: 0}
-  m_LocalScale: {x: 8.083289, y: 10.629276, z: 10.810537}
+  m_LocalPosition: {x: 0.83, y: 2.87, z: -0.47}
+  m_LocalScale: {x: 7.8848276, y: 5.2851315, z: 9.763757}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1130,7 +926,6 @@ GameObject:
   - component: {fileID: 2018805998}
   - component: {fileID: 2018805997}
   - component: {fileID: 2018805996}
-  - component: {fileID: 2018805995}
   m_Layer: 0
   m_Name: Spotlight
   m_TagString: Untagged
@@ -1138,34 +933,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2018805995
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2018805994}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  volumeType: 0
-  ambientFogColor: {r: 1, g: 1, b: 1, a: 1}
-  lightIntensityModifier: 1
-  maxDistance: 0
-  fadeDistance: 0
-  hasLighting: 0
-  hasShadows: 0
-  sampleCount: 15
-  scatteringCoef: 0.39
-  extinctionCoef: 0.01
-  mieG: 0.461
-  noiseTexture: {fileID: 0}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
-  noiseIntensity: 1
-  noiseIntensityOffset: 0.25
 --- !u!114 &2018805996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1200,7 +967,7 @@ Light:
   serializedVersion: 10
   m_Type: 0
   m_Shape: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.91784495, g: 0.19577086, b: 1, a: 1}
   m_Intensity: 5
   m_Range: 12
   m_SpotAngle: 75.89235
@@ -1275,7 +1042,6 @@ SceneRoots:
   - {fileID: 811935696}
   - {fileID: 160863933}
   - {fileID: 2018805998}
-  - {fileID: 1099493078}
   - {fileID: 314343681}
   - {fileID: 608245794}
   - {fileID: 1859192033}

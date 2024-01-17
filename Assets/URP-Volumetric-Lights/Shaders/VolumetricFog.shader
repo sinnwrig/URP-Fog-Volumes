@@ -54,7 +54,7 @@ Shader "Hidden/VolumetricFog"
 				float4 source = SAMPLE_TEXTURE2D(_BlitSource, sampler_BlitSource, i.uv);
 				float4 sourceAdd = SAMPLE_TEXTURE2D(_BlitAdd, sampler_BlitAdd, i.uv);
 
-				source.xyz += sourceAdd.xyz * min(sourceAdd.w, 1.0);
+				source.xyz += sourceAdd.xyz;
 
 				return source;
 			}
@@ -75,22 +75,19 @@ Shader "Hidden/VolumetricFog"
 			#pragma target 4.0
 
 			// URP keywords
-			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-			#pragma multi_compile _ _ADDITIONAL_LIGHTS
+			#pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+			#pragma multi_compile_fragment _ _ADDITIONAL_LIGHTS
 			#pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
 			#pragma multi_compile_fragment _ _SHADOWS_SOFT
 			#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 			#pragma multi_compile_fragment _ _LIGHT_COOKIES
 
 			// Custom keywords
-			#pragma multi_compile _ NOISE_ENABLED
-   			#pragma multi_compile _ LIGHTING_ENABLED
-   			#pragma multi_compile _ SHADOWS_ENABLED
+			#pragma multi_compile_fragment _ NOISE_ENABLED
+   			#pragma multi_compile_fragment _ LIGHTING_ENABLED
+   			#pragma multi_compile_fragment _ SHADOWS_ENABLED
 
-			#pragma multi_compile _ SPHERE_VOLUME
-   			#pragma multi_compile _ CUBE_VOLUME
-   			#pragma multi_compile _ CAPSULE_VOLUME
-			#pragma multi_compile _ CYLINDER_VOLUME
+			#pragma multi_compile_fragment _ SPHERE_VOLUME CUBE_VOLUME CAPSULE_VOLUME CYLINDER_VOLUME
 
 			#define MAX_LIGHT_COUNT 64
 

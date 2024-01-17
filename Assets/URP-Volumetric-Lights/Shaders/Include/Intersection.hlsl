@@ -15,6 +15,9 @@
 // out far: the distance along the ray through the object if intersection ocurred.
 
 
+// NOTE: I'm not exactly sure how transforming a ray with a matrix still return valid world-space intersection distances, even with scaled matrices.
+// It probably has something to do with the fact that the vector lengths are being altered.
+
 
 // Transform ray to object space.
 void TransformRay(float3x4 invTransform, inout float3 rayOrigin, inout float3 rayDirection)
@@ -292,4 +295,14 @@ bool RayDisk(float3 diskPos, float3 diskNormal, float diskRadius, float3 rayOrig
 
 	distance = MAX_FLOAT;
 	return false;
+}
+
+
+
+float DistToBoxSurfaceSqr(float3x4 transform, float3x4 invTransform, float3 pos)
+{
+	float3 local = mul(invTransform, pos);
+	float3 cPoint = local;
+	float3 world = mul(transform, cPoint);
+	return 1.0;
 }

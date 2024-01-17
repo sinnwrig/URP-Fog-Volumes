@@ -1,23 +1,37 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
+
+using Unity.Collections;
+
+using System.Reflection;
+using System.Collections.Generic;
 
 
 public partial class VolumetricFogPass : ScriptableRenderPass
 {
-    // If full res:
-    // 3 full-res color copies (blit to final texture, bilateral blur, fog fullres texture)
+    public enum VolumetricResolution
+    {
+        Full,
+        Half,
+        Quarter
+    }
 
-    // If half res:
-    // 2 full-res color copies (blit to final texture, fog fullres texture)
-    // 2 half-res color copies (bilateral blur, fog lowres texture)
-    // 1 half-res depth copy
 
-    // If quarter res:
-    // 2 full-res color copies (blit to final texture, fog fullres texture)
-    // 2 quarter-res color copies (bilateral blur, fog lowres texture)
-    // 1 half-res depth copy
-    // 1 quarter-res depth copy
+    // Why doesn't Unity expose this field? Is it because the internals change too often to expose an interface? 
+    // ...Or is it because they think we're too dumb to know how to use it? If that's the reason, I can't really argue.
+    private static readonly FieldInfo shadowPassField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
+
+    // Try to extract the private shadow caster field with reflection
+    private static bool GetShadowCasterPass(ref RenderingData renderingData, out AdditionalLightsShadowCasterPass pass)
+    {
+        pass = shadowPassField.GetValue(renderingData.cameraData.renderer) as AdditionalLightsShadowCasterPass;
+        return pass == null;
+    }
+
+
+    // Global keywords
 
     public static readonly GlobalKeyword noiseKeyword = GlobalKeyword.Create("NOISE_ENABLED");
     public static readonly GlobalKeyword lightingKeyword = GlobalKeyword.Create("LIGHTING_ENABLED");
@@ -31,6 +45,8 @@ public partial class VolumetricFogPass : ScriptableRenderPass
 
     private static readonly GlobalKeyword fullDepthSource = GlobalKeyword.Create("SOURCE_FULL_DEPTH");
 
+
+    // Render Targets
 
     // Depth render targets
     private static readonly int halfDepthId = Shader.PropertyToID("_HalfDepthTarget");
@@ -55,14 +71,24 @@ public partial class VolumetricFogPass : ScriptableRenderPass
     private static Material fogMaterial;
 
 
-    public VolumetricFogFeature feature;
-    public VolumetricResolution Resolution => feature.resolution;
+    // Instance of camera culling planes to avoid allocations
+    private static readonly Plane[] cullingPlanes = new Plane[6];
 
-    public CommandBuffer commandBuffer;
+    // Global set of all active volumes
+    private static readonly HashSet<FogVolume> activeVolumes = new();
+
+    public static void AddVolume(FogVolume volume) => activeVolumes.Add(volume);
+    public static void RemoveVolume(FogVolume volume) => activeVolumes.Remove(volume);
+
+
+    private VolumetricFogFeature feature;
+    private VolumetricResolution Resolution => feature.resolution;
+
+    private CommandBuffer commandBuffer;
 
 
     // Active resolution target
-    public RenderTargetIdentifier VolumeFogBuffer 
+    private RenderTargetIdentifier VolumeFogBuffer 
     {
         get 
         {
@@ -113,6 +139,115 @@ public partial class VolumetricFogPass : ScriptableRenderPass
         {
             cmd.GetTemporaryRT(quarterVolumeFogId, width / 4, height / 4, 0, FilterMode.Bilinear, colorFormat);
             cmd.GetTemporaryRT(quarterDepthId, width / 4, height / 4, 0, FilterMode.Point, depthFormat);
+        }
+    }
+
+
+    // Perform frustum culling and distance culling on light
+    private bool LightIsVisible(ref VisibleLight visibleLight) 
+	{
+        if (visibleLight.lightType == LightType.Directional)
+            return true;
+
+        Vector3 position = visibleLight.localToWorldMatrix.GetColumn(3);
+
+        for (int i = 0; i < cullingPlanes.Length; i++) 
+		{
+			float distance = cullingPlanes[i].GetDistanceToPoint(position);
+
+			if (distance < 0 && Mathf.Abs(distance) > visibleLight.range) 
+				return false;
+		}
+
+		return true;
+	}
+
+
+    // Setup all light constants to send to shader
+    private List<NativeLight> SetupLights(ref RenderingData renderingData)
+    {
+        GetShadowCasterPass(ref renderingData, out AdditionalLightsShadowCasterPass shadowPass);
+
+        LightData lightData = renderingData.lightData;
+        NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
+
+        List<NativeLight> initializedLights = new();
+
+        for (int i = 0; i < visibleLights.Length; i++)
+        {
+            var visibleLight = visibleLights[i];
+
+            if (!LightIsVisible(ref visibleLight))
+                continue;
+
+            // We should not need to access a private field to get shadow index, but we must. 
+            int shadowIndex = shadowPass.GetShadowLightIndexFromLightIndex(i);
+
+            NativeLight light = new()
+            {
+                isDirectional = visibleLight.lightType == LightType.Directional,
+                shadowIndex = i == lightData.mainLightIndex ? -1 : shadowIndex, // Main light gets special treatment
+                range = visibleLight.range,
+            };
+
+            // Set up light properties
+            UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, i,
+                out light.position,
+                out light.color, 
+                out light.attenuation,
+                out light.spotDirection,
+                out _
+            );
+
+            initializedLights.Add(light);
+        }
+
+        return initializedLights;
+    }
+
+
+    // Cull all the active fog volumes and return only those in view
+    private List<FogVolume> SetupVolumes(ref RenderingData renderingData)
+    {
+        Camera camera = renderingData.cameraData.camera;
+        GeometryUtility.CalculateFrustumPlanes(camera, cullingPlanes);
+        Vector3 camPos = camera.transform.position;
+
+        List<FogVolume> fogVolumes = new();
+
+        foreach (FogVolume volume in activeVolumes)
+        {
+            Bounds aabb = volume.GetAABB();
+
+            // Volume is past maximum distance
+            if ((camPos - aabb.ClosestPoint(camPos)).sqrMagnitude > volume.maxDistance * volume.maxDistance)
+                continue;
+
+            // Volume is outside camera frustum
+            if (!GeometryUtility.TestPlanesAABB(cullingPlanes, aabb))
+                continue;
+                
+            fogVolumes.Add(volume);
+        }
+        
+        return fogVolumes;
+    }
+
+    
+    // Draw all of the volumes into our fog texture
+    private void DrawVolumes(List<FogVolume> volumes, ref RenderingData renderingData)
+    {
+        List<NativeLight> lights = SetupLights(ref renderingData);
+
+        int perObjectLightCount = renderingData.lightData.maxPerObjectAdditionalLightsCount;
+
+        commandBuffer.SetRenderTarget(VolumeFogBuffer);
+        commandBuffer.ClearRenderTarget(true, true, Color.black);
+
+        // Where the magic loop happens
+        for (int i = 0; i < volumes.Count; i++)
+        {
+            volumes[i].DrawVolume(ref renderingData, commandBuffer, fogMaterial, lights, perObjectLightCount);
         }
     }
 
@@ -170,6 +305,7 @@ public partial class VolumetricFogPass : ScriptableRenderPass
     }
 
 
+    // Additive blend the fog volume with the scene
     private void BlendFog(RTHandle target)
     {
         commandBuffer.GetTemporaryRT(tempId, target.rt.descriptor);
@@ -256,6 +392,7 @@ public partial class VolumetricFogPass : ScriptableRenderPass
     }
 
 
+    // Perform depth-aware upsampling to the destination
     private void Upsample(RenderTargetIdentifier sourceColor, RenderTargetIdentifier sourceDepth, RenderTargetIdentifier destination)
     {
         commandBuffer.SetGlobalTexture("_DownsampleColor", sourceColor);

@@ -1,4 +1,4 @@
-// Original project by Michal Skalsky under the BSD license 
+// Original project by Michal Skalsky under the BSD license : https://github.com/SlightlyMad/VolumetricLights/blob/master/Assets/Shaders/BilateralBlur.shader
 // Modified by Kai Angulo
 
 #pragma once

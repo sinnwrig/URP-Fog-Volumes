@@ -1,10 +1,13 @@
 #pragma once
 
 static const float MATH_PI = 3.14159265359;
-static const float MATH_TAU = MATH_PI * 2;
 static const float MAX_FLOAT = 3.402823466e+38;
 static const float DEG2RAD = (MATH_PI * 2) / 360;
 static const float RAD2DEG = 360 / (MATH_PI * 2);
+static const float EPSILON = 1e-6;
+
+
+#define sqrlen(x) dot(x, x)
 
 
 // Remap the components of a vector from one range to another
@@ -36,4 +39,11 @@ float SmoothMax(float a, float b, float k)
 	k = min(0, -k);
 	float h = max(0, min(1, (b - a + k) / (2 * k)));
 	return a * h + b * (1 - h) - k * h * (1 - h);
+}
+
+// Pseudorandom function found all over the place on Shadertoy.
+float Rand(in float2 uv)
+{
+    float2 noise = (frac(sin(dot(uv, float2(12.9898,78.233)*2.0)) * 43758.5453));
+    return abs(noise.x + noise.y) * 0.5;
 }

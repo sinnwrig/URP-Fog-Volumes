@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 973744429}
-  m_IndirectSpecularColor: {r: 0.086180255, g: 0.06903744, b: 0.15034194, a: 1}
+  m_IndirectSpecularColor: {r: 0.086180255, g: 0.069037475, b: 0.15034205, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -591,19 +591,21 @@ MonoBehaviour:
   volumeType: 1
   ambientFogColor: {r: 0, g: 0.0319645, b: 0.3018868, a: 1}
   lightIntensityModifier: 3.5
+  edgeFade: {x: 0, y: 0, z: 0}
   maxDistance: 100
   fadeDistance: 15
   hasLighting: 1
   hasShadows: 1
   sampleCount: 25
+  jitterStrength: 0.05
   scatteringCoef: 0.5
   extinctionCoef: 0.01
   mieG: 0.314
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  scale: 0.1
+  noiseScroll: {x: 0, y: -0.15, z: 0}
   noiseIntensity: 1
-  noiseIntensityOffset: 0.4
+  intensityOffset: 0.378
 --- !u!1 &306839311
 GameObject:
   m_ObjectHideFlags: 0
@@ -756,19 +758,21 @@ MonoBehaviour:
   volumeType: 1
   ambientFogColor: {r: 0.16037738, g: 0.10943398, b: 0, a: 1}
   lightIntensityModifier: 3.5
+  edgeFade: {x: 0, y: 0, z: 0}
   maxDistance: 100
   fadeDistance: 15
   hasLighting: 1
   hasShadows: 1
   sampleCount: 25
+  jitterStrength: 0.05
   scatteringCoef: 0.5
   extinctionCoef: 0.01
   mieG: 0.314
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  scale: 0.1
+  noiseScroll: {x: 0, y: -0.15, z: 0}
   noiseIntensity: 1
-  noiseIntensityOffset: 0.4
+  intensityOffset: 0.378
 --- !u!1 &454646024
 GameObject:
   m_ObjectHideFlags: 0
@@ -1542,19 +1546,21 @@ MonoBehaviour:
   volumeType: 1
   ambientFogColor: {r: 0, g: 0, b: 0, a: 1}
   lightIntensityModifier: 3.5
+  edgeFade: {x: 0, y: 0, z: 0}
   maxDistance: 100
   fadeDistance: 15
   hasLighting: 1
   hasShadows: 1
   sampleCount: 25
+  jitterStrength: 0.05
   scatteringCoef: 0.5
   extinctionCoef: 0.01
   mieG: 0.314
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  scale: 0.1
+  noiseScroll: {x: 0, y: -0.15, z: 0}
   noiseIntensity: 1
-  noiseIntensityOffset: 0.4
+  intensityOffset: 0.378
 --- !u!4 &891921083
 Transform:
   m_ObjectHideFlags: 0
@@ -2296,19 +2302,21 @@ MonoBehaviour:
   volumeType: 1
   ambientFogColor: {r: 0.1509434, g: 0, b: 0.121995315, a: 1}
   lightIntensityModifier: 3.5
+  edgeFade: {x: 0, y: 0, z: 0}
   maxDistance: 100
   fadeDistance: 15
   hasLighting: 1
   hasShadows: 1
   sampleCount: 25
+  jitterStrength: 0.05
   scatteringCoef: 0.5
   extinctionCoef: 0.01
   mieG: 0.314
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  scale: 0.1
+  noiseScroll: {x: 0, y: -0.15, z: 0}
   noiseIntensity: 1
-  noiseIntensityOffset: 0.4
+  intensityOffset: 0.378
 --- !u!1 &1381016806
 GameObject:
   m_ObjectHideFlags: 0
@@ -3616,19 +3624,21 @@ MonoBehaviour:
   volumeType: 1
   ambientFogColor: {r: 0, g: 0.14150941, b: 0.008324091, a: 1}
   lightIntensityModifier: 3.5
+  edgeFade: {x: 0, y: 0, z: 0}
   maxDistance: 100
   fadeDistance: 15
   hasLighting: 1
   hasShadows: 1
   sampleCount: 25
+  jitterStrength: 0.05
   scatteringCoef: 0.5
   extinctionCoef: 0.01
   mieG: 0.314
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  noiseScale: 0.1
-  noiseDirection: {x: 0.1, y: 0.1, z: 0.1}
+  scale: 0.1
+  noiseScroll: {x: 0, y: -0.15, z: 0}
   noiseIntensity: 1
-  noiseIntensityOffset: 0.4
+  intensityOffset: 0.378
 --- !u!1 &2021762075
 GameObject:
   m_ObjectHideFlags: 0

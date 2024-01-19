@@ -56,7 +56,7 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
-  m_DepthPrimingMode: 0
+  m_DepthPrimingMode: 1
   m_CopyDepthMode: 1
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
@@ -73,4 +73,4 @@ MonoBehaviour:
   m_Name: VolumetricFogFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  resolution: 0
+  resolution: 1

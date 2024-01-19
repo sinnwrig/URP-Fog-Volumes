@@ -206,7 +206,7 @@ public partial class VolumetricFogPass : ScriptableRenderPass
     }
 
 
-    // Cull all the active fog volumes and return only those in view
+    // Collect all the visible active fog volumes
     private List<FogVolume> SetupVolumes(ref RenderingData renderingData)
     {
         Camera camera = renderingData.cameraData.camera;
@@ -217,14 +217,7 @@ public partial class VolumetricFogPass : ScriptableRenderPass
 
         foreach (FogVolume volume in activeVolumes)
         {
-            Bounds aabb = volume.GetAABB();
-
-            // Volume is past maximum distance
-            if ((camPos - aabb.ClosestPoint(camPos)).sqrMagnitude > volume.maxDistance * volume.maxDistance)
-                continue;
-
-            // Volume is outside camera frustum
-            if (!GeometryUtility.TestPlanesAABB(cullingPlanes, aabb))
+            if (volume.CullVolume(camPos, cullingPlanes))
                 continue;
                 
             fogVolumes.Add(volume);

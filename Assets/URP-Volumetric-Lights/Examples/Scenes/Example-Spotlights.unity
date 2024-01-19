@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 660239750}
-  m_IndirectSpecularColor: {r: 0.007417611, g: 0.0002921649, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -883,23 +883,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 5e26c9e9fbda821c0b20ea0101960a6a, type: 2}
   volumeType: 1
-  ambientFogColor: {r: 0, g: 0, b: 0, a: 1}
-  lightIntensityModifier: 25
+  edgeFade: {x: 0, y: 0, z: 0}
   maxDistance: 100
-  fadeDistance: 5
-  hasLighting: 1
-  hasShadows: 1
-  sampleCount: 18
-  jitterStrength: 0.65
-  scatteringCoef: 0.526
-  extinctionCoef: 0.039
-  mieG: 0.592
-  noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  scale: 0.1
-  noiseScroll: {x: 0, y: -0.25, z: 0}
-  noiseIntensity: 1
-  intensityOffset: 0.395
+  distanceFade: 0.999
 --- !u!4 &1859192033
 Transform:
   m_ObjectHideFlags: 0

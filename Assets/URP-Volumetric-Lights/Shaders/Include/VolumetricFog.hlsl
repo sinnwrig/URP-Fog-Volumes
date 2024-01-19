@@ -27,11 +27,11 @@ struct Varyings
 TEXTURE2D_X(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
-half3 _AmbientColor;
+half3 _Albedo;
 float _IntensityModifier;
 
-int _SampleCount;
-float _MinStepDistance;
+int _MaxSampleCount; 
+float4 _StepParams; // x: minimum, y: maximum, z: increment factor, w: max ray length
 float _Jitter;
 
 float _Scattering;
@@ -42,41 +42,46 @@ float4 _ViewportRect;
 float _MaxRayLength;
 float2 _FogRange;
 
-float4 _EdgeFade;
+float3 _EdgeFade;
 
 
 float FadeBoxEdge(float3 worldPosition)
 {
-	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0));
+	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0)).xyz;
 
-	float edgeX = min(localPos.x + 0.5, 0.5 - localPos.x) / abs(_EdgeFade.x);
-	float edgeY = min(localPos.y + 0.5, 0.5 - localPos.y) / abs(_EdgeFade.y);
-    float edgeZ = min(localPos.z + 0.5, 0.5 - localPos.z) / abs(_EdgeFade.z);
+	float edgeX = smoothstep(_EdgeFade.x, 0.5, min(localPos.x + 0.5, 0.5 - localPos.x));
+	float edgeY = smoothstep(_EdgeFade.y, 0.5, min(localPos.y + 0.5, 0.5 - localPos.y));
+    float edgeZ = smoothstep(_EdgeFade.z, 0.5, min(localPos.z + 0.5, 0.5 - localPos.z));
 
-	return saturate(min(min(edgeX, edgeY), edgeZ));
+	return min(min(edgeX, edgeY), edgeZ);
 }
 
 
 float FadeSphereEdge(float3 worldPosition)
 {
-	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0));
-	return saturate((0.5 - length(localPos)) / (abs(_EdgeFade.x) + EPSILON));
+	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0)).xyz;
+	float dist = 0.5 - length(localPos);
+
+	return smoothstep(_EdgeFade.x, 0.5, dist);
 }
 
 
 float FadeCylinderEdge(float3 worldPosition)
 {
-	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0));
-	float radFade = saturate((0.5 - length(localPos.xz)) / (abs(_EdgeFade.x) + EPSILON)) ;
-	float edgeY = min(localPos.y + 0.5, 0.5 - localPos.y) / abs(_EdgeFade.y);
+	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0)).xyz;
 
-	return saturate(min(radFade, edgeY));
+	float dist = 0.5 - length(localPos.xz);
+
+	float sphereRad = smoothstep(_EdgeFade.x, 0.5, dist);
+	float yEdge = smoothstep(_EdgeFade.y, 1, min(localPos.y + 1, 1 - localPos.y));
+
+	return min(sphereRad, yEdge);
 }
 
 
 float FadeCapsuleEdge(float3 worldPosition)
 {	
-	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0));
+	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0)).xyz;
 
 	const float3 ab = float3(0, 1, 0);
 	float3 ac = localPos - float3(0, -0.5, 0);
@@ -95,7 +100,7 @@ float FadeCapsuleEdge(float3 worldPosition)
 		dist = e >= f ? dot(bc, bc) : dot(ac, ac) - e * e / f;
 	}
 
-	return saturate((0.5 - sqrt(dist)) / (abs(_EdgeFade.x) + EPSILON));
+	return smoothstep(_EdgeFade.x, 0.5, (0.5 - sqrt(dist)));
 }
 
 
@@ -127,33 +132,27 @@ float GetDensity(float3 worldPosition, float distance)
 }        
 
 
-void CalculateSteps(float rayLength, out int count, out float size)
-{
-	count = _SampleCount;
-	size = rayLength / count;
-}
-
-
 
 half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
 {
 	float cameraDistance = length(cameraPos - rayStart);
 
-	int stepCount;
-	float stepSize;
-	CalculateSteps(rayLength, stepCount, stepSize);
-
 	float extinction = cameraDistance * _Extinction * 0.5; // Assume density of 0.5 between camera and light
+
+	float stepSize = _StepParams.x;
 
 	half3 vlight = 0;
 	float distance = 0;
 
 	[loop]
-	for (int i = 0; i < stepCount; ++i)
+	for (int i = 0; i < _MaxSampleCount; ++i)
 	{
+		if (distance >= rayLength)
+			break;
+
 		float3 currentPosition = rayStart + rayDir * distance;
 
-		half3 light = _AmbientColor;
+		half3 light = _Albedo;
 		
 		// Additive lighting
 		light += GetLightAttenuationMie(currentPosition, rayDir, _MieG) * _IntensityModifier;
@@ -166,7 +165,9 @@ half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 		light *= scattering * exp(-extinction);
 
 		vlight += light;
-		distance += stepSize;				
+		distance += stepSize;	
+
+		stepSize = min(_StepParams.y, stepSize * _StepParams.z);			
 	}
 
 	vlight = max(0, vlight);
@@ -207,7 +208,7 @@ half3 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDep
     // Jump to point on intersection surface 
     float3 rayStart = cameraPos + viewDir * (near + Rand(uv) * _Jitter);
 
-	return RayMarch(rayStart, viewDir, rayLength, cameraPos);
+	return RayMarch(rayStart, viewDir, min(rayLength, _StepParams.w), cameraPos);
 }
 
 

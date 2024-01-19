@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5134b924c5746e7eb06404f924ebf59, type: 3}
+  m_Name: Example-Terrain
+  m_EditorClassIdentifier: 
+  fogAlbedo: {r: 1, g: 0.99632806, b: 0.6768684, a: 1}
+  intensity: 0.025
+  minMaxStepLength: {x: 0.5, y: 3}
+  stepIncrementFactor: 1.05
+  maxRayLength: 100
+  maxSampleCount: 36
+  jitterStrength: 3
+  hasLighting: 1
+  hasShadows: 1
+  lightIntensityModifier: 1
+  scattering: 0.1
+  extinction: 0.05
+  mieG: 0.489
+  noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
+  scale: 0.01
+  noiseScroll: {x: 0, y: -0.15, z: 0}
+  noiseIntensity: 1
+  intensityOffset: 0.401

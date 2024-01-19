@@ -296,13 +296,3 @@ bool RayDisk(float3 diskPos, float3 diskNormal, float diskRadius, float3 rayOrig
 	distance = MAX_FLOAT;
 	return false;
 }
-
-
-
-float DistToBoxSurfaceSqr(float3x4 transform, float3x4 invTransform, float3 pos)
-{
-	float3 local = mul(invTransform, pos);
-	float3 cPoint = local;
-	float3 world = mul(transform, cPoint);
-	return 1.0;
-}

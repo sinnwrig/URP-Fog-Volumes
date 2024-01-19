@@ -54,17 +54,20 @@ half3 GetMainLightColor(half3 color, float3 worldPosition)
 }
 
 
-half3 GetAdditionalLightColor(float3 worldPosition, int additionalLightIndex, out float3 lightDirection)
+half3 GetLightAttenuation(float3 worldPosition, int additionalLightIndex, out float3 lightDirection)
 {
     VolumeLight light = GetAdditionalLight(additionalLightIndex);
 
-    if (light.shadowIndex < 0)
-        return GetMainLightColor(light.color, worldPosition);
-    
     lightDirection = light.position.xyz - worldPosition * light.position.w;
+
+    if (light.shadowIndex < 0)
+    {
+        return GetMainLightColor(light.color, worldPosition);
+    }
+
     float distanceSqr = max(dot(lightDirection, lightDirection), HALF_MIN);
 
-    // A reciprocal square root in a nested shader loop is kind of scary... But it seems to not be too bad.
+    // A reciprocal square root in a nested shader loop is kind of scary... But it doesn't seem to hurt performance too much
     float rsqr = rsqrt(distanceSqr);
 
     half3 color = light.color;
@@ -105,7 +108,7 @@ half3 GetLightAttenuation(float3 worldPosition)
         for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
         {
             float3 direction;
-            lightCol += GetAdditionalLightColor(worldPosition, i, direction);
+            lightCol += GetLightAttenuation(worldPosition, i, direction);
         }
     #endif
 
@@ -121,7 +124,7 @@ half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
         for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
         {
             float3 lightDir;
-            half3 lightColor = GetAdditionalLightColor(worldPosition, i, lightDir);
+            half3 lightColor = GetLightAttenuation(worldPosition, i, lightDir);
 
             lightColor *= MiePhase(dot(lightDir, direction), mieG);  
 

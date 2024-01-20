@@ -247,6 +247,9 @@ half3 VolumetricFragment(Varyings i) : SV_Target
 {
 	float2 uv = i.uv;
 
+	if (SkipReprojectPixel(uv))
+		return 0;
+
 	float len = length(i.viewVector);
 	float3 rayDir = i.viewVector / len;				
 
@@ -254,6 +257,7 @@ half3 VolumetricFragment(Varyings i) : SV_Target
 	float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
 
 	half3 light = CalculateVolumetricLight(_WorldSpaceCameraPos.xyz, rayDir, linearDepth, uv);
+
 	return light;
 }
 

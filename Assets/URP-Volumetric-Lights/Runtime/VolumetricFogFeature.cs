@@ -13,6 +13,8 @@ using UnityEngine.Rendering.Universal;
 public class VolumetricFogFeature : ScriptableRendererFeature
 {
     public VolumetricFogPass.VolumetricResolution resolution;
+
+    public bool enableReprojection;
     
     private VolumetricFogPass lightPass;
 
@@ -63,7 +65,11 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     {
         if (!renderingData.cameraData.isPreviewCamera)
         {
-            lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+            if (enableReprojection)
+                lightPass.ConfigureInput(ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Motion);
+            else
+                lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+
             renderer.EnqueuePass(lightPass);
         }
     }

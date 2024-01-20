@@ -86,6 +86,7 @@ Shader "Hidden/VolumetricFog"
 			#pragma multi_compile_fragment _ NOISE_ENABLED
    			#pragma multi_compile_fragment _ LIGHTING_ENABLED
    			#pragma multi_compile_fragment _ SHADOWS_ENABLED
+			#pragma multi_compile_fragment _ TEMPORAL_REPROJECTION_ENABLED
 
 			#pragma multi_compile_fragment _ SPHERE_VOLUME CUBE_VOLUME CAPSULE_VOLUME CYLINDER_VOLUME
 
@@ -96,7 +97,8 @@ Shader "Hidden/VolumetricFog"
 			#include "/Include/Math.hlsl"
 			#include "/Include/Intersection.hlsl"
 			#include "/Include/LightAttenuation.hlsl"
-			#include "Include/VolumetricFog.hlsl"
+			#include "/Include/Reprojection.hlsl"
+			#include "/Include/VolumetricFog.hlsl"
 
 			ENDHLSL
 		}

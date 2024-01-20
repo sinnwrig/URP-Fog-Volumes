@@ -19,8 +19,7 @@ public partial class VolumetricFogPass : ScriptableRenderPass
     }
 
 
-    // Why doesn't Unity expose this field? Is it because the internals change too often to expose an interface? 
-    // ...Or is it because they think we're too dumb to know how to use it? If that's the reason, I can't really argue.
+    // Why doesn't Unity expose this field?
     private static readonly FieldInfo shadowPassField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
 
     // Try to extract the private shadow caster field with reflection
@@ -61,6 +60,11 @@ public partial class VolumetricFogPass : ScriptableRenderPass
     private static readonly RenderTargetIdentifier halfVolumeFogTexture = new(halfVolumeFogId);
     private static readonly int quarterVolumeFogId = Shader.PropertyToID("_QuarterVolumeFogTexture");
     private static readonly RenderTargetIdentifier quarterVolumeFogTexture = new(quarterVolumeFogId);
+
+    // Temporal Reprojection Target
+    private static readonly int reprojectionTargetId = Shader.PropertyToID("_VolumeFogReprojection");
+    private static readonly RenderTargetIdentifier reprojectionTexture = new(reprojectionTargetId);
+
 
     // Temp render target 
     private static readonly int tempId = Shader.PropertyToID("_Temp");
@@ -143,7 +147,13 @@ public partial class VolumetricFogPass : ScriptableRenderPass
     }
 
 
-    // Perform frustum culling and distance culling on light
+    private void SetupReprojectionTexture(CommandBuffer cmd, ref RenderingData data)
+    {
+        
+    }
+
+
+    // Perform frustum culling on light
     private bool LightIsVisible(ref VisibleLight visibleLight) 
 	{
         if (visibleLight.lightType == LightType.Directional)
@@ -180,7 +190,7 @@ public partial class VolumetricFogPass : ScriptableRenderPass
             if (!LightIsVisible(ref visibleLight))
                 continue;
 
-            // We should not need to access a private field to get shadow index, but we must. 
+            // We should not need to access a private field to get shadow index 
             int shadowIndex = shadowPass.GetShadowLightIndexFromLightIndex(i);
 
             NativeLight light = new()

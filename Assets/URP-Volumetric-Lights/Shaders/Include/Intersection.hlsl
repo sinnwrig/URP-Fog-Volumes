@@ -15,7 +15,7 @@
 // out far: the distance along the ray through the object if intersection ocurred.
 
 
-// NOTE: I'm not exactly sure how transforming a ray with a matrix still return valid world-space intersection distances, even with scaled matrices.
+// NOTE: I'm not exactly sure how transforming a ray with a matrix still returns valid world-space intersection distances, even with scaled matrices.
 // It probably has something to do with the fact that the vector lengths are being altered.
 
 

@@ -15,6 +15,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     public VolumetricFogPass.VolumetricResolution resolution;
 
     public bool enableReprojection;
+    public bool reprojectionBlur;
     [Range(1, 24)] public int temporalPassCount;
 
     private VolumetricFogPass lightPass;

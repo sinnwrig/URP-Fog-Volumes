@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fogAlbedo: {r: 1, g: 0.99632806, b: 0.6768684, a: 1}
   intensity: 0.025
-  minMaxStepLength: {x: 0.5, y: 3}
+  minMaxStepLength: {x: 0.25, y: 3}
   stepIncrementFactor: 1.05
   maxRayLength: 100
-  maxSampleCount: 36
-  jitterStrength: 3
+  maxSampleCount: 128
+  jitterStrength: 0.1
   hasLighting: 1
   hasShadows: 1
   lightIntensityModifier: 1

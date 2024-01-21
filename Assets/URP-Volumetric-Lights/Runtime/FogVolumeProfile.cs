@@ -15,7 +15,7 @@ public class FogVolumeProfile : ScriptableObject
     [Range(1, 2)] public float stepIncrementFactor = 1.1f;
     [Min(0)] public float maxRayLength = 50.0f;
 
-    [Range(1, 256)] public int maxSampleCount = 36;
+    [Range(1, 1024)] public int maxSampleCount = 36;
     public float jitterStrength = 0.05f;
 
 

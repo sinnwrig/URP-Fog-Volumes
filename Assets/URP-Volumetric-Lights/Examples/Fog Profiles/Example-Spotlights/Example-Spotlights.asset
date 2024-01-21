@@ -17,7 +17,7 @@ MonoBehaviour:
   minMaxStepLength: {x: 0.15, y: 0.25}
   stepIncrementFactor: 1.05
   maxRayLength: 100
-  maxSampleCount: 40
+  maxSampleCount: 128
   jitterStrength: 0.1
   hasLighting: 1
   hasShadows: 1

@@ -88,6 +88,9 @@ public partial class VolumetricFogPass : ScriptableRenderPass
             return;
         }
 
+        if (feature.enableReprojection && !feature.reprojectionBlur)
+            return;
+
         // Blur full-scale texture- use full-scale depth texture from shader
         commandBuffer.EnableKeyword(fullResKernel);
         BilateralBlur(volumeFogTexture, null, width, height);

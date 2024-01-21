@@ -37,7 +37,7 @@ v2fDownsample VertDownsampleDepth(appdata v)
 	float2 texelSize = _DownsampleSource_TexelSize;
 
 	v2fDownsample o;
-	o.vertex = TransformObjectToHClip(v.vertex.xyz);
+	o.vertex = CorrectVertex(v.vertex);
 	o.uv = v.uv;
 	
 	o.uv00 = v.uv - 0.5 * texelSize.xy; // Offset bottom-left

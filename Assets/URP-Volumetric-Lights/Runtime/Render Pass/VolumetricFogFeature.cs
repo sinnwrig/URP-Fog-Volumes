@@ -15,7 +15,8 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     public VolumetricFogPass.VolumetricResolution resolution;
 
     public bool enableReprojection;
-    
+    [Range(1, 24)] public int temporalPassCount;
+
     private VolumetricFogPass lightPass;
 
     private Shader bilateralBlur;
@@ -53,12 +54,16 @@ public class VolumetricFogFeature : ScriptableRendererFeature
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
         };
     }
+#endif
 
     protected override void Dispose(bool disposing)
     {
+#if UNITY_EDITOR
         EditorSceneManager.activeSceneChangedInEditMode -= OnSceneChanged;
-    }
 #endif
+
+        lightPass.Dispose();
+    }
 
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)

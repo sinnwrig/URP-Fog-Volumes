@@ -42,7 +42,7 @@ Shader "Hidden/BilateralBlur"
 	v2f vert(appdata v)
 	{
 		v2f o;
-		o.vertex = TransformObjectToHClip(v.vertex.xyz);
+		o.vertex = CorrectVertex(v.vertex);
 		o.uv = v.uv;
 		return o;
 	}
@@ -68,7 +68,7 @@ Shader "Hidden/BilateralBlur"
 			
 			half4 horizontalFrag(v2f input) : SV_Target
 			{
-                return BilateralBlur(input, int2(1, 0), KERNEL_SIZE);
+                return BilateralBlur(input.uv, int2(1, 0), KERNEL_SIZE);
 			}
 
 			ENDHLSL
@@ -89,7 +89,7 @@ Shader "Hidden/BilateralBlur"
 			
 			half4 verticalFrag(v2f input) : SV_Target
 			{
-                return BilateralBlur(input, int2(0, 1), KERNEL_SIZE);
+                return BilateralBlur(input.uv, int2(0, 1), KERNEL_SIZE);
 			}
 
 			ENDHLSL

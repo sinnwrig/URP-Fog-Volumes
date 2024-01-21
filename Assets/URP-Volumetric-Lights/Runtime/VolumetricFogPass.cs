@@ -11,14 +11,6 @@ using System.Collections.Generic;
 
 public partial class VolumetricFogPass : ScriptableRenderPass
 {
-    public enum VolumetricResolution
-    {
-        Full,
-        Half,
-        Quarter
-    }
-
-
     // Why doesn't Unity expose this field?
     private static readonly FieldInfo shadowPassField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
 

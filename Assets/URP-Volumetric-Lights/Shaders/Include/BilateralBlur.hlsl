@@ -21,11 +21,9 @@ const float GaussianWeight(float offset, float deviation)
 
 
 
-float4 BilateralBlur(v2f input, int2 direction, const int kernelRadius)
+float4 BilateralBlur(float2 uv, const int2 direction, const int kernelRadius)
 {
 	const float deviation = kernelRadius / GAUSS_BLUR_DEVIATION; 
-	
-    float2 uv = input.uv;
 
 	float4 centerColor = SAMPLE_BASE(_BlurSource, sampler_BlurSource, uv);
 

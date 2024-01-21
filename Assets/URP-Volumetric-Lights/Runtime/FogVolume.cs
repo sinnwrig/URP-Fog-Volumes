@@ -21,7 +21,6 @@ public partial class FogVolume : MonoBehaviour
     [Range(0, 0.999f)] public float distanceFade = 1.0f;
 
 
-    // 
     private const int maxLightCount = 32;
     private float[] lightsToShadow = new float[maxLightCount];
     private Vector4[] lightPositions  = new Vector4[maxLightCount];

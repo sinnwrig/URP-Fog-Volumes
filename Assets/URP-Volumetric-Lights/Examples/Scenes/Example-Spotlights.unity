@@ -469,7 +469,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &660239749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -884,7 +884,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: 5e26c9e9fbda821c0b20ea0101960a6a, type: 2}
-  volumeType: 1
+  volumeType: 0
   edgeFade: {x: 0, y: 0, z: 0}
   maxDistance: 100
   distanceFade: 0.999
@@ -897,8 +897,8 @@ Transform:
   m_GameObject: {fileID: 1859192031}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.83, y: 2.87, z: -0.47}
-  m_LocalScale: {x: 7.8848276, y: 5.2851315, z: 9.763757}
+  m_LocalPosition: {x: 0.83, y: 2.87, z: -1.51}
+  m_LocalScale: {x: 10.949192, y: 10.949192, z: 10.949192}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

@@ -28,8 +28,7 @@ Shader "Hidden/VolumetricFog"
 			struct v2f
 			{
 				float4 vertex : SV_POSITION;
-				float3 worldPos : TEXCOORD0;
-				float2 uv : TEXCOORD1;
+				float2 uv : TEXCOORD0;
 			};
 
 			TEXTURE2D(_BlitSource);
@@ -42,7 +41,7 @@ Shader "Hidden/VolumetricFog"
 			v2f vertBlend(appdata v)
 			{
 				v2f output = (v2f)0;
-				output.vertex = TransformObjectToHClip(v.vertex.xyz);
+				output.vertex = CorrectVertex(v.vertex);
 				output.uv = v.uv;
 
 				return output;
@@ -97,8 +96,68 @@ Shader "Hidden/VolumetricFog"
 			#include "/Include/Math.hlsl"
 			#include "/Include/Intersection.hlsl"
 			#include "/Include/LightAttenuation.hlsl"
+
+			TEXTURE2D_X(_CameraDepthTexture);
+			SAMPLER(sampler_CameraDepthTexture);
+
 			#include "/Include/Reprojection.hlsl"
 			#include "/Include/VolumetricFog.hlsl"
+
+			ENDHLSL
+		}
+		
+
+		// Pass 2 - Temporal Reprojection
+		Pass
+		{
+			Cull Off ZWrite Off ZTest Off
+
+			HLSLPROGRAM
+
+			#pragma vertex vertBlend
+			#pragma fragment frag
+
+			#pragma multi_compile_fragment _ TEMPORAL_REPROJECTION_ENABLED
+
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+
+			struct v2f
+			{
+				float4 vertex : SV_POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			#include "/Include/Common.hlsl"
+			#include "/Include/Math.hlsl"
+
+			TEXTURE2D(_CameraDepthTexture);       
+			SAMPLER(sampler_CameraDepthTexture);
+
+			TEXTURE2D(_ReprojectSource);
+			SAMPLER(sampler_ReprojectSource);
+
+			#include "/Include/Reprojection.hlsl"
+
+
+			v2f vertBlend(appdata v)
+			{
+				v2f output = (v2f)0;
+				output.vertex = CorrectVertex(v.vertex);
+				output.uv = v.uv;
+
+				return output;
+			}
+
+
+			half3 frag(v2f i) : SV_Target
+			{
+				return ReprojectPixel(i.uv, TEXTURE2D_ARGS(_ReprojectSource, sampler_ReprojectSource));
+			}
 
 			ENDHLSL
 		}

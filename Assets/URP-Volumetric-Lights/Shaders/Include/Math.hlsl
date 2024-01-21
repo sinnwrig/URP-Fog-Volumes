@@ -42,7 +42,7 @@ float SmoothMax(float a, float b, float k)
 }
 
 // Pseudorandom function found all over the place on Shadertoy.
-float Rand(in float2 uv)
+float MathRand(in float2 uv)
 {
     float2 noise = (frac(sin(dot(uv, float2(12.9898,78.233)*2.0)) * 43758.5453));
     return abs(noise.x + noise.y) * 0.5;

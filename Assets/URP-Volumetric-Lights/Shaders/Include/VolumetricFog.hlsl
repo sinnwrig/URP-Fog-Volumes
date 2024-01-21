@@ -23,10 +23,6 @@ struct Varyings
 	float3 _NoiseVelocity; // noise move direction
 #endif
 
-
-TEXTURE2D_X(_CameraDepthTexture);
-SAMPLER(sampler_CameraDepthTexture);
-
 half3 _Albedo;
 float _IntensityModifier;
 
@@ -93,11 +89,11 @@ float FadeCapsuleEdge(float3 worldPosition)
 
     // Handle cases where c projects outside ab
     if (e <= 0.0f) 
-		dist = dot(ac, ac);
+		dist = sqrlen(ac);
 	else
 	{
-		float f = dot(ab, ab);
-		dist = e >= f ? dot(bc, bc) : dot(ac, ac) - e * e / f;
+		float f = sqrlen(ab);
+		dist = e >= f ? sqrlen(bc) : sqrlen(ac) - e * e / f;
 	}
 
 	return smoothstep(_EdgeFade.x, 0.5, (0.5 - sqrt(dist)));
@@ -205,8 +201,8 @@ half3 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDep
     if (rayLength < 0)
         return 0;
 
-    // Jump to point on intersection surface 
-    float3 rayStart = cameraPos + viewDir * (near + Rand(uv) * _Jitter);
+    // Jump to point on intersection surface, then add jitter
+    float3 rayStart = cameraPos + viewDir * (near + MathRand(uv) * _Jitter);
 
 	return RayMarch(rayStart, viewDir, min(rayLength, _StepParams.w), cameraPos);
 }
@@ -216,11 +212,7 @@ half3 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDep
 Varyings VolumetricVertex(Attributes v)
 {
 	Varyings output = (Varyings)0;
-	output.vertex = v.vertex;
-
-	#if UNITY_UV_STARTS_AT_TOP
-		output.vertex.y *= -1;
-	#endif
+	output.vertex = CorrectVertex(v.vertex);
 
 	float2 clip01 = output.vertex.xy * 0.5 + 0.5;
 
@@ -229,9 +221,7 @@ Varyings VolumetricVertex(Attributes v)
 
 	output.vertex.xy = clip01 * 2 - 1;
 
-	#if UNITY_UV_STARTS_AT_TOP
-		output.vertex.y *= -1;
-	#endif
+	output.vertex = CorrectVertex(output.vertex);
 
 	// Get view vector using UV
 	float3 viewVector = mul(unity_CameraInvProjection, float4(output.uv * 2 - 1, 0, -1)).xyz;
@@ -247,8 +237,9 @@ half3 VolumetricFragment(Varyings i) : SV_Target
 {
 	float2 uv = i.uv;
 
+	// Reprojection will handle this pixel
 	if (SkipReprojectPixel(uv))
-		return 0;
+		discard;
 
 	float len = length(i.viewVector);
 	float3 rayDir = i.viewVector / len;				

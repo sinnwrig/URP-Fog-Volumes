@@ -153,11 +153,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  profile: {fileID: 11400000, guid: 36b2a6b8cb18f9e8e95b76f824bb516d, type: 2}
   volumeType: 0
   edgeFade: {x: 0.4, y: 0.2, z: 0.2}
   maxDistance: 1000
   distanceFade: 0.999
+  sharedProfile: {fileID: 11400000, guid: 36b2a6b8cb18f9e8e95b76f824bb516d, type: 2}
 --- !u!4 &132168506
 Transform:
   m_ObjectHideFlags: 0
@@ -398,13 +398,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 973744428}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.15288469, y: 0.030857759, z: -0.049397256, w: 0.9865262}
+  m_LocalRotation: {x: 0.1512481, y: 0.030788088, z: -0.049369674, w: 0.9867821}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 17.74, y: 2.755, z: -5.303}
+  m_LocalEulerAnglesHint: {x: 17.55, y: 2.755, z: -5.303}
 --- !u!114 &973744432
 MonoBehaviour:
   m_ObjectHideFlags: 0

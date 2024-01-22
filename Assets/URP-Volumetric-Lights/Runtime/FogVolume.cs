@@ -9,16 +9,36 @@ using UnityEngine.Rendering.Universal;
 [ExecuteAlways]
 public partial class FogVolume : MonoBehaviour 
 {
-    public FogVolumeProfile profile;
-
-    [Header("Appearance")]
     public VolumeType volumeType;
     public Vector3 edgeFade = Vector3.zero;
 
-
-    [Header("Culling")]
     [Min(0)] public float maxDistance = 100.0f;
     [Range(0, 0.999f)] public float distanceFade = 1.0f;
+
+
+    private FogVolumeProfile _internalProfile;
+
+    public FogVolumeProfile sharedProfile = null;
+
+    public FogVolumeProfile profile
+    {
+        get
+        {
+            if (_internalProfile == null)
+            {
+                if (sharedProfile != null)
+                    _internalProfile = Instantiate(sharedProfile);
+            }
+
+            return _internalProfile;
+        }
+
+        set => _internalProfile = value;
+    }
+
+    public bool HasInstantiatedProfile() => _internalProfile != null;
+
+    public FogVolumeProfile profileReference => _internalProfile == null ? sharedProfile : _internalProfile;
 
 
     private const int maxLightCount = 32;
@@ -29,13 +49,26 @@ public partial class FogVolume : MonoBehaviour
     private Vector4[] spotDirections = new Vector4[maxLightCount];
 
 
+    private MaterialPropertyBlock _propertyBlock;
+
+    private MaterialPropertyBlock PropertyBlock
+    {
+        get
+        {
+            if (_propertyBlock == null)
+                _propertyBlock = new MaterialPropertyBlock();
+            
+            return _propertyBlock;
+        }
+    }
+
 
     void OnEnable() => VolumetricFogPass.AddVolume(this);
     void OnDisable() => VolumetricFogPass.RemoveVolume(this);
     void OnDestroy() => OnDisable();
 
 
-    void SetupViewport(CommandBuffer cmd, ref RenderingData renderingData)
+    private void SetupViewport(ref RenderingData renderingData)
     {
         Vector3[] boundsPoints = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? ShapeBounds.capsuleCorners : ShapeBounds.cubeCorners;
 
@@ -44,11 +77,11 @@ public partial class FogVolume : MonoBehaviour
         if (ShapeBounds.InsideBounds(transform.worldToLocalMatrix, renderingData.cameraData.camera.transform.position, GetBounds()))
             viewport = new Vector4(0, 0, 1, 1);
 
-        cmd.SetGlobalVector("_ViewportRect", viewport);
+        PropertyBlock.SetVector("_ViewportRect", viewport);
     }
 
 
-    Vector3 EdgeFade()
+    private Vector3 EdgeFade()
     {
         switch (volumeType)
         {
@@ -72,11 +105,11 @@ public partial class FogVolume : MonoBehaviour
 
 
     // Upload the list of affecting lights to the shader
-    void SetupLighting(CommandBuffer cmd, List<NativeLight> lights, int maxLights)
+    private void SetupLighting(List<NativeLight> lights, int maxLights)
     {
-        cmd.SetGlobalVector("_EdgeFade", EdgeFade());
+        PropertyBlock.SetVector("_EdgeFade", EdgeFade());
 
-        if (profile.hasLighting)
+        if (profileReference.hasLighting)
         {
             Bounds bounds = GetBounds();
             Matrix4x4 trs = transform.localToWorldMatrix;
@@ -99,35 +132,38 @@ public partial class FogVolume : MonoBehaviour
                 }
             }
 
-            cmd.SetGlobalInteger("_LightCount", lightCount);  
+            PropertyBlock.SetInteger("_LightCount", lightCount);  
 
             // Initialize the shader light arrays
-            cmd.SetGlobalFloatArray("_LightToShadowIndices", lightsToShadow);
-            cmd.SetGlobalVectorArray("_LightPositions", lightPositions);   
-            cmd.SetGlobalVectorArray("_LightColors", lightColors);        
-            cmd.SetGlobalVectorArray("_LightAttenuations", lightAttenuations);  
-            cmd.SetGlobalVectorArray("_SpotDirections", spotDirections); 
+            PropertyBlock.SetFloatArray("_LightToShadowIndices", lightsToShadow);
+            PropertyBlock.SetVectorArray("_LightPositions", lightPositions);   
+            PropertyBlock.SetVectorArray("_LightColors", lightColors);        
+            PropertyBlock.SetVectorArray("_LightAttenuations", lightAttenuations);  
+            PropertyBlock.SetVectorArray("_SpotDirections", spotDirections); 
         }
     }
 
 
-    public void DrawVolume(ref RenderingData renderingData, CommandBuffer cmd, Material material, List<NativeLight> lights, int maxLights)
+    public void DrawVolume(ref RenderingData renderingData, CommandBuffer cmd, Shader shader, List<NativeLight> lights, int maxLights)
     {
-        cmd.SetGlobalVector("_FogRange", new Vector2(maxDistance, Mathf.Lerp(0, maxDistance, distanceFade)));
+        PropertyBlock.SetVector("_FogRange", new Vector2(maxDistance, Mathf.Lerp(0, maxDistance, distanceFade)));
 
-        profile.SetupProperties(cmd);
+        Material material = profileReference.GetMaterial(shader, cmd);
+        
         volumeType.SetVolumeKeyword(cmd);
 
-        SetupViewport(cmd, ref renderingData);
-        SetupLighting(cmd, lights, maxLights);
+        SetupViewport(ref renderingData);
+        SetupLighting(lights, maxLights);
 
-        cmd.DrawMesh(MeshUtility.FullscreenMesh, transform.localToWorldMatrix, material, 0, 1);
+        PropertyBlock.SetMatrix("_InvMatrix", transform.worldToLocalMatrix);
+
+        cmd.DrawMesh(MeshUtility.FullscreenMesh, Matrix4x4.identity, material, 0, 0, PropertyBlock);
     }
     
 
     public bool CullVolume(Vector3 cameraPosition, Plane[] cameraPlanes)
     {
-        if (profile == null)
+        if (profileReference == null)
             return true;
 
         Bounds aabb = GetAABB();

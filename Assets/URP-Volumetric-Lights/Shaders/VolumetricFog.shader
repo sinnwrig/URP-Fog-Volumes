@@ -1,67 +1,7 @@
-// Original project by Michal Skalsky under the BSD license 
-// Modified by Kai Angulo
-
-
 Shader "Hidden/VolumetricFog"
 {	
 	SubShader
 	{
-		// Pass 0 - Blit add into result
-		Pass
-		{
-			Cull Off ZWrite Off ZTest Off
-
-			HLSLPROGRAM
-
-			#pragma vertex vertBlend
-			#pragma fragment frag
-
-			#include "/Include/Common.hlsl"
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-
-			struct v2f
-			{
-				float4 vertex : SV_POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-			TEXTURE2D(_BlitSource);
-			SAMPLER(sampler_BlitSource);
-
-			TEXTURE2D(_BlitAdd);
-			SAMPLER(sampler_BlitAdd);
-
-
-			v2f vertBlend(appdata v)
-			{
-				v2f output = (v2f)0;
-				output.vertex = CorrectVertex(v.vertex);
-				output.uv = v.uv;
-
-				return output;
-			}
-
-
-			half4 frag(v2f i) : SV_Target
-			{
-				float4 source = SAMPLE_TEXTURE2D(_BlitSource, sampler_BlitSource, i.uv);
-				float4 sourceAdd = SAMPLE_TEXTURE2D(_BlitAdd, sampler_BlitAdd, i.uv);
-
-				source.xyz += sourceAdd.xyz;
-
-				return source;
-			}
-
-			ENDHLSL
-		}
-
-		// Pass 1 - Volumetric Fog
 		Pass
 		{
 			Cull Off ZWrite Off ZTest Off
@@ -75,7 +15,7 @@ Shader "Hidden/VolumetricFog"
 
 			// URP keywords
 			#pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-			#pragma multi_compile_fragment _ _ADDITIONAL_LIGHTS
+			#pragma multi_compile_fragment _ _ADDITIONAL_LIGHTS 
 			#pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
 			#pragma multi_compile_fragment _ _SHADOWS_SOFT
 			#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
@@ -83,81 +23,26 @@ Shader "Hidden/VolumetricFog"
 
 			// Custom keywords
 			#pragma multi_compile_fragment _ NOISE_ENABLED
-   			#pragma multi_compile_fragment _ LIGHTING_ENABLED
-   			#pragma multi_compile_fragment _ SHADOWS_ENABLED
+   			#pragma multi_compile_fragment _ LIGHTING_ENABLED 
+			#pragma multi_compile_fragment _ SHADOWS_ENABLED 
+			#define REPLACE_DITHERING
 			#pragma multi_compile_fragment _ TEMPORAL_REPROJECTION_ENABLED
 
 			#pragma multi_compile_fragment _ SPHERE_VOLUME CUBE_VOLUME CAPSULE_VOLUME CYLINDER_VOLUME
 
 			#define MAX_LIGHT_COUNT 32
-
+			#define MAX_SAMPLES 1024
 
 			#include "/Include/Common.hlsl"
+
+			TEXTURE2D(_CameraDepthTexture);
+			SAMPLER(sampler_CameraDepthTexture);
+
 			#include "/Include/Math.hlsl"
 			#include "/Include/Intersection.hlsl"
 			#include "/Include/LightAttenuation.hlsl"
-
-			TEXTURE2D_X(_CameraDepthTexture);
-			SAMPLER(sampler_CameraDepthTexture);
-
 			#include "/Include/Reprojection.hlsl"
 			#include "/Include/VolumetricFog.hlsl"
-
-			ENDHLSL
-		}
-		
-
-		// Pass 2 - Temporal Reprojection
-		Pass
-		{
-			Cull Off ZWrite Off ZTest Off
-
-			HLSLPROGRAM
-
-			#pragma vertex vertBlend
-			#pragma fragment frag
-
-			#pragma multi_compile_fragment _ TEMPORAL_REPROJECTION_ENABLED
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-
-			struct v2f
-			{
-				float4 vertex : SV_POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-			#include "/Include/Common.hlsl"
-			#include "/Include/Math.hlsl"
-
-			TEXTURE2D(_CameraDepthTexture);       
-			SAMPLER(sampler_CameraDepthTexture);
-
-			TEXTURE2D(_ReprojectSource);
-			SAMPLER(sampler_ReprojectSource);
-
-			#include "/Include/Reprojection.hlsl"
-
-
-			v2f vertBlend(appdata v)
-			{
-				v2f output = (v2f)0;
-				output.vertex = CorrectVertex(v.vertex);
-				output.uv = v.uv;
-
-				return output;
-			}
-
-
-			half3 frag(v2f i) : SV_Target
-			{
-				return ReprojectPixel(i.uv, TEXTURE2D_ARGS(_ReprojectSource, sampler_ReprojectSource));
-			}
 
 			ENDHLSL
 		}

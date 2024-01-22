@@ -14,11 +14,8 @@ float4x4 _InverseViewProjection;
 
 bool SkipReprojectPixel(float2 uv)
 {
-#if defined(TEMPORAL_REPROJECTION_ENABLED)
-    int2 pixCoords = (uv.x * _ScreenParams.x, uv.y * _ScreenParams.y);
+    int2 pixCoords = int2(uv.x * _ScreenParams.x, uv.y * _ScreenParams.y);
     return pixCoords.x % _TemporalPassCount != _TemporalPass && pixCoords.y % _TemporalPassCount != _TemporalPass;
-#endif
-    return false;
 }
 
 
@@ -46,7 +43,7 @@ float2 GetVelocity(float2 uv)
 
 
 
-half3 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColor))
+half4 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColor))
 {
     half2 motion = GetVelocity(uv);
 
@@ -57,9 +54,9 @@ half3 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColo
 
     // Reproject this pixel if possible
     if (sampleUv.x >= 0 && sampleUv.x <= 1 && sampleUv.y >= 0 && sampleUv.y <= 1)
-        return SAMPLE_BASE(_SourceColor, sampler_SourceColor, sampleUv).xyz;
+        return SAMPLE_BASE(_SourceColor, sampler_SourceColor, sampleUv);
 
-    return SAMPLE_BASE(_SourceColor, sampler_SourceColor, uv).xyz;
+    return SAMPLE_BASE(_SourceColor, sampler_SourceColor, uv);
 }
 
 

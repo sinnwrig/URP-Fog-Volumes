@@ -6,6 +6,7 @@ static const float DEG2RAD = (MATH_PI * 2) / 360;
 static const float RAD2DEG = 360 / (MATH_PI * 2);
 static const float EPSILON = 1e-6;
 
+#define sqr(x) (x * x)
 
 #define sqrlen(x) dot(x, x)
 

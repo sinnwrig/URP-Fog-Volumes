@@ -36,10 +36,32 @@ public class FogVolumeProfile : ScriptableObject
     [Range(0, 1)] public float intensityOffset = 0.5f;
 
 
+    private Material material;
+
+    private GlobalKeyword? noise = null;
+    private GlobalKeyword? light = null;
+    private GlobalKeyword? shadow = null;
+
+
+    public Material GetMaterial(Shader shader, CommandBuffer cmd)
+    {
+        if (material == null)
+            material = new Material(shader);
+
+        noise ??= GlobalKeyword.Create("NOISE_ENABLED");
+        light ??= GlobalKeyword.Create("LIGHTING_ENABLED");
+        shadow ??= GlobalKeyword.Create("SHADOWS_ENABLED");
+
+
+        SetupProperties(cmd);
+
+        return material;
+    }
+
 
     public void SetupProperties(CommandBuffer cmd)
     {
-        cmd.SetGlobalFloat("_Jitter", jitterStrength);
+        material.SetFloat("_Jitter", jitterStrength);
 
         SetupNoise(cmd);
         SetupLighting(cmd);
@@ -48,29 +70,30 @@ public class FogVolumeProfile : ScriptableObject
 
     void SetupNoise(CommandBuffer cmd)
     {
-        cmd.SetKeyword(VolumetricFogPass.noiseKeyword, noiseTexture != null);
+        cmd.SetKeyword(noise.Value, noiseTexture != null);
+
         if (noiseTexture != null)
         {
-            cmd.SetGlobalTexture("_NoiseTexture", noiseTexture);
-            cmd.SetGlobalVector("_NoiseVelocity", (-noiseScroll) * scale);
-            cmd.SetGlobalVector("_NoiseData", new Vector3(scale, noiseIntensity, intensityOffset));
+            material.SetTexture("_NoiseTexture", noiseTexture);
+            material.SetVector("_NoiseVelocity", (-noiseScroll) * scale);
+            material.SetVector("_NoiseData", new Vector3(scale, noiseIntensity, intensityOffset));
         }
     }
 
 
     void SetupLighting(CommandBuffer cmd)
     {
-        cmd.SetGlobalVector("_Albedo", fogAlbedo * intensity);
+        material.SetVector("_Albedo", fogAlbedo * intensity);
 
-        cmd.SetGlobalFloat("_IntensityModifier", lightIntensityModifier);
-        cmd.SetGlobalVector("_StepParams", new Vector4(minMaxStepLength.x, minMaxStepLength.y, stepIncrementFactor, maxRayLength));
-        cmd.SetGlobalInt("_MaxSampleCount", maxSampleCount);
+        material.SetFloat("_IntensityModifier", lightIntensityModifier);
+        material.SetVector("_StepParams", new Vector4(minMaxStepLength.x, minMaxStepLength.y, stepIncrementFactor, maxRayLength));
+        material.SetInt("_SampleCount", maxSampleCount);
 
-        cmd.SetGlobalFloat("_MieG", mieG);
-        cmd.SetGlobalFloat("_Scattering", scattering);
-        cmd.SetGlobalFloat("_Extinction", extinction);
+        material.SetFloat("_MieG", mieG);
+        material.SetFloat("_Scattering", scattering);
+        material.SetFloat("_Extinction", extinction);
 
-        cmd.SetKeyword(VolumetricFogPass.lightingKeyword, hasLighting);
-        cmd.SetKeyword(VolumetricFogPass.shadowsKeyword, hasLighting && hasShadows);
+        cmd.SetKeyword(light.Value, hasLighting);
+        cmd.SetKeyword(shadow.Value, hasLighting && hasShadows);
     }
 }

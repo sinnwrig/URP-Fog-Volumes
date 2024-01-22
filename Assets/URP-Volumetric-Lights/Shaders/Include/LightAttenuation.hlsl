@@ -66,7 +66,7 @@ half3 GetLightAttenuation(float3 worldPosition, int additionalLightIndex, out fl
         return GetMainLightColor(light.color, worldPosition);
     }
 
-    float distanceSqr = max(dot(lightDirection, lightDirection), HALF_MIN);
+    float distanceSqr = max(sqrlen(lightDirection), HALF_MIN);
 
     // A reciprocal square root in a nested shader loop is kind of scary... But it doesn't seem to hurt performance too much
     float rsqr = rsqrt(distanceSqr);
@@ -88,50 +88,4 @@ half3 GetLightAttenuation(float3 worldPosition, int additionalLightIndex, out fl
     #endif
 
     return color;
-}
-
-
-// Original from https://github.com/SlightlyMad/VolumetricLights/blob/master/Assets/Shaders/VolumetricLight.shader
-float MiePhase(float cosAngle, float mieG)
-{
-	float gSqr = mieG * mieG;
-
-	// Magic number is 1/4pi
-    return (0.07957747154) * ((1 - gSqr) / (pow(abs((1 + gSqr) - (2 * mieG) * cosAngle), 1.5)));
-}
-
-
-half3 GetLightAttenuation(float3 worldPosition)
-{
-	half3 lightCol = 0.0;
-
-    #if defined(LIGHTING_ENABLED)
-        for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
-        {
-            float3 direction;
-            lightCol += GetLightAttenuation(worldPosition, i, direction);
-        }
-    #endif
-
-	return lightCol;
-}
-
-
-half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
-{
-    half3 lightCol = 0.0;
-
-    #if defined(LIGHTING_ENABLED)
-        for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
-        {
-            float3 lightDir;
-            half3 lightColor = GetLightAttenuation(worldPosition, i, lightDir);
-
-            lightColor *= MiePhase(dot(lightDir, direction), mieG);  
-
-            lightCol += lightColor;
-        }
-    #endif
-
-	return lightCol;    
 }

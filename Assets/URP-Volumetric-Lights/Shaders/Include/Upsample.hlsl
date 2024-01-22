@@ -46,7 +46,7 @@ v2fUpsample VertUpsample(appdata v)
 }
 
 
-float4 DepthAwareUpsample(v2fUpsample input) : SV_TARGET
+half4 DepthAwareUpsample(v2fUpsample input) : SV_TARGET
 {
     const float threshold = UPSAMPLE_DEPTH_THRESHOLD;
 

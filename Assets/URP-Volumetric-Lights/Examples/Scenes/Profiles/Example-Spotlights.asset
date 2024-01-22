@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5134b924c5746e7eb06404f924ebf59, type: 3}
   m_Name: Example-Spotlights
   m_EditorClassIdentifier: 
-  fogAlbedo: {r: 0.5541045, g: 0.5541045, b: 0.5541045, a: 1}
+  fogAlbedo: {r: 0, g: 0, b: 0, a: 1}
   intensity: 0
   minMaxStepLength: {x: 0.15, y: 0.25}
   stepIncrementFactor: 1.05

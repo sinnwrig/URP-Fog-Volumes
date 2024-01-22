@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: VolumetricFogFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  resolution: 1
+  resolution: 0
   enableReprojection: 1
   reprojectionBlur: 1
   temporalPassCount: 8

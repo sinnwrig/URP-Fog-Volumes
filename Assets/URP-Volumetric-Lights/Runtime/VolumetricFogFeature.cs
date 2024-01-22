@@ -14,14 +14,28 @@ public class VolumetricFogFeature : ScriptableRendererFeature
 {
     public VolumetricFogPass.VolumetricResolution resolution;
 
-    public bool enableReprojection;
-    public bool reprojectionBlur;
+    public bool enableReprojection = false;
+    public bool reprojectionBlur = true;
     [Range(1, 24)] public int temporalPassCount;
 
     private VolumetricFogPass lightPass;
 
     private Shader bilateralBlur;
     private Shader volumetricFog;
+    private Shader reprojection;
+    private Shader blitAdd;
+
+
+
+    private void CreateLightPass()
+    {
+        lightPass?.Dispose();
+
+        lightPass = new VolumetricFogPass(this, bilateralBlur, volumetricFog, blitAdd, reprojection) 
+        { 
+            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
+        };
+    }
 
 
     public override void Create()
@@ -36,10 +50,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
             ValidateShaders();
         }
 
-        lightPass = new VolumetricFogPass(this, bilateralBlur, volumetricFog) 
-        { 
-            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
-        };
+        CreateLightPass();
  
 #if UNITY_EDITOR
         EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
@@ -47,23 +58,16 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     }
 
 #if UNITY_EDITOR
-    // For some reason our custom rendering pass must be refreshed on editor scene change or the output textures will be completely black
-    private void OnSceneChanged(Scene a, Scene b)
-    { 
-        lightPass = new VolumetricFogPass(this, bilateralBlur, volumetricFog) 
-        { 
-            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
-        };
-    }
+    private void OnSceneChanged(Scene a, Scene b) => CreateLightPass();
 #endif
 
     protected override void Dispose(bool disposing)
     {
+        lightPass.Dispose();
+
 #if UNITY_EDITOR
         EditorSceneManager.activeSceneChangedInEditMode -= OnSceneChanged;
 #endif
-
-        lightPass.Dispose();
     }
 
 
@@ -71,10 +75,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     {
         if (!renderingData.cameraData.isPreviewCamera)
         {
-            if (enableReprojection)
-                lightPass.ConfigureInput(ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Motion);
-            else
-                lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+            lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
 
             renderer.EnqueuePass(lightPass);
         }
@@ -82,33 +83,28 @@ public class VolumetricFogFeature : ScriptableRendererFeature
 
     
     // Ehsure both neccesary shaders are included in the GraphicsSettings- to prevent users from having to keep track of references
-    void ValidateShaders() 
+    private void ValidateShaders() 
     {
-        if (!AddAlwaysIncludedShader("Hidden/BilateralBlur", ref bilateralBlur))
-        {
-            throw new MissingReferenceException(
-                $"BilateralBlur shader missing! Make sure 'Hidden/BilateralBlur' is located somewhere in your project and included in 'Always Included Shaders'"
-            );
-        } 
-
-        if (!AddAlwaysIncludedShader("Hidden/VolumetricFog", ref volumetricFog))
-        {
-            throw new MissingReferenceException(
-                $"VolumetricFog shader missing! Make sure 'Hidden/VolumetricFog' is located somewhere in your project and included in 'Always Included Shaders'"
-            );
-        }
+        AddAlwaysIncludedShader("Hidden/BilateralBlur", ref bilateralBlur);
+        AddAlwaysIncludedShader("Hidden/VolumetricFog", ref volumetricFog);
+        AddAlwaysIncludedShader("Hidden/BlitAdd", ref blitAdd);
+        AddAlwaysIncludedShader("Hidden/TemporalReprojection", ref reprojection);
     }
 
 
     // From https://forum.unity.com/threads/modify-always-included-shaders-with-pre-processor.509479/
-    static bool AddAlwaysIncludedShader(string shaderName, ref Shader shader)
+    static void AddAlwaysIncludedShader(string shaderName, ref Shader shader)
     {
         if (shader != null)
-            return true;
+            return;
 
         shader = Shader.Find(shaderName);
         if (shader == null) 
-            return false;
+        {
+            string namePart = shaderName.Split('/')[1];
+
+            throw new MissingReferenceException($"{namePart} shader missing! Make sure '{shaderName}' is located somewhere in your project and included in 'Always Included Shaders'");
+        }
      
 #if UNITY_EDITOR
         var graphicsSettingsObj = AssetDatabase.LoadAssetAtPath<GraphicsSettings>("ProjectSettings/GraphicsSettings.asset");
@@ -138,7 +134,5 @@ public class VolumetricFogFeature : ScriptableRendererFeature
             AssetDatabase.SaveAssets();
         }
 #endif
-
-        return true;
     }
 }

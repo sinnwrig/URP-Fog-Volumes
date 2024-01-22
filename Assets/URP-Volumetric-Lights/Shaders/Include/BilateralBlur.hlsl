@@ -6,26 +6,30 @@
      
 #define GAUSS_BLUR_DEVIATION 2.5
 
-
-TEXTURE2D(_BlurSource);
-SAMPLER(sampler_BlurSource);
-float4 _BlurSource_TexelSize;
+#if defined(FULL_RES_BLUR)
+	#define KERNEL_SIZE 7
+#elif defined(HALF_RES_BLUR)
+	#define KERNEL_SIZE 5
+#elif defined(QUARTER_RES_BLUR)
+	#define KERNEL_SIZE 6
+#else
+	#define KERNEL_SIZE 0
+#endif
 
 
 const float GaussianWeight(float offset, float deviation)
 {
-	float weight = 1.0f / sqrt(2.0f * PI * deviation * deviation);
-	weight *= exp(-(offset * offset) / (2.0f * deviation * deviation));
+	float weight = 1.0f / sqrt(2.0f * PI * sqr(deviation));
+	weight *= exp(-(sqr(offset)) / (2.0f * sqr(deviation)));
 	return weight;
 }
 
 
-
-float4 BilateralBlur(float2 uv, const int2 direction, const int kernelRadius)
+half4 BilateralBlur(float2 uv, TEXTURE2D_PARAM(_SourceBlurTex, sampler_SourceBlurTex), float4 _TexelSize, const int2 direction)
 {
-	const float deviation = kernelRadius / GAUSS_BLUR_DEVIATION; 
+	const float deviation = KERNEL_SIZE / GAUSS_BLUR_DEVIATION; 
 
-	float4 centerColor = SAMPLE_BASE(_BlurSource, sampler_BlurSource, uv);
+	half4 centerColor = SAMPLE_BASE(_SourceBlurTex, sampler_SourceBlurTex, uv);
 
 	float weight = 0;
 	float weightSum = 0;
@@ -34,11 +38,11 @@ float4 BilateralBlur(float2 uv, const int2 direction, const int kernelRadius)
 
 	// Pixels from left/down to right/up of center pixel
 	[unroll] 
-	for (int i = -kernelRadius; i <= kernelRadius; i++)
+	for (int i = -KERNEL_SIZE; i <= KERNEL_SIZE; i++)
 	{
-        float2 offset = (direction * i) * _BlurSource_TexelSize.xy;
+        float2 offset = (direction * i) * _TexelSize.xy;
 
-        float3 sampleColor = SAMPLE_BASE(_BlurSource, sampler_BlurSource, uv + offset);
+    	half3 sampleColor = SAMPLE_BASE(_SourceBlurTex, sampler_SourceBlurTex, uv + offset);
 
 	    // gaussian weight is computed from constants only -> will be computed in compile time
 	    weight = GaussianWeight(i, deviation);
@@ -48,5 +52,5 @@ float4 BilateralBlur(float2 uv, const int2 direction, const int kernelRadius)
 	}
 
 	color /= weightSum;
-	return float4(color, centerColor.w);
+	return half4(color, centerColor.w);
 }

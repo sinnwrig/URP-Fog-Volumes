@@ -11,8 +11,9 @@ struct Attributes
 struct Varyings
 {
 	float4 vertex : SV_POSITION;
-	float3 viewVector : TEXCOORD0;
-	float2 uv : TEXCOORD1;
+	float3 viewPosition : TEXCOORD0;
+	float3 viewVector : TEXCOORD1;
+	float2 uv : TEXCOORD2;
 };
 
 
@@ -26,7 +27,7 @@ struct Varyings
 half3 _Albedo;
 float _IntensityModifier;
 
-int _MaxSampleCount; 
+int _SampleCount; 
 float4 _StepParams; // x: minimum, y: maximum, z: increment factor, w: max ray length
 float _Jitter;
 
@@ -40,10 +41,12 @@ float2 _FogRange;
 
 float3 _EdgeFade;
 
+float3x4 _InvMatrix;
+
 
 float FadeBoxEdge(float3 worldPosition)
 {
-	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0)).xyz;
+	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz;
 
 	float edgeX = smoothstep(_EdgeFade.x, 0.5, min(localPos.x + 0.5, 0.5 - localPos.x));
 	float edgeY = smoothstep(_EdgeFade.y, 0.5, min(localPos.y + 0.5, 0.5 - localPos.y));
@@ -55,7 +58,7 @@ float FadeBoxEdge(float3 worldPosition)
 
 float FadeSphereEdge(float3 worldPosition)
 {
-	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0)).xyz;
+	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz;
 	float dist = 0.5 - length(localPos);
 
 	return smoothstep(_EdgeFade.x, 0.5, dist);
@@ -64,7 +67,7 @@ float FadeSphereEdge(float3 worldPosition)
 
 float FadeCylinderEdge(float3 worldPosition)
 {
-	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0)).xyz;
+	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz;
 
 	float dist = 0.5 - length(localPos.xz);
 
@@ -77,7 +80,7 @@ float FadeCylinderEdge(float3 worldPosition)
 
 float FadeCapsuleEdge(float3 worldPosition)
 {	
-	float3 localPos = mul(UNITY_MATRIX_I_M, float4(worldPosition, 1.0)).xyz;
+	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz;
 
 	const float3 ab = float3(0, 1, 0);
 	float3 ac = localPos - float3(0, -0.5, 0);
@@ -106,11 +109,14 @@ float GetDensity(float3 worldPosition, float distance)
     float density = 1.0;
 
 	#if defined(NOISE_ENABLED)
-		float3 samplePos = worldPosition * _NoiseData.x + _Time.y * _NoiseVelocity;
+		// Scale sample position
+		float3 samplePos = (worldPosition * _NoiseData.x);
+		
+		// Offset sample position
+		samplePos += _Time.y * _NoiseVelocity;
 
 		float noise = SAMPLE_BASE3D(_NoiseTexture, sampler_NoiseTexture, samplePos).x;
-		noise = saturate(noise - _NoiseData.z) * _NoiseData.y;
-		density = saturate(noise);
+		density = saturate(noise - _NoiseData.z) * _NoiseData.y;
 	#endif
 
 	#if defined(CUBE_VOLUME)
@@ -128,12 +134,41 @@ float GetDensity(float3 worldPosition, float distance)
 }        
 
 
+// Original from https://github.com/SlightlyMad/VolumetricLights/blob/master/Assets/Shaders/VolumetricLight.shader under the BSD license
+float MiePhase(float cosAngle, float mieG)
+{
+	float gSqr = sqr(mieG);
+
+	// Magic number is 1/4pi
+    return (0.07957747154) * ((1 - gSqr) / (pow(abs((1 + gSqr) - (2 * mieG) * cosAngle), 1.5)));
+}
+
+
+half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
+{
+    half3 totalColor = 0.0;
+
+    #if defined(LIGHTING_ENABLED)
+        for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
+        {
+            float3 lightDir;
+            half3 lightColor = GetLightAttenuation(worldPosition, i, lightDir);
+
+            lightColor *= MiePhase(dot(lightDir, direction), mieG);  
+
+            totalColor += lightColor;
+        }
+    #endif
+
+	return totalColor;
+}
+
 
 half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
 {
 	float cameraDistance = length(cameraPos - rayStart);
 
-	float extinction = cameraDistance * _Extinction * 0.5; // Assume density of 0.5 between camera and light
+	float extinction = cameraDistance * _Extinction * 0.5; // Assume density of 0.5 between camera and fog volume
 
 	float stepSize = _StepParams.x;
 
@@ -141,7 +176,7 @@ half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 	float distance = 0;
 
 	[loop]
-	for (int i = 0; i < _MaxSampleCount; ++i)
+	for (int i = 0; i < min(_SampleCount, MAX_SAMPLES); ++i)
 	{
 		if (distance >= rayLength)
 			break;
@@ -149,10 +184,8 @@ half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 		float3 currentPosition = rayStart + rayDir * distance;
 
 		half3 light = _Albedo;
-		
-		// Additive lighting
 		light += GetLightAttenuationMie(currentPosition, rayDir, _MieG) * _IntensityModifier;
-
+		
 		float density = GetDensity(currentPosition, distance + cameraDistance);
 
         float scattering = _Scattering * stepSize * density;
@@ -180,14 +213,14 @@ half3 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDep
     float far = _FogRange.x;
 
 	#if defined(CUBE_VOLUME)
-		hit = RayCube(UNITY_MATRIX_I_M, cameraPos, viewDir, near, far);
+		hit = RayCube(_InvMatrix, cameraPos, viewDir, near, far);
 	#elif defined(CAPSULE_VOLUME)
-		hit = RayCapsule(UNITY_MATRIX_I_M, cameraPos, viewDir, near, far);
+		hit = RayCapsule(_InvMatrix, cameraPos, viewDir, near, far);
 	#elif defined(CYLINDER_VOLUME)
-		hit = RayCylinder(UNITY_MATRIX_I_M, cameraPos, viewDir, near, far);
+		hit = RayCylinder(_InvMatrix, cameraPos, viewDir, near, far);
 	#else
 		// Default to sphere
-		hit = RaySphere(UNITY_MATRIX_I_M, cameraPos, viewDir, near, far);
+		hit = RaySphere(_InvMatrix, cameraPos, viewDir, near, far);
 	#endif
 
 	// No intersection
@@ -237,9 +270,11 @@ half3 VolumetricFragment(Varyings i) : SV_Target
 {
 	float2 uv = i.uv;
 
-	// Reprojection will handle this pixel
-	if (SkipReprojectPixel(uv))
-		discard;
+	#if defined(TEMPORAL_REPROJECTION_ENABLED)
+		// Reprojection will handle this pixel
+		if (SkipReprojectPixel(uv))
+			return 0.0;
+	#endif
 
 	float len = length(i.viewVector);
 	float3 rayDir = i.viewVector / len;				

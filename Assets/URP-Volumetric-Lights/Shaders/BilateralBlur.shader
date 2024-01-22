@@ -1,29 +1,9 @@
-// Original project by Michal Skalsky under the BSD license 
-// Modified by Kai Angulo
-
-
 Shader "Hidden/BilateralBlur"
 {
 	HLSLINCLUDE
 	
 	#include "/Include/Common.hlsl"	
-	
-	#pragma multi_compile _ FULL_RES_BLUR_KERNEL_SIZE
-	#pragma multi_compile _ HALF_RES_BLUR_KERNEL_SIZE
-	#pragma multi_compile _ QUARTER_RES_BLUR_KERNEL_SIZE
-	#pragma multi_compile _ SOURCE_FULL_DEPTH
-	
-	
-	#if defined(FULL_RES_BLUR_KERNEL_SIZE)
-		#define KERNEL_SIZE 7
-	#elif defined(HALF_RES_BLUR_KERNEL_SIZE)
-		#define KERNEL_SIZE 5
-	#elif defined(QUARTER_RES_BLUR_KERNEL_SIZE)
-		#define KERNEL_SIZE 6
-	#else
-		#define KERNEL_SIZE 0
-	#endif
-	
+	#include "/Include/Math.hlsl"
 	
 	struct appdata
 	{
@@ -62,13 +42,18 @@ Shader "Hidden/BilateralBlur"
 			#pragma vertex vert
 			#pragma fragment horizontalFrag
             #pragma target 4.0
+			
+			#pragma multi_compile_fragment _ FULL_RES_BLUR HALF_RES_BLUR QUARTER_RES_BLUR
 
 			#include "/Include/BilateralBlur.hlsl"
 
+			TEXTURE2D(_BlurSource);
+			SAMPLER(sampler_BlurSource);
+			float4 _BlurSource_TexelSize;
 			
 			half4 horizontalFrag(v2f input) : SV_Target
 			{
-                return BilateralBlur(input.uv, int2(1, 0), KERNEL_SIZE);
+                return BilateralBlur(input.uv, TEXTURE2D_ARGS(_BlurSource, sampler_BlurSource), _BlurSource_TexelSize, int2(1, 0));
 			}
 
 			ENDHLSL
@@ -84,12 +69,17 @@ Shader "Hidden/BilateralBlur"
 			#pragma fragment verticalFrag
             #pragma target 4.0
 
+			#pragma multi_compile_fragment _ FULL_RES_BLUR HALF_RES_BLUR QUARTER_RES_BLUR
+			
 			#include "/Include/BilateralBlur.hlsl"
 
+			TEXTURE2D(_BlurSource);
+			SAMPLER(sampler_BlurSource);
+			float4 _BlurSource_TexelSize;
 			
 			half4 verticalFrag(v2f input) : SV_Target
 			{
-                return BilateralBlur(input.uv, int2(0, 1), KERNEL_SIZE);
+                return BilateralBlur(input.uv, TEXTURE2D_ARGS(_BlurSource, sampler_BlurSource), _BlurSource_TexelSize, int2(0, 1));
 			}
 
 			ENDHLSL
@@ -101,9 +91,11 @@ Shader "Hidden/BilateralBlur"
 			Name "Downsample Depth"
 
 			HLSLPROGRAM
-			#pragma vertex VertDownsampleDepth
-			#pragma fragment DownsampleDepth
+			#pragma vertex DownsampleVertex
+			#pragma fragment DownsampleFragment
             #pragma target 4.0
+
+			#pragma multi_compile_fragment _ SOURCE_FULL_DEPTH
 
 			#include "/Include/Downsample.hlsl"
 

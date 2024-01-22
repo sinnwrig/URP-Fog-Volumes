@@ -26,7 +26,6 @@ public class FogVolumeEditor : Editor
     private SerializedProperty distanceFade;
 
     private Editor profileEditor;
-    private bool foldout = false;
 
 
     void OnEnable()
@@ -59,9 +58,9 @@ public class FogVolumeEditor : Editor
 
         bool assetHasChanged = DrawProfileField(actualTarget);
 
-        foldout = DrawHeaderToggleFoldout(new GUIContent("Volume Profile"), 5f, foldout);
+        profile.isExpanded = DrawHeaderToggleFoldout(new GUIContent("Volume Profile"), 5f, profile.isExpanded);
 
-        if (foldout)
+        if (profile.isExpanded)
         {
             DrawProfileEditor(actualTarget, assetHasChanged);   
         } 
@@ -114,15 +113,20 @@ public class FogVolumeEditor : Editor
 
         Vector3 fade = edgeFade.vector3Value;
 
-        if ((VolumeType)volumeType.enumValueFlag != VolumeType.Cube)
+        if ((VolumeType)volumeType.enumValueFlag == VolumeType.Cube)
         {
-            fade.x = EditorGUILayout.Slider("Edge Fade", fade.x, 0, 1);
+            fade.x = EditorGUILayout.Slider("X Side Fade", fade.x, 0, 1);
+            fade.y = EditorGUILayout.Slider("Y Side Fade", fade.y, 0, 1);
+            fade.z = EditorGUILayout.Slider("Z Side Fade", fade.z, 0, 1);
+        }
+        else if ((VolumeType)volumeType.enumValueFlag == VolumeType.Cylinder)
+        {
+            fade.x = EditorGUILayout.Slider("Radius Fade", fade.x, 0, 1);
+            fade.y = EditorGUILayout.Slider("Height Fade", fade.y, 0, 1);
         }
         else
         {
-            fade.x = EditorGUILayout.Slider("Edge Fade X", fade.x, 0, 1);
-            fade.y = EditorGUILayout.Slider("Edge Fade Y", fade.y, 0, 1);
-            fade.z = EditorGUILayout.Slider("Edge Fade Z", fade.z, 0, 1);
+            fade.x = EditorGUILayout.Slider("Radius Fade", fade.x, 0, 1);
         }
 
         if (scope.changed)

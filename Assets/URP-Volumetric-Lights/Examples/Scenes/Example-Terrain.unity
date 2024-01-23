@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 973744429}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.12020859, g: 0.12323384, b: 0.24235788, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -157,6 +157,9 @@ MonoBehaviour:
   edgeFade: {x: 0.4, y: 0.2, z: 0.2}
   maxDistance: 1000
   distanceFade: 0.999
+  lightLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   sharedProfile: {fileID: 11400000, guid: 36b2a6b8cb18f9e8e95b76f824bb516d, type: 2}
 --- !u!4 &132168506
 Transform:

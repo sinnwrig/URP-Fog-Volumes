@@ -10,13 +10,15 @@ using UnityEngine.Rendering.Universal;
 #endif
 
 
+[DisallowMultipleRendererFeature("Volumetric Fog")]
+[Tooltip("Renders active fog volumes as an additive volumetric effect.")]
 public class VolumetricFogFeature : ScriptableRendererFeature
 {
-    public VolumetricFogPass.VolumetricResolution resolution;
+    public VolumetricResolution resolution;
 
-    public bool enableReprojection = false;
-    public bool reprojectionBlur = true;
-    [Range(1, 24)] public int temporalPassCount;
+    public bool temporalReprojection = false;
+    public bool disableBlur = true;
+    [Range(2, 24)] public int temporalPassCount;
 
     private VolumetricFogPass lightPass;
 
@@ -52,27 +54,28 @@ public class VolumetricFogFeature : ScriptableRendererFeature
 
         CreateLightPass();
  
-#if UNITY_EDITOR
-        EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
-#endif
+        #if UNITY_EDITOR
+            EditorSceneManager.activeSceneChangedInEditMode += OnSceneChanged;
+        #endif
     }
 
-#if UNITY_EDITOR
-    private void OnSceneChanged(Scene a, Scene b) => CreateLightPass();
-#endif
+    #if UNITY_EDITOR
+        private void OnSceneChanged(Scene a, Scene b) => CreateLightPass();
+    #endif
 
     protected override void Dispose(bool disposing)
     {
         lightPass.Dispose();
 
-#if UNITY_EDITOR
-        EditorSceneManager.activeSceneChangedInEditMode -= OnSceneChanged;
-#endif
+        #if UNITY_EDITOR
+            EditorSceneManager.activeSceneChangedInEditMode -= OnSceneChanged;
+        #endif
     }
 
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        // Don't draw in material previews
         if (!renderingData.cameraData.isPreviewCamera)
         {
             lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
@@ -82,7 +85,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     }
 
     
-    // Ehsure both neccesary shaders are included in the GraphicsSettings- to prevent users from having to keep track of references
+    // Ehsure all neccesary shaders are included in the project's GraphicsSettings- to prevent having to do manual reference tracking
     private void ValidateShaders() 
     {
         AddAlwaysIncludedShader("Hidden/BilateralBlur", ref bilateralBlur);
@@ -97,6 +100,10 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     {
         if (shader != null)
             return;
+    
+        #if UNITY_EDITOR
+            AssetDatabase.Refresh();
+        #endif
 
         shader = Shader.Find(shaderName);
         if (shader == null) 
@@ -106,33 +113,33 @@ public class VolumetricFogFeature : ScriptableRendererFeature
             throw new MissingReferenceException($"{namePart} shader missing! Make sure '{shaderName}' is located somewhere in your project and included in 'Always Included Shaders'");
         }
      
-#if UNITY_EDITOR
-        var graphicsSettingsObj = AssetDatabase.LoadAssetAtPath<GraphicsSettings>("ProjectSettings/GraphicsSettings.asset");
-        var serializedObject = new SerializedObject(graphicsSettingsObj);
-        var arrayProp = serializedObject.FindProperty("m_AlwaysIncludedShaders");
-        bool hasShader = false;
+        #if UNITY_EDITOR
+            var graphicsSettingsObj = AssetDatabase.LoadAssetAtPath<GraphicsSettings>("ProjectSettings/GraphicsSettings.asset");
+            var serializedObject = new SerializedObject(graphicsSettingsObj);
+            var arrayProp = serializedObject.FindProperty("m_AlwaysIncludedShaders");
+            bool hasShader = false;
 
-        for (int i = 0; i < arrayProp.arraySize; ++i)
-        {
-            var arrayElem = arrayProp.GetArrayElementAtIndex(i);
-            if (shader == arrayElem.objectReferenceValue)
+            for (int i = 0; i < arrayProp.arraySize; ++i)
             {
-                hasShader = true;
-                break;
+                var arrayElem = arrayProp.GetArrayElementAtIndex(i);
+                if (shader == arrayElem.objectReferenceValue)
+                {
+                    hasShader = true;
+                    break;
+                }
             }
-        }
-     
-        if (!hasShader)
-        {
-            int arrayIndex = arrayProp.arraySize;
-            arrayProp.InsertArrayElementAtIndex(arrayIndex);
-            var arrayElem = arrayProp.GetArrayElementAtIndex(arrayIndex);
-            arrayElem.objectReferenceValue = shader;
-     
-            serializedObject.ApplyModifiedProperties();
-     
-            AssetDatabase.SaveAssets();
-        }
-#endif
+
+            if (!hasShader)
+            {
+                int arrayIndex = arrayProp.arraySize;
+                arrayProp.InsertArrayElementAtIndex(arrayIndex);
+                var arrayElem = arrayProp.GetArrayElementAtIndex(arrayIndex);
+                arrayElem.objectReferenceValue = shader;
+
+                serializedObject.ApplyModifiedProperties();
+
+                AssetDatabase.SaveAssets();
+            }
+        #endif
     }
 }

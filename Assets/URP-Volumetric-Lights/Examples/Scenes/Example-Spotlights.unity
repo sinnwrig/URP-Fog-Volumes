@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 160863933}
   - component: {fileID: 160863932}
   - component: {fileID: 160863931}
-  m_Layer: 0
+  m_Layer: 4
   m_Name: Spotlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -887,6 +887,9 @@ MonoBehaviour:
   edgeFade: {x: 0, y: 0, z: 0}
   maxDistance: 100
   distanceFade: 0.999
+  lightLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   sharedProfile: {fileID: 11400000, guid: 5e26c9e9fbda821c0b20ea0101960a6a, type: 2}
 --- !u!4 &1859192033
 Transform:
@@ -897,7 +900,7 @@ Transform:
   m_GameObject: {fileID: 1859192031}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.83, y: 2.87, z: -1.51}
+  m_LocalPosition: {x: 0.83, y: 2.42, z: -1.51}
   m_LocalScale: {x: 10.949192, y: 10.949192, z: 10.949192}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -914,7 +917,7 @@ GameObject:
   - component: {fileID: 2018805998}
   - component: {fileID: 2018805997}
   - component: {fileID: 2018805996}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Spotlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}

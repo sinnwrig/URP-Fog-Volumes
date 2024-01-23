@@ -25,6 +25,7 @@ MonoBehaviour:
   scattering: 0.4
   extinction: 0.05
   mieG: 0.5
+  brightnessClamp: 10
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
   scale: 0.1
   noiseScroll: {x: 0, y: -0.15, z: 0}

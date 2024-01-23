@@ -37,7 +37,7 @@ VolumeLight GetAdditionalLight(int index)
 }
 
 
-// TODO: FInd out how to get baked lights to work with this- once I find out what to pass into the occlusion probe channels 
+// TODO: Find out how to get baked lights to work with this- if I discover what to pass into the occlusion probe channels 
 half3 GetMainLightColor(half3 color, float3 worldPosition)
 {    
     float4 shadowCoord = TransformWorldToShadowCoord(worldPosition);

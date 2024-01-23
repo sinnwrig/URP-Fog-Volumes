@@ -35,6 +35,8 @@ float _Scattering;
 float _Extinction;
 float _MieG;
 
+float _BrightnessClamp;
+
 float4 _ViewportRect;
 float _MaxRayLength;
 float2 _FogRange;
@@ -199,7 +201,7 @@ half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 		stepSize = min(_StepParams.y, stepSize * _StepParams.z);			
 	}
 
-	vlight = max(0, vlight);
+	vlight = clamp(vlight, 0, _BrightnessClamp);
 
 	return vlight;
 }
@@ -247,12 +249,13 @@ Varyings VolumetricVertex(Attributes v)
 	Varyings output = (Varyings)0;
 	output.vertex = CorrectVertex(v.vertex);
 
-	float2 clip01 = output.vertex.xy * 0.5 + 0.5;
+	float2 vertex01 = output.vertex.xy * 0.5 + 0.5;
 
-	clip01 = min(max(clip01, _ViewportRect.xy), _ViewportRect.xy + _ViewportRect.zw);
-	output.uv = clip01;
+	// Clamp UV-space vertex to viewport
+	vertex01 = min(max(vertex01, _ViewportRect.xy), _ViewportRect.xy + _ViewportRect.zw);
+	output.uv = vertex01;
 
-	output.vertex.xy = clip01 * 2 - 1;
+	output.vertex.xy = vertex01 * 2 - 1;
 
 	output.vertex = CorrectVertex(output.vertex);
 

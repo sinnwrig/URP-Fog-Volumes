@@ -26,6 +26,8 @@ public class FogVolumeProfile : ScriptableObject
     [Range(0, 1)] public float scattering = 0.1f;
     [Range(0, 1)] public float extinction = 0.05f;
     [Range(0, 0.999f)] public float mieG = 0.1f;  
+    [Range(0, 65536)] public float brightnessClamp = 10f;
+
 
     
     [Header("Noise")]
@@ -92,6 +94,8 @@ public class FogVolumeProfile : ScriptableObject
         material.SetFloat("_MieG", mieG);
         material.SetFloat("_Scattering", scattering);
         material.SetFloat("_Extinction", extinction);
+        
+        material.SetFloat("_BrightnessClamp", brightnessClamp);
 
         cmd.SetKeyword(light.Value, hasLighting);
         cmd.SetKeyword(shadow.Value, hasLighting && hasShadows);

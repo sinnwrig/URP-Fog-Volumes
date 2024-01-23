@@ -12,8 +12,13 @@ public partial class FogVolume : MonoBehaviour
     public VolumeType volumeType;
     public Vector3 edgeFade = Vector3.zero;
 
-    [Min(0)] public float maxDistance = 100.0f;
-    [Range(0, 0.999f)] public float distanceFade = 1.0f;
+    [Min(0)] 
+    public float maxDistance = 100.0f;
+
+    [Range(0, 0.999f)] 
+    public float distanceFade = 1.0f;
+
+    public LayerMask lightLayerMask = ~0;
 
 
     private FogVolumeProfile _internalProfile;
@@ -41,26 +46,25 @@ public partial class FogVolume : MonoBehaviour
     public FogVolumeProfile profileReference => _internalProfile == null ? sharedProfile : _internalProfile;
 
 
-    private const int maxLightCount = 32;
-    private float[] lightsToShadow = new float[maxLightCount];
-    private Vector4[] lightPositions  = new Vector4[maxLightCount];
-    private Vector4[] lightColors = new Vector4[maxLightCount];
-    private Vector4[] lightAttenuations = new Vector4[maxLightCount];
-    private Vector4[] spotDirections = new Vector4[maxLightCount];
-
-
     private MaterialPropertyBlock _propertyBlock;
 
     private MaterialPropertyBlock PropertyBlock
     {
         get
         {
-            if (_propertyBlock == null)
-                _propertyBlock = new MaterialPropertyBlock();
+            _propertyBlock ??= new MaterialPropertyBlock();
             
             return _propertyBlock;
         }
     }
+
+
+    private const int maxLightCount = 32;
+    private static readonly float[] lightsToShadow = new float[maxLightCount];
+    private static readonly Vector4[] lightPositions  = new Vector4[maxLightCount];
+    private static readonly Vector4[] lightColors = new Vector4[maxLightCount];
+    private static readonly Vector4[] lightAttenuations = new Vector4[maxLightCount];
+    private static readonly Vector4[] spotDirections = new Vector4[maxLightCount];
 
 
     void OnEnable() => VolumetricFogPass.AddVolume(this);
@@ -70,11 +74,11 @@ public partial class FogVolume : MonoBehaviour
 
     private void SetupViewport(ref RenderingData renderingData)
     {
-        Vector3[] boundsPoints = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? ShapeBounds.capsuleCorners : ShapeBounds.cubeCorners;
+        Vector3[] boundsPoints = volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder ? BoundsUtility.capsuleCorners : BoundsUtility.cubeCorners;
 
-        Vector4 viewport = ShapeBounds.GetViewportRect(transform.localToWorldMatrix, renderingData.cameraData.camera, boundsPoints);
+        Vector4 viewport = BoundsUtility.GetViewportRect(transform.localToWorldMatrix, renderingData.cameraData.camera, boundsPoints);
 
-        if (ShapeBounds.InsideBounds(transform.worldToLocalMatrix, renderingData.cameraData.camera.transform.position, GetBounds()))
+        if (BoundsUtility.InsideBounds(transform.worldToLocalMatrix, renderingData.cameraData.camera.transform.position, GetBounds()))
             viewport = new Vector4(0, 0, 1, 1);
 
         PropertyBlock.SetVector("_ViewportRect", viewport);
@@ -86,19 +90,19 @@ public partial class FogVolume : MonoBehaviour
         switch (volumeType)
         {
             case VolumeType.Cube:
-                float edgeX = -((1 - Mathf.Clamp(edgeFade.x, -1, 1)) * 2 - 1) * 0.5f;
-                float edgeY = -((1 - Mathf.Clamp(edgeFade.y, -1, 1)) * 2 - 1) * 0.5f;
-                float edgeZ = -((1 - Mathf.Clamp(edgeFade.z, -1, 1)) * 2 - 1) * 0.5f;
+                float edgeX = -((1 - edgeFade.x) * 2 - 1) * 0.5f;
+                float edgeY = -((1 - edgeFade.y) * 2 - 1) * 0.5f;
+                float edgeZ = -((1 - edgeFade.z) * 2 - 1) * 0.5f;
 
                 return new Vector3(edgeX, edgeY, edgeZ);
 
             case VolumeType.Cylinder:
-                float cylX = -((1 - Mathf.Clamp(edgeFade.x, -1, 1)) * 2 - 1) * 0.5f;
-                float cylY = -(1 - (Mathf.Clamp(edgeFade.y, -1, 1) * 2));
+                float cylX = -((1 - edgeFade.x) * 2 - 1) * 0.5f;
+                float cylY = -(1 - (edgeFade.y * 2));
                 return new Vector3(cylX, cylY, 0);
 
             default:
-                float sphereX = -((1 - Mathf.Clamp(edgeFade.x, -1, 1)) * 2 - 1) * 0.5f;
+                float sphereX = -((1 - edgeFade.x) * 2 - 1) * 0.5f;
                 return new Vector3(sphereX, 0, 0);
         }
     }
@@ -120,7 +124,10 @@ public partial class FogVolume : MonoBehaviour
             {   
                 NativeLight light = lights[i];
 
-                if (light.isDirectional || ShapeBounds.WithinDistance(trs, invTrs, light.position, light.range, bounds))
+                if (lightLayerMask != (lightLayerMask | (1 << light.layer)))
+                    continue;
+
+                if (light.isDirectional || BoundsUtility.WithinDistance(trs, invTrs, light.position, light.range, bounds))
                 {
                     lightsToShadow[lightCount] = light.shadowIndex;
                     lightPositions[lightCount] = light.position;
@@ -161,6 +168,7 @@ public partial class FogVolume : MonoBehaviour
     }
     
 
+    // Whether or not the volume can be culled by the frustum or distance
     public bool CullVolume(Vector3 cameraPosition, Plane[] cameraPlanes)
     {
         if (profileReference == null)
@@ -183,19 +191,19 @@ public partial class FogVolume : MonoBehaviour
     public Bounds GetBounds()
     {
         if (volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder) 
-            return ShapeBounds.capsuleBounds;
+            return BoundsUtility.capsuleBounds;
 
         // Default to cube
-        return ShapeBounds.cubeBounds;
+        return BoundsUtility.cubeBounds;
     }
 
 
     public Bounds GetAABB()
     {
         if (volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder) 
-            return GeometryUtility.CalculateBounds(ShapeBounds.capsuleCorners, transform.localToWorldMatrix);
+            return GeometryUtility.CalculateBounds(BoundsUtility.capsuleCorners, transform.localToWorldMatrix);
 
         // Default to cube
-        return GeometryUtility.CalculateBounds(ShapeBounds.cubeCorners, transform.localToWorldMatrix);
+        return GeometryUtility.CalculateBounds(BoundsUtility.cubeCorners, transform.localToWorldMatrix);
     }
 }

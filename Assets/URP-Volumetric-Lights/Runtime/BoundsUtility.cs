@@ -1,13 +1,8 @@
 using UnityEngine;
 
-/// <summary>
-/// Bounding-box utilities
-/// </summary>
-public static class ShapeBounds
+
+public static class BoundsUtility
 {
-    /// <summary>
-    /// The eight vertices of a unit-sized cube
-    /// </summary>
     public static readonly Vector3[] cubeCorners = new Vector3[]
     {
         // Top 4
@@ -24,9 +19,6 @@ public static class ShapeBounds
     };
 
 
-    /// <summary>
-    /// The bouding box of a unit-sized cube
-    /// </summary>
     public static readonly Bounds cubeBounds = new Bounds
     {
         min = cubeCorners[7],
@@ -34,9 +26,6 @@ public static class ShapeBounds
     };
 
 
-    /// <summary>
-    /// The eight vertices of a capsule 2 units in height and 1 unit in width
-    /// </summary> 
     public static readonly Vector3[] capsuleCorners = new Vector3[]
     {
         // Top 4
@@ -53,9 +42,6 @@ public static class ShapeBounds
     };
 
 
-    /// <summary>
-    /// The bouding box of a capsule 2 units in height and 1 unit in width
-    /// </summary> 
     public static readonly Bounds capsuleBounds = new Bounds
     {
         min = capsuleCorners[7],
@@ -63,16 +49,6 @@ public static class ShapeBounds
     };
 
 
-    /// <summary>
-    /// Calculates a screen rect that encapsulates a series of points in the camera view.
-    /// </summary>
-    /// <param name="transform">The local to world matrix of the points</param>
-    /// <param name="camera">The camera to use in screen rect calculations</param>
-    /// <param name="points">The series of points to calculate the screen rect of</param>
-    /// <returns>
-    /// A Vector4 with the corner of the rect in the x-y components, and the scale of the rect stored in the z-w.
-    /// All of the values are in a 0-1 range and start from the bottom left corner of the screen.
-    /// </returns>
     public static Vector4 GetViewportRect(Matrix4x4 transform, Camera camera, Vector3[] points)
     {
         Vector4 viewportRect = new Vector4(1, 1, 0, 0);
@@ -111,12 +87,6 @@ public static class ShapeBounds
     }
 
 
-    /// <summary>
-    /// Returns whether or not a given point is within a transformed bounding box.
-    /// </summary>
-    /// <param name="invTransform">The inverse transform matrix to use</param>
-    /// <param name="point">The world-space point to check</param>
-    /// <param name="bounds">The bounding box to use</param>
     public static bool InsideBounds(Matrix4x4 invTransform, Vector3 point, Bounds bounds)
     {
         Vector3 localPoint = invTransform.MultiplyPoint3x4(point);
@@ -124,14 +94,6 @@ public static class ShapeBounds
     }
 
 
-    /// <summary>
-    /// Returns whether or not a given point is a given distance from a bounding box
-    /// </summary>
-    /// <param name="transform">The transform matrix to use</param>
-    /// <param name="invTransform">The inverse transform matrix to use</param>
-    /// <param name="point">The world-space point to check</param>
-    /// <param name="distance">The distance from the bounds to check</param>
-    /// <param name="bounds">The bounding box to use</param>
     public static bool WithinDistance(Matrix4x4 transform, Matrix4x4 invTransform, Vector3 point, float distance, Bounds bounds)
     {
         Vector3 localPoint = invTransform.MultiplyPoint3x4(point);

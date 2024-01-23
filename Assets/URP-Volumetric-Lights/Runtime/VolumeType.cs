@@ -3,6 +3,7 @@ using UnityEngine.Rendering;
 /// <summary>
 /// The primitive shape type to use when rendering a volume
 /// </summary>
+[System.Serializable]
 public enum VolumeType
 {
     Sphere = 0, 
@@ -23,13 +24,9 @@ public static class VolumeTypeExtensions
     };
 
 
-    /// <summary>
-    /// Sets the approriate global shader keyword for this volume type
-    /// </summary>
-    /// <param name="cmd">The Command Buffer to use</param>
     public static void SetVolumeKeyword(this VolumeType type, CommandBuffer cmd)
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < shapeKeywords.Length; i++)
             cmd.SetKeyword(shapeKeywords[i], i == (int)type);
     }
 }

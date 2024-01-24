@@ -26,7 +26,7 @@ public class FogVolumeProfile : ScriptableObject
     [Range(0, 1)] public float scattering = 0.1f;
     [Range(0, 1)] public float extinction = 0.05f;
     [Range(0, 0.999f)] public float mieG = 0.1f;  
-    [Range(0, 65536)] public float brightnessClamp = 10f;
+    [Range(0, 100)] public float brightnessClamp = 10f;
 
 
     

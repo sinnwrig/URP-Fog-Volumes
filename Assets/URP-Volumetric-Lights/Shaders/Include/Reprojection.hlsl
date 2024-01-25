@@ -1,7 +1,10 @@
 #pragma once
 
-int _TemporalPassCount;
-int _TemporalPass;
+#define BAYER_LIMIT 8
+
+int _BayerThreshold;
+int _PassIndex;
+int _BayerMatrix[BAYER_LIMIT * BAYER_LIMIT];
 
 float4x4 _PrevView;
 float4x4 _PrevViewProjection;
@@ -14,8 +17,13 @@ float4x4 _InverseViewProjection;
 
 bool SkipReprojectPixel(float2 uv)
 {
-    int2 pixCoords = int2(uv.x * _ScreenParams.x, uv.y * _ScreenParams.y);
-    return pixCoords.x % _TemporalPassCount != _TemporalPass && pixCoords.y % _TemporalPassCount != _TemporalPass;
+    uint2 coord = uint2(uv.xy * _ScreenParams.xy) % BAYER_LIMIT;
+
+    int bayer = _BayerMatrix[(coord.y * BAYER_LIMIT) + coord.x];
+    
+    int dist = abs(bayer - _PassIndex);
+
+    return !(dist < _BayerThreshold);
 }
 
 

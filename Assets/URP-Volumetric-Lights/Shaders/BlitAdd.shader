@@ -44,7 +44,6 @@ Shader "Hidden/BlitAdd"
 			TEXTURE2D(_BlitAdd);
 			SAMPLER(sampler_BlitAdd);
 
-
 			half3 blendFrag(v2f i) : SV_Target
 			{
 				return SAMPLE_BASE(_BlitSource, sampler_BlitSource, i.uv) + SAMPLE_BASE(_BlitAdd, sampler_BlitAdd, i.uv);

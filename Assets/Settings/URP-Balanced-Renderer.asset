@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: VolumetricFogFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  resolution: 1
+  resolution: 0
   temporalReprojection: 1
-  disableBlur: 0
-  temporalPassCount: 8
+  disableBlur: 1
+  temporalPassCount: 16
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using System.IO;
 
-
+// Ripped from the SRP Volume component editor with some minor changes. 
 
 [CustomEditor(typeof(FogVolume))]
 public class FogVolumeEditor : Editor

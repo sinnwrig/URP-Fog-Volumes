@@ -97,7 +97,7 @@ public class FogVolumeProfile : ScriptableObject
         
         material.SetFloat("_BrightnessClamp", brightnessClamp);
 
-        cmd.SetKeyword(light.Value, hasLighting);
-        cmd.SetKeyword(shadow.Value, hasLighting && hasShadows);
+        cmd.SetKeyword(light.Value, hasLighting && !hasShadows);
+        cmd.SetKeyword(shadow.Value, hasShadows);
     }
 }

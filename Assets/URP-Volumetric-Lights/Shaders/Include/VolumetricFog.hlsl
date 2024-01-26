@@ -12,8 +12,7 @@ struct Varyings
 {
 	float4 vertex : SV_POSITION;
 	float3 viewPosition : TEXCOORD0;
-	float3 viewVector : TEXCOORD1;
-	float2 uv : TEXCOORD2;
+	float2 uv : TEXCOORD1;
 };
 
 
@@ -23,6 +22,9 @@ struct Varyings
 	float4 _NoiseData; // x: scale, y: intensity, z: intensity offset
 	float3 _NoiseVelocity; // noise move direction
 #endif
+
+TEXTURE2D(_CameraDepthTexture);
+SAMPLER(sampler_CameraDepthTexture);
 
 half3 _Albedo;
 float _IntensityModifier;
@@ -150,7 +152,7 @@ half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
 {
     half3 totalColor = 0.0;
 
-    #if defined(LIGHTING_ENABLED)
+    #if defined(LIGHTING_ENABLED) || defined(SHADOWS_ENABLED)
         for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
         {
             float3 lightDir;
@@ -178,7 +180,7 @@ half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 	float distance = 0;
 
 	[loop]
-	for (int i = 0; i < min(_SampleCount, MAX_SAMPLES); ++i)
+	for (int i = 0; i < _SampleCount; ++i)
 	{
 		if (distance >= rayLength)
 			break;
@@ -259,12 +261,6 @@ Varyings VolumetricVertex(Attributes v)
 
 	output.vertex = CorrectVertex(output.vertex);
 
-	// Get view vector using UV
-	float3 viewVector = mul(unity_CameraInvProjection, float4(output.uv * 2 - 1, 0, -1)).xyz;
-	
-	// Transform to world space
-	output.viewVector = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
-
 	return output;
 }
 
@@ -274,13 +270,15 @@ half3 VolumetricFragment(Varyings i) : SV_Target
 	float2 uv = i.uv;
 
 	#if defined(TEMPORAL_REPROJECTION_ENABLED)
-		// Reprojection will handle this pixel
-		if (SkipReprojectPixel(uv))
-			return 0.0;
+		uv = FullUVFromLowResUV(uv);
 	#endif
 
-	float len = length(i.viewVector);
-	float3 rayDir = i.viewVector / len;				
+	// Get view vector using UV
+	float3 viewVector = mul(unity_CameraInvProjection, float4(uv * 2 - 1, 0, -1)).xyz;
+	viewVector = mul(unity_CameraToWorld, float4(viewVector, 0)).xyz;
+
+	float len = length(viewVector);
+	float3 rayDir = viewVector / len;				
 
 	float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
 	float linearDepth = LINEAR_EYE_DEPTH(depth) * len;

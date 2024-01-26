@@ -14,14 +14,14 @@ public class VolumetricFogFeatureEditor : Editor
             "Enables Temporal Reprojection, which spreads out rendering over multiple frames. Performance benefit is not guaranteed on older GPUs or renderers that handle branching badly.");
         public static readonly GUIContent disableBlur = EditorGUIUtility.TrTextContent("Disable Blur", 
             "Whether or not to disable the bilateral blur applied to the render result. Only works when rendering at native resolution.");
-        public static readonly GUIContent temporalPassCount = EditorGUIUtility.TrTextContent("Temporal Passes", 
-            "The number of frames Temporal Reprojection will spread out the rendering the fog volumes.");
+        public static readonly GUIContent temporalSize = EditorGUIUtility.TrTextContent("Temporal Size", 
+            "Uhh idk how to explain this right now honestly.");
     }
 
     private SerializedProperty resolution;
     private SerializedProperty temporalReprojection;
     private SerializedProperty disableBlur;
-    private SerializedProperty temporalPassCount;
+    private SerializedProperty temporalSize;
 
 
     private void OnEnable()
@@ -31,7 +31,7 @@ public class VolumetricFogFeatureEditor : Editor
         resolution = fetcher.Find("resolution");
         temporalReprojection = fetcher.Find("temporalReprojection");
         disableBlur = fetcher.Find("disableBlur");
-        temporalPassCount = fetcher.Find("temporalPassCount");
+        temporalSize = fetcher.Find("temporalSize");
     }
 
 
@@ -82,7 +82,7 @@ public class VolumetricFogFeatureEditor : Editor
         if (reprojection)
         {
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(temporalPassCount, Styles.temporalPassCount);
+            EditorGUILayout.PropertyField(temporalSize, Styles.temporalSize);
             EditorGUI.indentLevel--;
         }
 

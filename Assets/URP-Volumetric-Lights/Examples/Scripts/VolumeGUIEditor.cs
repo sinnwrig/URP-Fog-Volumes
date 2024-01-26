@@ -59,6 +59,33 @@ public class VolumeGUIEditor : MonoBehaviour
     static float camSens = 0.5f;
 
 
+    static int frameCounter;
+    static float timeCounter;
+    static int lastFps;
+    static float avgTime;
+
+
+    const float sampleTime = 0.25f;
+
+
+    static void GetFrameCount()
+    {   
+        if (timeCounter < sampleTime)
+        {
+            frameCounter++;
+            timeCounter += Time.deltaTime;
+        }
+        else
+        {
+            lastFps = (int)(frameCounter / sampleTime);
+            avgTime = (timeCounter / frameCounter) * 1000;
+
+            timeCounter = 0;
+            frameCounter = 0;
+        }
+    }
+
+
     void Start()
     {
         RefreshProps();
@@ -74,6 +101,8 @@ public class VolumeGUIEditor : MonoBehaviour
 
     void Update()
     {
+        GetFrameCount();
+
         if (!flying)
             return;
 
@@ -256,6 +285,8 @@ public class VolumeGUIEditor : MonoBehaviour
 
     void DrawRenderingEditor()
     {
+        GUILayout.Label(new GUIContent($"Render time: {lastFps}FPS ({avgTime:0.0}ms)"));
+
         if (feature == null) 
             return;
 
@@ -288,7 +319,7 @@ public class VolumeGUIEditor : MonoBehaviour
 
         if (feature.temporalReprojection)
         {
-            feature.temporalPassCount = (int)Slider(feature.temporalPassCount, 1, 64, new GUIContent("Temporal Passes"), ref isDirty, GUILayout.Width(160f));
+            feature.temporalSize = (int)Slider(feature.temporalSize, 1, 10, new GUIContent("Temporal Size"), ref isDirty, GUILayout.Width(160f));
         }
 
         if (isDirty)

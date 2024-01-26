@@ -1,10 +1,9 @@
 #pragma once
 
-#define BAYER_LIMIT 8
+uint2 _TileSize; // Size of each reprojected tile
+uint2 _PassOffset; // Where on the reprojection 'tile' are we rendering right now?
+uint2 _ReprojectionRenderSize; // Size of the low-res texture that will be reprojected
 
-int _BayerThreshold;
-int _PassIndex;
-int _BayerMatrix[BAYER_LIMIT * BAYER_LIMIT];
 
 float4x4 _PrevView;
 float4x4 _PrevViewProjection;
@@ -17,22 +16,28 @@ float4x4 _InverseViewProjection;
 
 bool SkipReprojectPixel(float2 uv)
 {
-    uint2 coord = uint2(uv.xy * _ScreenParams.xy) % BAYER_LIMIT;
+    uint2 pixelPos = uv * _ScreenParams.xy;
+    uint2 tilePos = pixelPos % _TileSize;
 
-    int bayer = _BayerMatrix[(coord.y * BAYER_LIMIT) + coord.x];
-    
-    int dist = abs(bayer - _PassIndex);
+    return tilePos != _PassOffset;
+}
 
-    return !(dist < _BayerThreshold);
+
+float2 FullUVFromLowResUV(float2 lowresUV)
+{
+    uint2 pixelPos = lowresUV * _ReprojectionRenderSize * _TileSize;
+    uint2 tile = pixelPos + _PassOffset;
+
+    return (float2)tile / _ScreenParams.xy;
 }
 
 
 // URP's MotionVectors don't seem to work reliably, so get the camera motion vectors ourselves
 // Modified from https://github.com/Kink3d/kMotion/blob/master/Shaders/CameraMotionVectors.shader
-float2 GetVelocity(float2 uv)
+float2 GetVelocity(float2 uv, TEXTURE2D_PARAM(_DepthTexture, sampler_DepthTexture))
 {
     // Calculate PositionInputs
-    float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv).x;
+    float depth = SAMPLE_DEPTH_TEXTURE(_DepthTexture, sampler_DepthTexture, uv).x;
 
     half2 screenSize = half2(1 / _ScreenParams.x, 1 / _ScreenParams.y);
 
@@ -51,15 +56,15 @@ float2 GetVelocity(float2 uv)
 
 
 
-half4 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColor))
+half4 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColor), TEXTURE2D_PARAM(_LowresSample, sampler_LowresSample), TEXTURE2D_PARAM(_DepthTexture, sampler_DepthTexture))
 {
-    half2 motion = GetVelocity(uv);
+    half2 motion = GetVelocity(uv, TEXTURE2D_ARGS(_DepthTexture, sampler_DepthTexture));
 
     float2 sampleUv = uv - motion;
 
     if (!SkipReprojectPixel(uv))
-        return 0.0;
-
+        return SAMPLE_BASE(_LowresSample, sampler_LowresSample, uv);
+    
     // Reproject this pixel if possible
     if (sampleUv.x >= 0 && sampleUv.x <= 1 && sampleUv.y >= 0 && sampleUv.y <= 1)
         return SAMPLE_BASE(_SourceColor, sampler_SourceColor, sampleUv);

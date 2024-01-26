@@ -12,9 +12,10 @@ Shader "Hidden/TemporalReprojection"
 			#pragma fragment reprojectFrag
 			#pragma target 4.0
 
-			#define TEMPORAL_REPROJECTION_ENABLED
-
 			#include "/Include/Common.hlsl"
+			#include "/Include/Math.hlsl"
+			#include "/Include/Reprojection.hlsl"
+
 	
 			struct appdata
 			{
@@ -37,21 +38,24 @@ Shader "Hidden/TemporalReprojection"
 				o.uv = v.uv;
 				return o;
 			}
-
+			
 
 			TEXTURE2D(_CameraDepthTexture);       
 			SAMPLER(sampler_CameraDepthTexture);
 
-			TEXTURE2D(_ReprojectSource);
-			SAMPLER(sampler_ReprojectSource);
+			TEXTURE2D(_ReprojectBuffer);
+			SAMPLER(sampler_ReprojectBuffer);
 
-			#include "/Include/Math.hlsl"
-			#include "/Include/Reprojection.hlsl"
+			TEXTURE2D(_ReprojectTarget);
+			SAMPLER(sampler_ReprojectTarget);
 
 
 			half4 reprojectFrag(v2f i) : SV_Target
 			{
-				return ReprojectPixel(i.uv, TEXTURE2D_ARGS(_ReprojectSource, sampler_ReprojectSource));
+				return ReprojectPixel(i.uv, 
+					TEXTURE2D_ARGS(_ReprojectBuffer, sampler_ReprojectBuffer), 
+					TEXTURE2D_ARGS(_ReprojectTarget, sampler_ReprojectTarget),
+					TEXTURE2D_ARGS(_CameraDepthTexture, sampler_CameraDepthTexture));
 			}
 
 			ENDHLSL

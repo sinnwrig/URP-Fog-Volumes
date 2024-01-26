@@ -7,6 +7,7 @@ using Unity.Collections;
 
 using System.Reflection;
 using System.Collections.Generic;
+using System.Linq;
 
 
 public class VolumetricFogPass : ScriptableRenderPass
@@ -39,6 +40,7 @@ public class VolumetricFogPass : ScriptableRenderPass
     private static readonly RTPair volumeFog = new RTPair("_VolumeFogTexture");
     private static readonly RTPair halfVolumeFog = new RTPair("_HalfVolumeFogTexture");
     private static readonly RTPair quarterVolumeFog = new RTPair("_QuarterVolumeFogTexture");
+    private static readonly RTPair temporalTarget = new RTPair("_TemporalTarget");
 
     // Temp render target 
     private static readonly RTPair temp = new RTPair("_Temp");
@@ -95,29 +97,36 @@ public class VolumetricFogPass : ScriptableRenderPass
     private Matrix4x4 prevVpMatrix;
     private Matrix4x4 prevInvVpMatrix;
 
-    private static readonly float[] bayerMatrix = new float[]
-    {
-         0, 32, 8, 40, 2, 34, 10, 42, /* 8x8 Bayer ordered dithering */
-        48, 16, 56, 24, 50, 18, 58, 26, /* pattern. Each input pixel */
-        12, 44, 4, 36, 14, 46, 6, 38, /* is scaled to the 0..63 range */
-        60, 28, 52, 20, 62, 30, 54, 22, /* before looking in this table */
-         3, 35, 11, 43, 1, 33, 9, 41, /* to determine the action. */
-        51, 19, 59, 27, 49, 17, 57, 25,
-        15, 47, 7, 39, 13, 45, 5, 37,
-        63, 31, 55, 23, 61, 29, 53, 21
-    };
-
     // Temporal pass iterator
-    private int temporalPass;
+    private int temporalPassIndex;
 
     // Temporal Reprojection Target-
     // NOTE: only a RenderTexture seems to preserve information between frames on my device, otherwise I'd use an RTHandle or RenderTargetIdentifier
-    private RenderTexture reprojectionBuffer;
+    private RenderTexture temporalBuffer;
+
+    private Vector2[] semiRandomOffsets;
+
+
+    private void GenerateOffsets()
+    {
+        semiRandomOffsets = new Vector2[feature.temporalSize * feature.temporalSize];
+
+        for (int i = 0; i < semiRandomOffsets.Length; i++)
+            semiRandomOffsets[i] = new Vector2(i / feature.temporalSize, i % feature.temporalSize);
+        
+        var random = new System.Random();
+
+        semiRandomOffsets = semiRandomOffsets.OrderBy(x => random.Next()).ToArray();
+    }
+
 
 
     public VolumetricFogPass(VolumetricFogFeature feature, Shader blur, Shader fog, Shader add, Shader reproj)
     {
         this.feature = feature;
+
+        if (feature.temporalReprojection)
+            GenerateOffsets();
 
         fogShader = fog;
 
@@ -143,6 +152,9 @@ public class VolumetricFogPass : ScriptableRenderPass
         var depthFormat = RenderTextureFormat.RFloat;
 
         cmd.GetTemporaryRT(volumeFog, width, height, 0, FilterMode.Point, colorFormat);
+
+        if (feature.temporalReprojection)
+            cmd.GetTemporaryRT(temporalTarget, width / feature.temporalSize, height / feature.temporalSize, 0, FilterMode.Point, colorFormat);
 
         if (Resolution == VolumetricResolution.Half)
             cmd.GetTemporaryRT(halfVolumeFog, width / 2, height / 2, 0, FilterMode.Bilinear, colorFormat);
@@ -250,13 +262,14 @@ public class VolumetricFogPass : ScriptableRenderPass
 
         DownsampleDepthBuffer();
 
-        InitFogRenderTarget(renderingData.cameraData.camera);
+        InitFogRenderTarget(descriptor.width, descriptor.height);
         
         DrawVolumes(fogVolumes, ref renderingData);
 
-        SetReprojectionBuffer(ref renderingData);
+        ReprojectBuffer(ref renderingData);
 
         BilateralBlur(descriptor.width, descriptor.height);
+
         BlendFog(cameraColor, ref renderingData);
 
         context.ExecuteCommandBuffer(commandBuffer);
@@ -268,6 +281,9 @@ public class VolumetricFogPass : ScriptableRenderPass
     public override void OnCameraCleanup(CommandBuffer cmd)
     {
         cmd.ReleaseTemporaryRT(volumeFog);
+
+        if (feature.temporalReprojection)
+            cmd.ReleaseTemporaryRT(temporalTarget);
 
         if (Resolution == VolumetricResolution.Half)
             cmd.ReleaseTemporaryRT(halfVolumeFog);
@@ -414,45 +430,45 @@ public class VolumetricFogPass : ScriptableRenderPass
     }   
 
 
-    // Set the volumetric fog render target
-    // Clear the target if there is nothing to reproject
-    // Otherwise, reproject the previous frame
-    private void InitFogRenderTarget(Camera cam)
+    private void SetPassConstants()
     {
-        commandBuffer.SetKeyword(reprojectionKeyword, feature.temporalReprojection);
+        int tileX = feature.temporalSize;
+        int tileY = feature.temporalSize;
 
-        if (!feature.temporalReprojection || reprojectionBuffer == null || !reprojectionBuffer.IsCreated())
-        {
-            if (Resolution == VolumetricResolution.Quarter)
-                commandBuffer.SetRenderTarget(quarterVolumeFog);
-            else if (Resolution == VolumetricResolution.Half)
-                commandBuffer.SetRenderTarget(halfVolumeFog);
-            else
-                commandBuffer.SetRenderTarget(volumeFog);
+        temporalPassIndex = (temporalPassIndex + 1) % (tileX * tileY);
 
-            commandBuffer.ClearRenderTarget(true, true, Color.black);
-            return;
-        }
-
-        SetReprojectionMatrices(cam);
-
-        temporalPass = (temporalPass + 1) % bayerMatrix.Length;
-
-        commandBuffer.SetGlobalInt("_BayerThreshold", bayerMatrix.Length - (feature.temporalPassCount - 1));
-        commandBuffer.SetGlobalInt("_PassIndex", temporalPass);
-
-        // Constant shader arrays don't seem to want to work, so send in our own array
-        commandBuffer.SetGlobalFloatArray("_BayerMatrix", bayerMatrix);
-
-        commandBuffer.SetGlobalTexture("_ReprojectSource", reprojectionBuffer);
-
-        // TargetBlit will set the RenderTarget for us
-        TargetBlit(commandBuffer, volumeFog, reprojection, 0);
+        commandBuffer.SetGlobalVector("_TileSize", new Vector2(tileX, tileY));
+        commandBuffer.SetGlobalVector("_PassOffset", semiRandomOffsets[temporalPassIndex]);
     }
 
 
-    // Create the reprojection buffer from the current frame's texture to use next frame
-    private void SetReprojectionBuffer(ref RenderingData data)
+    // Set the volumetric fog render target
+    // Clear the target if there is nothing to reproject
+    // Otherwise, reproject the previous frame
+    private void InitFogRenderTarget(int width, int height)
+    {
+        commandBuffer.SetKeyword(reprojectionKeyword, feature.temporalReprojection);
+
+        if (Resolution == VolumetricResolution.Quarter)
+            commandBuffer.SetRenderTarget(quarterVolumeFog);
+        else if (Resolution == VolumetricResolution.Half)
+            commandBuffer.SetRenderTarget(halfVolumeFog);
+        else if (feature.temporalReprojection)
+            commandBuffer.SetRenderTarget(temporalTarget);
+        else
+            commandBuffer.SetRenderTarget(volumeFog);
+
+        commandBuffer.ClearRenderTarget(true, true, Color.black);
+
+        if (feature.temporalReprojection)
+        {
+            SetPassConstants();
+            commandBuffer.SetGlobalVector("_ReprojectionRenderSize", new Vector2(width, height) / feature.temporalSize);
+        }
+    }
+
+
+    private void ReprojectBuffer(ref RenderingData data)
     {
         if (!feature.temporalReprojection)
             return;
@@ -462,22 +478,29 @@ public class VolumetricFogPass : ScriptableRenderPass
         int height = descriptor.height;
         descriptor.colorFormat = RenderTextureFormat.ARGBHalf;
 
-        if (reprojectionBuffer == null || !reprojectionBuffer.IsCreated() || reprojectionBuffer.width != width || reprojectionBuffer.height != height)
+        if (temporalBuffer == null || !temporalBuffer.IsCreated() || temporalBuffer.width != width || temporalBuffer.height != height)
         {
-            if (reprojectionBuffer != null && reprojectionBuffer.IsCreated())
-                reprojectionBuffer.Release();
+            if (temporalBuffer != null && temporalBuffer.IsCreated())
+                temporalBuffer.Release();
 
-            reprojectionBuffer = new RenderTexture(descriptor);
-            reprojectionBuffer.Create();
+            temporalBuffer = new RenderTexture(descriptor);
+            temporalBuffer.Create();
         }
 
-        commandBuffer.CopyTexture(volumeFog, 0, 0, reprojectionBuffer, 0, 0);
+        SetReprojectionMatrices(data.cameraData.camera);
+
+        commandBuffer.SetGlobalTexture("_ReprojectBuffer", temporalBuffer);
+        commandBuffer.SetGlobalTexture("_ReprojectTarget", temporalTarget);
+
+        TargetBlit(commandBuffer, volumeFog, reprojection, 0);
+
+        commandBuffer.CopyTexture(volumeFog, 0, 0, temporalBuffer, 0, 0);
     }
 
 
     public void Dispose()
     {
-        if (reprojectionBuffer != null && reprojectionBuffer.IsCreated())
-            reprojectionBuffer.Release();
+        if (temporalBuffer != null && temporalBuffer.IsCreated())
+            temporalBuffer.Release();
     }
 }

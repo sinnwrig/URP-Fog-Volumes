@@ -15,8 +15,8 @@ MonoBehaviour:
   m_Active: 1
   resolution: 0
   temporalReprojection: 1
-  disableBlur: 1
-  temporalPassCount: 16
+  disableBlur: 0
+  temporalSize: 10
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

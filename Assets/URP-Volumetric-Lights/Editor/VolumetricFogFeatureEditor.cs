@@ -9,19 +9,19 @@ public class VolumetricFogFeatureEditor : Editor
     static class Styles
     {
         public static readonly GUIContent resolution = EditorGUIUtility.TrTextContent("Render Resolution", 
-            "Sets the resolution the volumetric fog renders at. Non-native resolutions are incompatible with Temporal Reprojection.");
-        public static readonly GUIContent reprojection = EditorGUIUtility.TrTextContent("Temporal Reprojection", 
-            "Enables Temporal Reprojection, which spreads out rendering over multiple frames. Performance benefit is not guaranteed on older GPUs or renderers that handle branching badly.");
+            "Sets the resolution the volumetric fog renders at. Non-native resolutions are incompatible with Temporal Rendering.");
+        public static readonly GUIContent reprojection = EditorGUIUtility.TrTextContent("Temporal Rendering", 
+            "Enables Temporal Rendering, which spreads out rendering volumes over multiple frames.");
         public static readonly GUIContent disableBlur = EditorGUIUtility.TrTextContent("Disable Blur", 
             "Whether or not to disable the bilateral blur applied to the render result. Only works when rendering at native resolution.");
-        public static readonly GUIContent temporalSize = EditorGUIUtility.TrTextContent("Temporal Size", 
+        public static readonly GUIContent temporalDownsample = EditorGUIUtility.TrTextContent("Downsample Size", 
             "Uhh idk how to explain this right now honestly.");
     }
 
     private SerializedProperty resolution;
-    private SerializedProperty temporalReprojection;
+    private SerializedProperty temporalRendering;
     private SerializedProperty disableBlur;
-    private SerializedProperty temporalSize;
+    private SerializedProperty temporalDownsample;
 
 
     private void OnEnable()
@@ -29,9 +29,9 @@ public class VolumetricFogFeatureEditor : Editor
         PropertyFetcher<FogVolume> fetcher = new(serializedObject);
 
         resolution = fetcher.Find("resolution");
-        temporalReprojection = fetcher.Find("temporalReprojection");
+        temporalRendering = fetcher.Find("temporalRendering");
         disableBlur = fetcher.Find("disableBlur");
-        temporalSize = fetcher.Find("temporalSize");
+        temporalDownsample = fetcher.Find("temporalDownsample");
     }
 
 
@@ -43,7 +43,7 @@ public class VolumetricFogFeatureEditor : Editor
 
         using var scope = new EditorGUI.ChangeCheckScope();
 
-        bool reprojection = temporalReprojection.boolValue;
+        bool reprojection = temporalRendering.boolValue;
 
         if (!reprojection)
         {
@@ -77,12 +77,12 @@ public class VolumetricFogFeatureEditor : Editor
             EditorGUILayout.PropertyField(disableBlur, Styles.disableBlur);
         }
 
-        EditorGUILayout.PropertyField(temporalReprojection, Styles.reprojection);
+        EditorGUILayout.PropertyField(temporalRendering, Styles.reprojection);
 
         if (reprojection)
         {
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(temporalSize, Styles.temporalSize);
+            EditorGUILayout.PropertyField(temporalDownsample, Styles.temporalDownsample);
             EditorGUI.indentLevel--;
         }
 

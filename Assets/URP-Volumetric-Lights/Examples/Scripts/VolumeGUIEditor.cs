@@ -292,7 +292,7 @@ public class VolumeGUIEditor : MonoBehaviour
 
         bool isDirty = false;
 
-        if (!feature.temporalReprojection)
+        if (!feature.temporalRendering)
         {
             feature.resolution = EnumDropown("Render Resolution", feature.resolution, ref isOpen, ref isDirty, GUILayout.Width(180f));
         }
@@ -303,7 +303,7 @@ public class VolumeGUIEditor : MonoBehaviour
             GUI.enabled = true;   
         }
 
-        if (feature.resolution == VolumetricResolution.Full || feature.temporalReprojection)
+        if (feature.resolution == VolumetricResolution.Full || feature.temporalRendering)
         {
             feature.disableBlur = InvertedToggle(feature.disableBlur, new GUIContent("Disable Blur"), ref isDirty, GUILayout.Width(160f));
         }
@@ -315,11 +315,11 @@ public class VolumeGUIEditor : MonoBehaviour
         }
 
 
-        feature.temporalReprojection = InvertedToggle(feature.temporalReprojection, new GUIContent("Temporal Reprojection"), ref isDirty, GUILayout.Width(160f));
+        feature.temporalRendering = InvertedToggle(feature.temporalRendering, new GUIContent("Temporal Reprojection"), ref isDirty, GUILayout.Width(160f));
 
-        if (feature.temporalReprojection)
+        if (feature.temporalRendering)
         {
-            feature.temporalSize = (int)Slider(feature.temporalSize, 1, 10, new GUIContent("Temporal Size"), ref isDirty, GUILayout.Width(160f));
+            feature.temporalDownsample = (int)Slider(feature.temporalDownsample, 2, 10, new GUIContent("Temporal Size"), ref isDirty, GUILayout.Width(160f));
         }
 
         if (isDirty)

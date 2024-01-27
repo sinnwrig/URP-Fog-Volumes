@@ -269,7 +269,7 @@ half3 VolumetricFragment(Varyings i) : SV_Target
 {
 	float2 uv = i.uv;
 
-	#if defined(TEMPORAL_REPROJECTION_ENABLED)
+	#if defined(TEMPORAL_RENDERING_ENABLED)
 		uv = FullUVFromLowResUV(uv);
 	#endif
 

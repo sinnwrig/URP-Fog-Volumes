@@ -1,9 +1,8 @@
 #pragma once
 
-uint2 _TileSize; // Size of each reprojected tile
-uint2 _PassOffset; // Where on the reprojection 'tile' are we rendering right now?
-uint2 _ReprojectionRenderSize; // Size of the low-res texture that will be reprojected
-
+uint2 _TileSize;
+uint2 _PassOffset; 
+uint2 _TemporalRenderSize;
 
 float4x4 _PrevView;
 float4x4 _PrevViewProjection;
@@ -14,19 +13,21 @@ float4x4 _CameraViewProjection;
 float4x4 _InverseViewProjection;
 
 
-bool SkipReprojectPixel(float2 uv)
+bool SkipReprojectPixel(float2 uv, out int2 lowresPixel)
 {
     uint2 pixelPos = uv * _ScreenParams.xy;
-    uint2 tilePos = pixelPos % _TileSize;
 
-    return tilePos != _PassOffset;
+    lowresPixel = pixelPos / _TileSize;
+    uint2 tileOffset = pixelPos % _TileSize;
+
+    return tileOffset.x != _PassOffset.x || tileOffset.y != _PassOffset.y;
 }
 
 
 float2 FullUVFromLowResUV(float2 lowresUV)
 {
-    uint2 pixelPos = lowresUV * _ReprojectionRenderSize * _TileSize;
-    uint2 tile = pixelPos + _PassOffset;
+    uint2 pixelPos = (lowresUV * _TemporalRenderSize);
+    uint2 tile = pixelPos * _TileSize + _PassOffset;
 
     return (float2)tile / _ScreenParams.xy;
 }
@@ -62,8 +63,9 @@ half4 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColo
 
     float2 sampleUv = uv - motion;
 
-    if (!SkipReprojectPixel(uv))
-        return SAMPLE_BASE(_LowresSample, sampler_LowresSample, uv);
+    int2 lowresPixel;
+    if (!SkipReprojectPixel(uv, lowresPixel))
+        return LOAD_TEXTURE2D(_LowresSample, lowresPixel);
     
     // Reproject this pixel if possible
     if (sampleUv.x >= 0 && sampleUv.x <= 1 && sampleUv.y >= 0 && sampleUv.y <= 1)

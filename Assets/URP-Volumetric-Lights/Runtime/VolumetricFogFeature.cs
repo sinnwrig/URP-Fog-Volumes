@@ -16,9 +16,10 @@ public class VolumetricFogFeature : ScriptableRendererFeature
 {
     public VolumetricResolution resolution;
 
-    public bool temporalReprojection = false;
+    public bool temporalRendering = false;
     public bool disableBlur = true;
-    [Range(1, 10)] public int temporalSize = 2;
+
+    [Range(2, 16)] public int temporalDownsample = 2;
 
     private VolumetricFogPass lightPass;
 
@@ -41,7 +42,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
 
 
     public override void Create()
-    {
+    { 
         try
         {
             ValidateShaders();

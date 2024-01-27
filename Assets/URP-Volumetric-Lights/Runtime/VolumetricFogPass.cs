@@ -12,10 +12,6 @@ using System.Linq;
 
 public class VolumetricFogPass : ScriptableRenderPass
 {    
-    public static readonly GlobalKeyword reprojectionKeyword = GlobalKeyword.Create("TEMPORAL_REPROJECTION_ENABLED");
-    private static readonly GlobalKeyword fullDepthSource = GlobalKeyword.Create("SOURCE_FULL_DEPTH");
-
-
     readonly struct RTPair
     {
         public readonly int propertyId;
@@ -32,6 +28,10 @@ public class VolumetricFogPass : ScriptableRenderPass
     }
 
 
+    // --------------------------------------------------------------------------
+    // ----------------------------- Render Targets -----------------------------
+    // --------------------------------------------------------------------------
+
     // Depth render targets
     private static readonly RTPair halfDepth = new RTPair("_HalfDepthTarget");
     private static readonly RTPair quarterDepth = new RTPair("_QuarterDepthTarget");
@@ -40,84 +40,45 @@ public class VolumetricFogPass : ScriptableRenderPass
     private static readonly RTPair volumeFog = new RTPair("_VolumeFogTexture");
     private static readonly RTPair halfVolumeFog = new RTPair("_HalfVolumeFogTexture");
     private static readonly RTPair quarterVolumeFog = new RTPair("_QuarterVolumeFogTexture");
+
+    // Low-res temporal rendering target
     private static readonly RTPair temporalTarget = new RTPair("_TemporalTarget");
 
-    // Temp render target 
+    // Temporary render target 
     private static readonly RTPair temp = new RTPair("_Temp");
 
 
-    // Bullcrap. I won't explain why--just this is bullcrap.
-    private static readonly FieldInfo shadowPassField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
+    // --------------------------------------------------------------------------
+    // -----------------------------   Materials    -----------------------------
+    // --------------------------------------------------------------------------
 
-    // Try to extract the private shadow caster field with reflection
-    private static bool GetShadowCasterPass(ref RenderingData renderingData, out AdditionalLightsShadowCasterPass pass)
-    {
-        pass = shadowPassField.GetValue(renderingData.cameraData.renderer) as AdditionalLightsShadowCasterPass;
-        return pass != null;
-    }
-
-
-    private static readonly Plane[] cullingPlanes = new Plane[6];
-
-
-    // Global set of active volumes
-    private static readonly HashSet<FogVolume> activeVolumes = new();
-
-    public static void AddVolume(FogVolume volume) => activeVolumes.Add(volume);
-    public static void RemoveVolume(FogVolume volume) => activeVolumes.Remove(volume);
-
-    public static IEnumerable<FogVolume> ActiveVolumes => activeVolumes;
-
-
-    // Global material references
     private static Material bilateralBlur;
     private static Shader fogShader;
     private static Material blitAdd;
     private static Material reprojection;
 
 
+    // --------------------------------------------------------------------------
+    // -------------------------------   General   ------------------------------
+    // --------------------------------------------------------------------------
+
     private readonly VolumetricFogFeature feature;
     private CommandBuffer commandBuffer;
+
 
     private VolumetricResolution Resolution
     {
         get
         {
-            // Temporal reprojection forces full-res rendering
-            if (feature.resolution != VolumetricResolution.Full && feature.temporalReprojection)
+            // Temporal reprojection will force full-res rendering
+            if (feature.resolution != VolumetricResolution.Full && feature.temporalRendering)
                 return VolumetricResolution.Full;
             
             return feature.resolution;
         }   
     }
 
-
-    // Previous frame reprojection matrices
-    private Matrix4x4 prevVMatrix;
-    private Matrix4x4 prevVpMatrix;
-    private Matrix4x4 prevInvVpMatrix;
-
-    // Temporal pass iterator
-    private int temporalPassIndex;
-
-    // Temporal Reprojection Target-
-    // NOTE: only a RenderTexture seems to preserve information between frames on my device, otherwise I'd use an RTHandle or RenderTargetIdentifier
-    private RenderTexture temporalBuffer;
-
-    private Vector2[] semiRandomOffsets;
-
-
-    private void GenerateOffsets()
-    {
-        semiRandomOffsets = new Vector2[feature.temporalSize * feature.temporalSize];
-
-        for (int i = 0; i < semiRandomOffsets.Length; i++)
-            semiRandomOffsets[i] = new Vector2(i / feature.temporalSize, i % feature.temporalSize);
-        
-        var random = new System.Random();
-
-        semiRandomOffsets = semiRandomOffsets.OrderBy(x => random.Next()).ToArray();
-    }
+    private int TemporalKernelSize => System.Math.Max(2, feature.temporalDownsample);
 
 
 
@@ -125,7 +86,7 @@ public class VolumetricFogPass : ScriptableRenderPass
     {
         this.feature = feature;
 
-        if (feature.temporalReprojection)
+        if (feature.temporalRendering)
             GenerateOffsets();
 
         fogShader = fog;
@@ -153,8 +114,8 @@ public class VolumetricFogPass : ScriptableRenderPass
 
         cmd.GetTemporaryRT(volumeFog, width, height, 0, FilterMode.Point, colorFormat);
 
-        if (feature.temporalReprojection)
-            cmd.GetTemporaryRT(temporalTarget, width / feature.temporalSize, height / feature.temporalSize, 0, FilterMode.Point, colorFormat);
+        if (feature.temporalRendering)
+            cmd.GetTemporaryRT(temporalTarget, width / TemporalKernelSize, height / TemporalKernelSize, 0, FilterMode.Point, colorFormat);
 
         if (Resolution == VolumetricResolution.Half)
             cmd.GetTemporaryRT(halfVolumeFog, width / 2, height / 2, 0, FilterMode.Bilinear, colorFormat);
@@ -171,10 +132,104 @@ public class VolumetricFogPass : ScriptableRenderPass
     }
 
 
+    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+    {
+        var fogVolumes = SetupVolumes(ref renderingData);
+
+        if (fogVolumes.Count == 0)
+            return;
+
+        var renderer = renderingData.cameraData.renderer;
+        var descriptor = renderingData.cameraData.cameraTargetDescriptor;
+
+        #if UNITY_2022_1_OR_NEWER
+            var cameraColor = renderer.cameraColorTargetHandle;
+        #else
+            var cameraColor = renderer.cameraColorTarget;
+        #endif
+
+        commandBuffer = CommandBufferPool.Get("Volumetric Fog Pass");
+
+        DownsampleDepthBuffer();
+
+        SetupFogRenderTarget(descriptor.width, descriptor.height);
+        DrawVolumes(fogVolumes, ref renderingData);
+
+        ReprojectBuffer(ref renderingData);
+        BilateralBlur(descriptor.width, descriptor.height);
+
+        BlendFog(cameraColor, ref renderingData);
+
+        context.ExecuteCommandBuffer(commandBuffer);
+        CommandBufferPool.Release(commandBuffer);
+    }
+
+
+    // Release temporary textures
+    public override void OnCameraCleanup(CommandBuffer cmd)
+    {
+        cmd.ReleaseTemporaryRT(volumeFog);
+
+        if (feature.temporalRendering)
+            cmd.ReleaseTemporaryRT(temporalTarget);
+
+        if (Resolution == VolumetricResolution.Half)
+            cmd.ReleaseTemporaryRT(halfVolumeFog);
+
+        if (Resolution == VolumetricResolution.Half || Resolution == VolumetricResolution.Quarter)
+            cmd.ReleaseTemporaryRT(halfDepth);
+
+        if (Resolution == VolumetricResolution.Quarter)
+        {
+            cmd.ReleaseTemporaryRT(quarterVolumeFog);
+            cmd.ReleaseTemporaryRT(quarterDepth);
+        }
+    }
+
+
+    // Additively blend render result with the scene
+    private void BlendFog(RenderTargetIdentifier target, ref RenderingData data)
+    {
+        commandBuffer.GetTemporaryRT(temp, data.cameraData.cameraTargetDescriptor);
+        commandBuffer.Blit(target, temp);
+
+        commandBuffer.SetGlobalTexture("_BlitSource", temp);
+        commandBuffer.SetGlobalTexture("_BlitAdd", volumeFog);
+
+        // Use blit add kernel to merge target color and the light buffer
+        TargetBlit(commandBuffer, target, blitAdd, 0);
+ 
+        commandBuffer.ReleaseTemporaryRT(temp);
+    }
+
+
+    // Equivalent to CommandBuffer.Blit, except for the use of a custom mesh and lack of a source
+    private static void TargetBlit(CommandBuffer cmd, RenderTargetIdentifier destination, Material material, int pass)
+    {
+        cmd.SetRenderTarget(destination);
+        cmd.DrawMesh(MeshUtility.FullscreenMesh, Matrix4x4.identity, material, 0, pass);
+    }
+
+
+    // --------------------------------------------------------------------------
+    // --------------------------   Volume Rendering   --------------------------
+    // --------------------------------------------------------------------------
+
+    private static readonly HashSet<FogVolume> activeVolumes = new();
+
+    public static void AddVolume(FogVolume volume) => activeVolumes.Add(volume);
+    public static void RemoveVolume(FogVolume volume) => activeVolumes.Remove(volume);
+
+    public static IEnumerable<FogVolume> ActiveVolumes => activeVolumes;
+
+
+    private static readonly FieldInfo shadowPassField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
+    private static readonly Plane[] cullingPlanes = new Plane[6];
+
     // Package visible lights and initialize lighting data
     private List<NativeLight> SetupLights(ref RenderingData renderingData)
     {
-        GetShadowCasterPass(ref renderingData, out AdditionalLightsShadowCasterPass shadowPass);
+        var shadowPass = shadowPassField.GetValue(renderingData.cameraData.renderer) as AdditionalLightsShadowCasterPass;
 
         LightData lightData = renderingData.lightData;
         NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
@@ -243,84 +298,11 @@ public class VolumetricFogPass : ScriptableRenderPass
     }
 
 
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-        var fogVolumes = SetupVolumes(ref renderingData);
-        if (fogVolumes.Count == 0)
-            return;
+    // --------------------------------------------------------------------------
+    // --------------------------   Upscaling & Blur   --------------------------
+    // --------------------------------------------------------------------------
 
-        var renderer = renderingData.cameraData.renderer;
-        var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-
-        #if UNITY_2022_1_OR_NEWER
-            var cameraColor = renderer.cameraColorTargetHandle;
-        #else
-            var cameraColor = renderer.cameraColorTarget;
-        #endif
-
-        commandBuffer = CommandBufferPool.Get("Volumetric Fog Pass");
-
-        DownsampleDepthBuffer();
-
-        InitFogRenderTarget(descriptor.width, descriptor.height);
-        
-        DrawVolumes(fogVolumes, ref renderingData);
-
-        ReprojectBuffer(ref renderingData);
-
-        BilateralBlur(descriptor.width, descriptor.height);
-
-        BlendFog(cameraColor, ref renderingData);
-
-        context.ExecuteCommandBuffer(commandBuffer);
-        CommandBufferPool.Release(commandBuffer);
-    }
-
-
-    // Release temporary textures
-    public override void OnCameraCleanup(CommandBuffer cmd)
-    {
-        cmd.ReleaseTemporaryRT(volumeFog);
-
-        if (feature.temporalReprojection)
-            cmd.ReleaseTemporaryRT(temporalTarget);
-
-        if (Resolution == VolumetricResolution.Half)
-            cmd.ReleaseTemporaryRT(halfVolumeFog);
-
-        if (Resolution == VolumetricResolution.Half || Resolution == VolumetricResolution.Quarter)
-            cmd.ReleaseTemporaryRT(halfDepth);
-
-        if (Resolution == VolumetricResolution.Quarter)
-        {
-            cmd.ReleaseTemporaryRT(quarterVolumeFog);
-            cmd.ReleaseTemporaryRT(quarterDepth);
-        }
-    }
-
-
-    // Additively blend the fog volumes with the scene
-    private void BlendFog(RenderTargetIdentifier target, ref RenderingData data)
-    {
-        commandBuffer.GetTemporaryRT(temp, data.cameraData.cameraTargetDescriptor);
-        commandBuffer.Blit(target, temp);
-
-        commandBuffer.SetGlobalTexture("_BlitSource", temp);
-        commandBuffer.SetGlobalTexture("_BlitAdd", volumeFog);
-
-        // Use blit add kernel to merge target color and the light buffer
-        TargetBlit(commandBuffer, target, blitAdd, 0);
- 
-        commandBuffer.ReleaseTemporaryRT(temp);
-    }
-
-
-    // Equivalent to CommandBuffer.Blit, except for the use of a custom mesh and lack of a source
-    private static void TargetBlit(CommandBuffer cmd, RenderTargetIdentifier destination, Material material, int pass)
-    {
-        cmd.SetRenderTarget(destination);
-        cmd.DrawMesh(MeshUtility.FullscreenMesh, Matrix4x4.identity, material, 0, pass);
-    }
+    private static readonly GlobalKeyword fullDepthSource = GlobalKeyword.Create("SOURCE_FULL_DEPTH");
 
 
     // Blurs the active resolution texture, upscaling to full resolution if needed
@@ -410,6 +392,40 @@ public class VolumetricFogPass : ScriptableRenderPass
     }
 
 
+    // --------------------------------------------------------------------------
+    // -------------------------   Temporal Rendering   -------------------------
+    // --------------------------------------------------------------------------
+
+    public static readonly GlobalKeyword temporalKeyword = GlobalKeyword.Create("TEMPORAL_RENDERING_ENABLED");
+
+    // Previous frame reprojection matrices
+    private Matrix4x4 prevVMatrix;
+    private Matrix4x4 prevVpMatrix;
+    private Matrix4x4 prevInvVpMatrix;
+
+    // Temporal pass iterator
+    private int temporalPassIndex;
+
+    // Temporal Reprojection Target-
+    // NOTE: only a RenderTexture seems to preserve information between frames on my device, otherwise I'd use an RTHandle or RenderTargetIdentifier
+    private RenderTexture temporalBuffer;
+
+    private Vector2[] semiRandomOffsets;
+
+
+    private void GenerateOffsets()
+    {
+        semiRandomOffsets = new Vector2[TemporalKernelSize * TemporalKernelSize];
+
+        for (int i = 0; i < semiRandomOffsets.Length; i++)
+            semiRandomOffsets[i] = new Vector2(i / TemporalKernelSize, i % TemporalKernelSize);
+        
+        var random = new System.Random();
+
+        semiRandomOffsets = semiRandomOffsets.OrderBy(x => random.Next()).ToArray();
+    }
+
+
     // Set the current and previous matrices neccesary to generate motion vectors, since the unity builtins aren't reliable in edit mode
     private void SetReprojectionMatrices(Camera cam)
     {
@@ -430,14 +446,11 @@ public class VolumetricFogPass : ScriptableRenderPass
     }   
 
 
-    private void SetPassConstants()
+    private void SetTemporalConstants()
     {
-        int tileX = feature.temporalSize;
-        int tileY = feature.temporalSize;
+        temporalPassIndex = (temporalPassIndex + 1) % (TemporalKernelSize * TemporalKernelSize);
 
-        temporalPassIndex = (temporalPassIndex + 1) % (tileX * tileY);
-
-        commandBuffer.SetGlobalVector("_TileSize", new Vector2(tileX, tileY));
+        commandBuffer.SetGlobalVector("_TileSize", new Vector2(TemporalKernelSize, TemporalKernelSize));
         commandBuffer.SetGlobalVector("_PassOffset", semiRandomOffsets[temporalPassIndex]);
     }
 
@@ -445,32 +458,32 @@ public class VolumetricFogPass : ScriptableRenderPass
     // Set the volumetric fog render target
     // Clear the target if there is nothing to reproject
     // Otherwise, reproject the previous frame
-    private void InitFogRenderTarget(int width, int height)
+    private void SetupFogRenderTarget(int width, int height)
     {
-        commandBuffer.SetKeyword(reprojectionKeyword, feature.temporalReprojection);
+        commandBuffer.SetKeyword(temporalKeyword, feature.temporalRendering);
 
         if (Resolution == VolumetricResolution.Quarter)
             commandBuffer.SetRenderTarget(quarterVolumeFog);
         else if (Resolution == VolumetricResolution.Half)
             commandBuffer.SetRenderTarget(halfVolumeFog);
-        else if (feature.temporalReprojection)
+        else if (feature.temporalRendering)
             commandBuffer.SetRenderTarget(temporalTarget);
         else
             commandBuffer.SetRenderTarget(volumeFog);
 
         commandBuffer.ClearRenderTarget(true, true, Color.black);
 
-        if (feature.temporalReprojection)
+        if (feature.temporalRendering)
         {
-            SetPassConstants();
-            commandBuffer.SetGlobalVector("_ReprojectionRenderSize", new Vector2(width, height) / feature.temporalSize);
+            SetTemporalConstants();
+            commandBuffer.SetGlobalVector("_TemporalRenderSize", new Vector2(width, height) / TemporalKernelSize);
         }
     }
 
 
     private void ReprojectBuffer(ref RenderingData data)
     {
-        if (!feature.temporalReprojection)
+        if (!feature.temporalRendering)
             return;
 
         RenderTextureDescriptor descriptor = data.cameraData.cameraTargetDescriptor;
@@ -489,8 +502,8 @@ public class VolumetricFogPass : ScriptableRenderPass
 
         SetReprojectionMatrices(data.cameraData.camera);
 
-        commandBuffer.SetGlobalTexture("_ReprojectBuffer", temporalBuffer);
-        commandBuffer.SetGlobalTexture("_ReprojectTarget", temporalTarget);
+        commandBuffer.SetGlobalTexture("_TemporalBuffer", temporalBuffer);
+        commandBuffer.SetGlobalTexture("_TemporalTarget", temporalTarget);
 
         TargetBlit(commandBuffer, volumeFog, reprojection, 0);
 

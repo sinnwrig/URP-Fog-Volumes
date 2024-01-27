@@ -23,7 +23,7 @@ Shader "Hidden/VolumetricFog"
 
 			// Custom keywords
 			#pragma multi_compile_fragment _ NOISE_ENABLED
-			#pragma multi_compile_fragment _ TEMPORAL_REPROJECTION_ENABLED
+			#pragma multi_compile_fragment _ TEMPORAL_RENDERING_ENABLED
    			#pragma multi_compile_fragment _ LIGHTING_ENABLED SHADOWS_ENABLED 
 
 			#pragma multi_compile_fragment _ SPHERE_VOLUME CUBE_VOLUME CAPSULE_VOLUME CYLINDER_VOLUME

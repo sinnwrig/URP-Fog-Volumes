@@ -43,18 +43,18 @@ Shader "Hidden/TemporalReprojection"
 			TEXTURE2D(_CameraDepthTexture);       
 			SAMPLER(sampler_CameraDepthTexture);
 
-			TEXTURE2D(_ReprojectBuffer);
-			SAMPLER(sampler_ReprojectBuffer);
+			TEXTURE2D(_TemporalBuffer);
+			SAMPLER(sampler_TemporalBuffer);
 
-			TEXTURE2D(_ReprojectTarget);
-			SAMPLER(sampler_ReprojectTarget);
+			TEXTURE2D(_TemporalTarget);
+			SAMPLER(sampler_TemporalTarget);
 
 
 			half4 reprojectFrag(v2f i) : SV_Target
 			{
 				return ReprojectPixel(i.uv, 
-					TEXTURE2D_ARGS(_ReprojectBuffer, sampler_ReprojectBuffer), 
-					TEXTURE2D_ARGS(_ReprojectTarget, sampler_ReprojectTarget),
+					TEXTURE2D_ARGS(_TemporalBuffer, sampler_TemporalBuffer), 
+					TEXTURE2D_ARGS(_TemporalTarget, sampler_TemporalTarget),
 					TEXTURE2D_ARGS(_CameraDepthTexture, sampler_CameraDepthTexture));
 			}
 

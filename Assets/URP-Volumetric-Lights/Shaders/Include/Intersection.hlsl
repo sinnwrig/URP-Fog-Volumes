@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Math.hlsl"
-
 // Original intersection functions from https://www.shadertoy.com/view/4s23DR
 
 // Added matrices to allow transforming the intersection domains.

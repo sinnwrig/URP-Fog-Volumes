@@ -15,6 +15,7 @@ Shader "Hidden/BlitAdd"
 			#pragma target 4.0
 
 			#include "/Include/Common.hlsl"
+			#include "/Include/Reprojection.hlsl"
 	
 			struct appdata
 			{

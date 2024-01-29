@@ -14,14 +14,15 @@ public class VolumetricFogFeatureEditor : Editor
             "Enables Temporal Rendering, which spreads out rendering volumes over multiple frames.");
         public static readonly GUIContent disableBlur = EditorGUIUtility.TrTextContent("Disable Blur", 
             "Whether or not to disable the bilateral blur applied to the render result. Only works when rendering at native resolution.");
-        public static readonly GUIContent temporalDownsample = EditorGUIUtility.TrTextContent("Downsample Size", 
-            "Uhh idk how to explain this right now honestly.");
+        public static readonly GUIContent temporalResolution = EditorGUIUtility.TrTextContent("Temporal Resolution", 
+            "The fractional resolution that the temporal passes should render at. Higher values will improve performance exponentially, but will also introduce ghosting." + 
+            "The number of frames it will take to fully render a temporal pass is equal to (resolution ^ 2)");
     }
 
     private SerializedProperty resolution;
     private SerializedProperty temporalRendering;
     private SerializedProperty disableBlur;
-    private SerializedProperty temporalDownsample;
+    private SerializedProperty temporalResolution;
 
 
     private void OnEnable()
@@ -31,7 +32,7 @@ public class VolumetricFogFeatureEditor : Editor
         resolution = fetcher.Find("resolution");
         temporalRendering = fetcher.Find("temporalRendering");
         disableBlur = fetcher.Find("disableBlur");
-        temporalDownsample = fetcher.Find("temporalDownsample");
+        temporalResolution = fetcher.Find("temporalResolution");
     }
 
 
@@ -82,7 +83,7 @@ public class VolumetricFogFeatureEditor : Editor
         if (reprojection)
         {
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(temporalDownsample, Styles.temporalDownsample);
+            EditorGUILayout.PropertyField(temporalResolution, Styles.temporalResolution);
             EditorGUI.indentLevel--;
         }
 

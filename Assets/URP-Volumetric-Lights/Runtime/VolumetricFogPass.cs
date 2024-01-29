@@ -78,17 +78,14 @@ public class VolumetricFogPass : ScriptableRenderPass
         }   
     }
 
-    private int TemporalKernelSize => System.Math.Max(2, feature.temporalDownsample);
+    private int TemporalKernelSize => System.Math.Max(2, feature.temporalResolution);
 
 
 
     public VolumetricFogPass(VolumetricFogFeature feature, Shader blur, Shader fog, Shader add, Shader reproj)
     {
         this.feature = feature;
-
-        if (feature.temporalRendering)
-            GenerateOffsets();
-
+        
         fogShader = fog;
 
         if (bilateralBlur == null || bilateralBlur.shader != blur)
@@ -449,6 +446,9 @@ public class VolumetricFogPass : ScriptableRenderPass
     private void SetTemporalConstants()
     {
         temporalPassIndex = (temporalPassIndex + 1) % (TemporalKernelSize * TemporalKernelSize);
+
+        if (semiRandomOffsets == null || semiRandomOffsets.Length == 0)
+            GenerateOffsets();
 
         commandBuffer.SetGlobalVector("_TileSize", new Vector2(TemporalKernelSize, TemporalKernelSize));
         commandBuffer.SetGlobalVector("_PassOffset", semiRandomOffsets[temporalPassIndex]);

@@ -113,7 +113,7 @@ public partial class FogVolume : MonoBehaviour
     {
         PropertyBlock.SetVector("_EdgeFade", EdgeFade());
 
-        if (profileReference.hasLighting)
+        if (profileReference.lightingMode != LightingMode.Unlit)
         {
             Bounds bounds = GetBounds();
             Matrix4x4 trs = transform.localToWorldMatrix;

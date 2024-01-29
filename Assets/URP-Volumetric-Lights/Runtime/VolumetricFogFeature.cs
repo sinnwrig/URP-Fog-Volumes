@@ -19,7 +19,7 @@ public class VolumetricFogFeature : ScriptableRendererFeature
     public bool temporalRendering = false;
     public bool disableBlur = true;
 
-    [Range(2, 16)] public int temporalDownsample = 2;
+    [Range(2, 16)] public int temporalResolution = 3;
 
     private VolumetricFogPass lightPass;
 

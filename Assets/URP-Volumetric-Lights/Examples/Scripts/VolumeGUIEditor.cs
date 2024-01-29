@@ -319,7 +319,7 @@ public class VolumeGUIEditor : MonoBehaviour
 
         if (feature.temporalRendering)
         {
-            feature.temporalDownsample = (int)Slider(feature.temporalDownsample, 2, 10, new GUIContent("Temporal Size"), ref isDirty, GUILayout.Width(160f));
+            feature.temporalResolution = (int)Slider(feature.temporalResolution, 2, 10, new GUIContent("Temporal Size"), ref isDirty, GUILayout.Width(160f));
         }
 
         if (isDirty)

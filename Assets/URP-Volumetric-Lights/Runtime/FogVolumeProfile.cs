@@ -2,15 +2,14 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 
+public enum LightingMode { Unlit, Lit, Shadowed }
+
 [CreateAssetMenu(menuName = "Fog Volumes/Volume Profile")]
 public class FogVolumeProfile : ScriptableObject
 {
-    [Header("Appearance")]
     public Color fogAlbedo = Color.white;
     public float intensity = 1;
 
-
-    [Header("Raymarching")]
     public Vector2 minMaxStepLength = new Vector2(0.5f, 3f);
     [Range(1, 2)] public float stepIncrementFactor = 1.1f;
     [Min(0)] public float maxRayLength = 50.0f;
@@ -18,10 +17,7 @@ public class FogVolumeProfile : ScriptableObject
     [Range(1, 1024)] public int maxSampleCount = 36;
     public float jitterStrength = 0.05f;
 
-
-    [Header("Lighting")]
-    public bool hasLighting = true;
-    public bool hasShadows = false;
+    public LightingMode lightingMode = LightingMode.Lit;
     [Min(0)] public float lightIntensityModifier = 1;
     [Range(0, 1)] public float scattering = 0.1f;
     [Range(0, 1)] public float extinction = 0.05f;
@@ -29,8 +25,6 @@ public class FogVolumeProfile : ScriptableObject
     [Range(0, 100)] public float brightnessClamp = 10f;
 
 
-    
-    [Header("Noise")]
     public Texture3D noiseTexture;
     [Min(0)] public float scale = 0.1f;
     public Vector3 noiseScroll = new Vector3(0, -0.15f, 0);
@@ -97,7 +91,7 @@ public class FogVolumeProfile : ScriptableObject
         
         material.SetFloat("_BrightnessClamp", brightnessClamp);
 
-        cmd.SetKeyword(light.Value, hasLighting && !hasShadows);
-        cmd.SetKeyword(shadow.Value, hasShadows);
+        cmd.SetKeyword(light.Value, lightingMode == LightingMode.Lit);
+        cmd.SetKeyword(shadow.Value, lightingMode == LightingMode.Shadowed);
     }
 }

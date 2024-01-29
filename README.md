@@ -1,2 +1,2 @@
 # URP-Volumetric-Lighting
-Implementation of Raymarched Volumetric Lighting in Unity's Universal Render Pipeline
+Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline

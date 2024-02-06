@@ -1,6 +1,6 @@
 
 Building model from Sketchfab, by Escribano.98: https://sketchfab.com/3d-models/suspicious-business-office-8129e5e1b03c4d8d9097b3d7550aa8ab
 
-Terrain model from Sketchfab, by Kris Teper: https://sketchfab.com/3d-models/free-quick-terrain-test-b0ad92e85bf242d9bf24009a40b4e4d2
+Interior Room model from Sketchfab, by Aurélien Martel: https://sketchfab.com/3d-models/mirrors-edge-apartment-interior-scene-9804e9f2fe284070b081c96ceaf8af96
 
-Lightroom PBR Textures from https://freepbr.com
+Japanese Forest from Sketchfab, by Jesus aponza: https://sketchfab.com/3d-models/japanese-forest-2454c5c1e37941d6904a1ccb1e0ec154

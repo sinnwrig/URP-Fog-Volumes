@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fogAlbedo: {r: 1, g: 0.89526284, b: 0.60771096, a: 1}
   intensity: 0.025
-  minMaxStepLength: {x: 0.25, y: 3}
+  minMaxStepLength: {x: 0.15, y: 0.5}
   stepIncrementFactor: 1.05
   maxRayLength: 100
   maxSampleCount: 128
   jitterStrength: 0.3
   lightingMode: 2
-  lightIntensityModifier: 1
-  scattering: 0.089
+  lightIntensityModifier: 5
+  scattering: 0.03
   extinction: 0.029
-  mieG: 0.489
+  mieG: 0.563
   brightnessClamp: 10
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
   scale: 0.01

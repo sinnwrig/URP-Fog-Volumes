@@ -20,7 +20,7 @@ MonoBehaviour:
   maxSampleCount: 128
   jitterStrength: 0.3
   lightingMode: 2
-  lightIntensityModifier: 5
+  lightIntensityModifier: 3
   scattering: 0.03
   extinction: 0.029
   mieG: 0.563

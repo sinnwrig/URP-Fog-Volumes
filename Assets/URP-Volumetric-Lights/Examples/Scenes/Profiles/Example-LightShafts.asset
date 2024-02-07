@@ -12,21 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5134b924c5746e7eb06404f924ebf59, type: 3}
   m_Name: Example-LightShafts
   m_EditorClassIdentifier: 
-  fogAlbedo: {r: 0, g: 0, b: 0, a: 1}
+  fogAlbedo: {r: 1, g: 1, b: 1, a: 1}
   intensity: 0
-  minMaxStepLength: {x: 0.15, y: 0.25}
+  minMaxStepLength: {x: 0.15, y: 0.34937057}
   stepIncrementFactor: 1.05
   maxRayLength: 100
   maxSampleCount: 128
   jitterStrength: 0.2
   lightingMode: 2
-  lightIntensityModifier: 2
-  scattering: 0.4
+  lightIntensityModifier: 1
+  scattering: 0.08
   extinction: 0
   mieG: 0.5
   brightnessClamp: 50
-  noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
+  noiseTexture: {fileID: 0}
   scale: 0.05
   noiseScroll: {x: 0, y: -0.15, z: 0}
-  noiseIntensity: 1
-  intensityOffset: 0.375
+  noiseIntensity: 0.972
+  intensityOffset: 0

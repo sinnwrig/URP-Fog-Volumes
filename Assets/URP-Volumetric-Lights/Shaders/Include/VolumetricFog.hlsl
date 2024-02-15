@@ -1,5 +1,8 @@
 #pragma once
 
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+#endif
 
 struct Attributes
 {
@@ -168,7 +171,7 @@ half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
 }
 
 
-half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
+half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos, float2 ScreenPos)
 {
 	float cameraDistance = length(cameraPos - rayStart);
 
@@ -196,6 +199,17 @@ half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 		extinction += _Extinction * stepSize * density;
 
 		light *= scattering * exp(-extinction);
+		
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+        float3 apvDiffuseGI;
+        EvaluateAdaptiveProbeVolume(currentPosition, ScreenPos, apvDiffuseGI);
+        
+        if (AnyIsNaN(apvDiffuseGI))
+        {
+            apvDiffuseGI = float3(0, 0, 0);
+        }
+        light += apvDiffuseGI / 300;
+#endif
 
 		vlight += light;
 		distance += stepSize;	
@@ -241,7 +255,7 @@ half3 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDep
     // Jump to point on intersection surface, then add jitter
     float3 rayStart = cameraPos + viewDir * (near + MathRand(uv) * _Jitter);
 
-	return RayMarch(rayStart, viewDir, min(rayLength, _StepParams.w), cameraPos);
+    return RayMarch(rayStart, viewDir, min(rayLength, _StepParams.w), cameraPos, uv);
 }
 
 

@@ -12,7 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ec995e51a6e251468d2a3fd8a686257, type: 3}
   m_Name: UniversalRenderPipelineGlobalSettings
   m_EditorClassIdentifier: 
-  k_AssetVersion: 3
+  m_Settings:
+    m_SettingsList: []
+    m_RuntimeSettings: []
+  m_AssetVersion: 5
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: eaee38bb04890bb4b8470dcff646060a,
+    type: 2}
   m_RenderingLayerNames:
   - Light Layer default
   - Light Layer 1
@@ -31,11 +36,42 @@ MonoBehaviour:
   lightLayerName5: Light Layer 5
   lightLayerName6: Light Layer 6
   lightLayerName7: Light Layer 7
+  apvScenesData:
+    m_ObsoleteSerializedBakingSets: []
+    sceneToBakingSet:
+      m_Keys:
+      - 7a417dcd78761e94fb796a0c7f8216ec
+      m_Values:
+      - {fileID: 11400000, guid: a42f24b26de857346a387f1b362cf42c, type: 2}
+    bakingSets:
+    - {fileID: 11400000, guid: a42f24b26de857346a387f1b362cf42c, type: 2}
+    sceneBounds:
+      m_Keys:
+      - 7a417dcd78761e94fb796a0c7f8216ec
+      m_Values:
+      - m_Center: {x: 0, y: 0, z: -40.5}
+        m_Extent: {x: 81, y: 81, z: 40.5}
+    hasProbeVolumes:
+      m_Keys:
+      - 7a417dcd78761e94fb796a0c7f8216ec
+      m_Values: 01
+  m_ShaderStrippingSetting:
+    m_Version: 0
+    m_ExportShaderVariants: 1
+    m_ShaderVariantLogLevel: 0
+    m_StripRuntimeDebugShaders: 1
+  m_URPShaderStrippingSetting:
+    m_Version: 0
+    m_StripUnusedPostProcessingVariants: 1
+    m_StripUnusedVariants: 1
+    m_StripScreenCoordOverrideVariants: 1
+  m_ShaderVariantLogLevel: 0
+  m_ExportShaderVariants: 1
   m_StripDebugVariants: 1
   m_StripUnusedPostProcessingVariants: 1
   m_StripUnusedVariants: 1
-  m_StripUnusedLODCrossFadeVariants: 1
   m_StripScreenCoordOverrideVariants: 1
   supportRuntimeDebugDisplay: 0
-  m_ShaderVariantLogLevel: 0
-  m_ExportShaderVariants: 1
+  references:
+    version: 2
+    RefIds: []

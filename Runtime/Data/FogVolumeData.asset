@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 129ecc6f4ece56354852c8a5b96abdbf, type: 3}
+  m_Name: FogVolumeData
+  m_EditorClassIdentifier: 
+  bilateralBlur: {fileID: 4800000, guid: d297a5d5cdd4e7f469b33e9f468e00d1, type: 3}
+  volumetricFog: {fileID: 4800000, guid: f1531a9bd4087ff468de8de09f6ba126, type: 3}
+  reprojection: {fileID: 4800000, guid: edc978fc1d3064853a27af3ba681a0d1, type: 3}
+  blitAdd: {fileID: 4800000, guid: ac1050a4af288e16da0748bac1310d5c, type: 3}

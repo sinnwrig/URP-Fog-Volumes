@@ -1,7 +1,7 @@
 {
     "name": "com.sinnwrig.fogvolumes",
     "version": "0.1.0",
-    "displayName": "Fog Volumes For URP",
+    "displayName": "Fog Volumes",
     "description": "Raymarched fog volumes for Unity's Universal Render Pipeline. To get started, add the fog render feature and create a new fog volume",
     "unity": "2020.1",
 

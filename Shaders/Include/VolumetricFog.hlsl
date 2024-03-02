@@ -45,7 +45,7 @@ float2 _FogRange;
 
 float3 _EdgeFade;
 
-float3x4 _InvMatrix;
+float4x4 _InvMatrix;
 
 
 float FadeBoxEdge(float3 worldPosition)

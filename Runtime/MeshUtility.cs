@@ -1,41 +1,43 @@
 using UnityEngine;
 
-
-public static class MeshUtility
+namespace Sinnwrig.FogVolumes
 {
-    private static Mesh _fullscreenMesh;
-
-    public static Mesh FullscreenMesh
+    public static class MeshUtility
     {
-        get
+        private static Mesh _fullscreenQuad;
+
+        public static Mesh FullscreenQuad
         {
-            if (_fullscreenMesh != null)
-                return _fullscreenMesh;
-
-            _fullscreenMesh = new Mesh
+            get
             {
-                name = "Fullscreen Quad",
-                vertices = new Vector3[]
+                if (_fullscreenQuad != null)
+                    return _fullscreenQuad;
+
+                _fullscreenQuad = new Mesh
                 {
-                    new(-1.0f, -1.0f, 0.0f),
-                    new(-1.0f,  1.0f, 0.0f),
-                    new(1.0f, -1.0f, 0.0f),
-                    new(1.0f,  1.0f, 0.0f)
-                },
+                    name = "Fullscreen Quad",
+                    vertices = new Vector3[]
+                    {
+                        new(-1.0f, -1.0f, 0.0f),
+                        new(-1.0f,  1.0f, 0.0f),
+                        new(1.0f, -1.0f, 0.0f),
+                        new(1.0f,  1.0f, 0.0f)
+                    },
 
-                uv = new Vector2[]
-                {
-                    new(0.0f, 0.0f),
-                    new(0.0f, 1.0f),
-                    new(1.0f, 0.0f),
-                    new(1.0f, 1.0f)
-                },
+                    uv = new Vector2[]
+                    {
+                        new(0.0f, 0.0f),
+                        new(0.0f, 1.0f),
+                        new(1.0f, 0.0f),
+                        new(1.0f, 1.0f)
+                    },
 
-                triangles = new int[] { 0, 1, 2, 2, 1, 3 }
-            };
+                    triangles = new int[] { 0, 1, 2, 2, 1, 3 }
+                };
 
-            _fullscreenMesh.UploadMeshData(true);
-            return _fullscreenMesh;
+                _fullscreenQuad.UploadMeshData(true);
+                return _fullscreenQuad;
+            }
         }
     }
 }

@@ -14,7 +14,7 @@
 
 
 // Transform ray to object space.
-void TransformRay(float3x4 invTransform, inout float3 rayOrigin, inout float3 rayDirection)
+void TransformRay(float4x4 invTransform, inout float3 rayOrigin, inout float3 rayDirection)
 {
     rayOrigin = mul(invTransform, float4(rayOrigin, 1.0));
     rayDirection = mul(invTransform, float4(rayDirection, 0.0));
@@ -49,7 +49,7 @@ bool RaySphere(float3 spherePos, float sphereRad, float3 rayOrigin, float3 rayDi
 
 
 // Returns ray/sphere intersection with a transform
-bool RaySphere(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
+bool RaySphere(float4x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
     // Transform ray into sphere space
 	TransformRay(invTransform, rayOrigin, rayDir);
@@ -108,7 +108,7 @@ bool RayCylinder(float2 caps, float radius, float3 rayOrigin, float3 rayDir, out
 
 
 // Returns ray/cylinder intersection with a transform
-bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
+bool RayCylinder(float4x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
 	// Transform ray into cylinder space
     TransformRay(invTransform, rayOrigin, rayDir);
@@ -118,7 +118,7 @@ bool RayCylinder(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out flo
 
 
 // Returns ray/cone intersection with a transform
-bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
+bool RayCone(float4x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {   
     TransformRay(invTransform, rayOrigin, rayDir);
 
@@ -201,7 +201,7 @@ bool RayCone(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float n
 
 
 // Returns ray/capsule intersection with a transform
-bool RayCapsule(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
+bool RayCapsule(float4x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
 	TransformRay(invTransform, rayOrigin, rayDir);
 
@@ -240,7 +240,7 @@ bool RayCapsule(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out floa
 
 
 // Returns ray/cube intersection with a transform
-bool RayCube(float3x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
+bool RayCube(float4x4 invTransform, float3 rayOrigin, float3 rayDir, out float near, out float far)
 {
     TransformRay(invTransform, rayOrigin, rayDir);
 

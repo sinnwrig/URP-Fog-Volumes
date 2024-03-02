@@ -18,7 +18,7 @@ namespace Sinnwrig.FogVolumes
         public float maxDistance = 100.0f;
 
         [Range(0, 0.999f)] 
-        public float distanceFade = 1.0f;
+        public float distanceFade = 0.999f;
 
         public LayerMask lightLayerMask = ~0;
 

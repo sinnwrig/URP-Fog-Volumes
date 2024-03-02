@@ -4,39 +4,31 @@ Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline
 
 ### Installation
 
-
+To add this package to your Unity project, open the Package Manager and add this package using the Git URL option at the top left. Use the link: [https://github.com/sinnwrig/URP-Fog-Volumes.git].
 
 ### Features
+
 * Fog Volume Render Feature.
-* Atmospheric Scattering Settings ScriptableObject.
-* Atmospheric Scattering Effect Behaviour.
-* Modified to work with Baked Optical Depth, inspired by Sebastian Lague's video on Atmospheric Rendering found here: https://www.youtube.com/watch?v=DxfEbulyFcY.
+* Fog Volume Profile ScriptableObject.
+* Fog Volume Behaviour.
 
 ### Usage
 
-* Download the complete project repository from GitHub or download only the UnityPackage found in Assets/Atmosphere
-* Add the Atmosphere Render Feature to the current active renderer.
-* Create a new AtmosphereSettings scriptableObject by right-clicking/Create/Atmosphere/Atmosphere Profile.
-* Add an AtmosphereEffect component to an object in your scene.
-* Assign the Atmosphere Settings created earlier to the Atmosphere Effect component.
-* Tweak the planet/ocean radius and atmosphere scale to appropriate values. Use the example scene as reference for working values.
-
-There is currently no hard limit on amount of active effects allowed in any given scene, but it is best to reduce the amount as much as possible
-
-### Optional
-
-If the scene is using a URP camera stack with the explicit purpose of increasing view distance/maintaining depth precision:
-* Add the Depth Stack render feature to your current active renderer.
-* Make sure your overlay camera is set to clear depth.
-* Atmosphere will automatically use the far camera's depth buffer when needed, increasing the effect's render distance.
+* Add this package through the Package Manager using the option at the top left, symbolized by a plus sign. Select the Git URL option at the top left and use the link: [https://github.com/sinnwrig/URP-Fog-Volumes.git].
+* Add the Fog Volume Render Feature to the current active renderer.
+* Create a new Fog Volume in the scene by adding the FogVolume component to any object.
+* Assign a new profile.
+* Play with the scale and settings until your fog looks right.
 
 ### Potential issues/Requirements
+
 * Not tested with VR/AR.
-* Earlier versions of URP have shown issues with the Depth Stack not working properly.
-* Requires compute shader support on active platform.
-* Attempts to pre-bake Optical Depth values into Texture3D's on the CPU did not work in shader.
 * Tested on Linux and Windows machines with Unity 2022. Mac, Mobile, and other platforms are untested.
 * Orthographic cameras do not work.
 
 ### Limitations
-* Each active effect supports only one main light. Can be modified to use more lights, potentially for multiple suns/moons.
+
+* There is currently a hard cap of 32 lights per volume. 
+* Fog is strictly additive and cannot darken the scene. Multiplicative fog is planned to be added in the future to allow fog to darken the scene.
+* Does not use physically based light scattering throughout the volume. Light-marching is planned to be added in the future.
+* Temporal Reprojection does not properly reproject from motion vectors. Function motion vector reprojection is planned to be added in the future.

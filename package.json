@@ -15,7 +15,7 @@
         {
             "displayName": "Sample Scenes",
             "description": "Contains sample scenes demonstrating the use of the fog volume asset",
-            "path": "Samples/"
+            "path": "Samples~/"
         }
     ],
 

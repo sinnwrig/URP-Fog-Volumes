@@ -1,0 +1,12 @@
+{
+    "name": "com.sinnwrig.fogvolumes",
+    "version": "0.1.0",
+    "displayName": "Volumetric Fog for Unity's Universal RP",
+    "description": "Raymarched fog volumes for Unity's Universal Render Pipeline. To get started, add the fog render feature and create a new fog volume",
+    "unity": "2020.1",
+    "author": {
+        "name": "Kai Angulo",
+        "email": "kangriebling@gmail.com",
+
+    }
+}

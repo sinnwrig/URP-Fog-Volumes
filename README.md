@@ -32,3 +32,11 @@ To add this package to your Unity project, open the Package Manager and add this
 * Fog is strictly additive and cannot darken the scene. Multiplicative fog is planned to be added in the future to allow fog to darken the scene.
 * Does not use physically based light scattering throughout the volume. Light-marching is planned to be added in the future.
 * Temporal Reprojection does not properly reproject from motion vectors. Function motion vector reprojection is planned to be added in the future.
+
+### Example Scenes
+* Outdoors scene with a Directional Light and light shafts
+![Outdoors God Rays](Samples~/Scenes/Example-Terrain.png)<br>
+* Nighttime scene with four spot lights around a street and building.
+![Nighttime Building](Samples~/Scenes/Example-Spotlights.png)<br>
+* Nighttime scene with eight spot lights and ground fog around a gas station.
+![Nighttime Gas](Samples~/Scenes/Example-GasStation.png)<br>

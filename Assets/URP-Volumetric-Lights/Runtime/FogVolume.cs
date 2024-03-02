@@ -20,6 +20,8 @@ public partial class FogVolume : MonoBehaviour
 
     public LayerMask lightLayerMask = ~0;
 
+    public bool disableLightLimit;
+
 
     private FogVolumeProfile _internalProfile;
 
@@ -60,6 +62,8 @@ public partial class FogVolume : MonoBehaviour
 
 
     private const int maxLightCount = 32;
+
+    int lightCount;
     private static readonly float[] lightsToShadow = new float[maxLightCount];
     private static readonly Vector4[] lightPositions  = new Vector4[maxLightCount];
     private static readonly Vector4[] lightColors = new Vector4[maxLightCount];
@@ -111,6 +115,8 @@ public partial class FogVolume : MonoBehaviour
     // Upload the list of affecting lights to the shader
     private void SetupLighting(List<NativeLight> lights, int maxLights)
     {
+        maxLights = disableLightLimit ? maxLightCount : Math.Min(maxLightCount, maxLights);
+
         PropertyBlock.SetVector("_EdgeFade", EdgeFade());
 
         if (profileReference.lightingMode != LightingMode.Unlit)
@@ -119,7 +125,7 @@ public partial class FogVolume : MonoBehaviour
             Matrix4x4 trs = transform.localToWorldMatrix;
             Matrix4x4 invTrs = transform.worldToLocalMatrix;
 
-            int lightCount = 0;
+            lightCount = 0;
             for (int i = 0; i < Math.Min(lights.Count, maxLights); i++)
             {   
                 NativeLight light = lights[i];
@@ -205,5 +211,15 @@ public partial class FogVolume : MonoBehaviour
 
         // Default to cube
         return GeometryUtility.CalculateBounds(BoundsUtility.cubeCorners, transform.localToWorldMatrix);
+    }
+
+
+    public void OnDrawGizmosSelected()
+    {
+        for (int i = 0; i < lightCount; i++)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(lightPositions[i], 0.5f);
+        }
     }
 }

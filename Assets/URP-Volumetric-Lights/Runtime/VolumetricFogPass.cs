@@ -12,6 +12,7 @@ using System.Linq;
 
 public class VolumetricFogPass : ScriptableRenderPass
 {    
+
     readonly struct RTPair
     {
         public readonly int propertyId;
@@ -245,7 +246,8 @@ public class VolumetricFogPass : ScriptableRenderPass
                 isDirectional = visibleLight.lightType == LightType.Directional,
                 shadowIndex = i == lightData.mainLightIndex ? -1 : shadowIndex, // Main light gets special treatment
                 range = visibleLight.range,
-                layer = visibleLight.light.gameObject.layer
+                layer = visibleLight.light.gameObject.layer,
+                light = visibleLight.light
             };
 
             // Set up light properties

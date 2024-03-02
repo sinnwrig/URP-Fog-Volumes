@@ -22,6 +22,7 @@ public class FogVolumeEditor : Editor
         public static readonly GUIContent distanceFade = EditorGUIUtility.TrTextContent("Distance Fade", "At what percentage from the maximum distance will the fog begin to fade out");
 
         public static readonly GUIContent lightLayerMask = EditorGUIUtility.TrTextContent("Light Mask", "This volume will only be affected by lights in the selected scene-layers");
+        public static readonly GUIContent disableLightLimit = EditorGUIUtility.TrTextContent("Disable Light Limit", "Disable the per-object light limit for this volume");
 
         public static readonly GUIContent profile = EditorGUIUtility.TrTextContent("Profile", "A Fog Volume Profile is a Scriptable Object which defines how Fog Volumes draw fog in the scene.");
         public static readonly GUIContent profileInstance = EditorGUIUtility.TrTextContent("Profile (Instance)", profile.tooltip);
@@ -38,6 +39,7 @@ public class FogVolumeEditor : Editor
     private SerializedProperty maxDistance;
     private SerializedProperty distanceFade;
     private SerializedProperty lightLayerMask;
+    private SerializedProperty disableLightLimit;
 
     private Editor profileEditor;
 
@@ -63,6 +65,7 @@ public class FogVolumeEditor : Editor
         maxDistance = fetcher.Find("maxDistance");
         distanceFade = fetcher.Find("distanceFade");
         lightLayerMask = fetcher.Find("lightLayerMask");
+        disableLightLimit = fetcher.Find("disableLightLimit");
     }
 
 
@@ -79,6 +82,7 @@ public class FogVolumeEditor : Editor
         DrawDistanceField();
 
         EditorGUILayout.PropertyField(lightLayerMask, Styles.lightLayerMask);
+        EditorGUILayout.PropertyField(disableLightLimit, Styles.disableLightLimit);
 
         bool assetHasChanged = DrawProfileField(actualTarget);
 

@@ -10,4 +10,5 @@ public struct NativeLight
     public Vector4 attenuation;
     public Vector4 spotDirection;
     public int layer;
+    public Light light;
 }

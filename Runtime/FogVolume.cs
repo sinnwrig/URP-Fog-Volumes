@@ -13,6 +13,8 @@ namespace Sinnwrig.FogVolumes
     {
         public VolumeType volumeType;
         public Vector3 edgeFade = Vector3.zero;
+        public Vector3 fadeOffset = Vector3.zero;
+        public bool lightsFade = false;
 
         [Min(0)] 
         public float maxDistance = 100.0f;
@@ -47,7 +49,7 @@ namespace Sinnwrig.FogVolumes
 
         public bool HasInstantiatedProfile() => _internalProfile != null;
 
-        public FogVolumeProfile profileReference => _internalProfile == null ? sharedProfile : _internalProfile;
+        public FogVolumeProfile ProfileReference => _internalProfile == null ? sharedProfile : _internalProfile;
 
 
         private MaterialPropertyBlock _propertyBlock;
@@ -64,8 +66,6 @@ namespace Sinnwrig.FogVolumes
 
 
         private const int maxLightCount = 32;
-
-        int lightCount;
         private static readonly float[] lightsToShadow = new float[maxLightCount];
         private static readonly Vector4[] lightPositions  = new Vector4[maxLightCount];
         private static readonly Vector4[] lightColors = new Vector4[maxLightCount];
@@ -73,9 +73,9 @@ namespace Sinnwrig.FogVolumes
         private static readonly Vector4[] spotDirections = new Vector4[maxLightCount];
 
 
-        void OnEnable() => VolumetricFogPass.AddVolume(this);
-        void OnDisable() => VolumetricFogPass.RemoveVolume(this);
-        void OnDestroy() => OnDisable();
+        private void OnEnable() => VolumetricFogPass.AddVolume(this);
+        private void OnDisable() => VolumetricFogPass.RemoveVolume(this);
+        private void OnDestroy() => OnDisable();
 
 
         private void SetupViewport(ref RenderingData renderingData)
@@ -91,24 +91,31 @@ namespace Sinnwrig.FogVolumes
         }
 
 
-        private Vector3 EdgeFade()
+        private Vector3 EdgeFade(out Vector3 offset)
         {
+            offset = Vector3.zero;
+
             switch (volumeType)
             {
                 case VolumeType.Cube:
-                    float edgeX = -((1 - edgeFade.x) * 2 - 1) * 0.5f;
-                    float edgeY = -((1 - edgeFade.y) * 2 - 1) * 0.5f;
-                    float edgeZ = -((1 - edgeFade.z) * 2 - 1) * 0.5f;
+                    float edgeX = edgeFade.x * 2 - 1.5f;
+                    float edgeY = edgeFade.y * 2 - 1.5f;
+                    float edgeZ = edgeFade.z * 2 - 1.5f;
+
+                    offset = fadeOffset;
 
                     return new Vector3(edgeX, edgeY, edgeZ);
 
                 case VolumeType.Cylinder:
-                    float cylX = -((1 - edgeFade.x) * 2 - 1) * 0.5f;
-                    float cylY = -(1 - (edgeFade.y * 2));
+                    float cylX = edgeFade.x * 2 - 1.5f;
+                    float cylY = edgeFade.y * 4 - 3;
+
+                    offset.y = fadeOffset.y * 2;
+
                     return new Vector3(cylX, cylY, 0);
 
                 default:
-                    float sphereX = -((1 - edgeFade.x) * 2 - 1) * 0.5f;
+                    float sphereX = edgeFade.x - 0.5f;
                     return new Vector3(sphereX, 0, 0);
             }
         }
@@ -119,15 +126,19 @@ namespace Sinnwrig.FogVolumes
         {
             maxLights = disableLightLimit ? maxLightCount : Math.Min(maxLightCount, maxLights);
 
-            PropertyBlock.SetVector("_EdgeFade", EdgeFade());
+            PropertyBlock.SetVector("_EdgeFade", EdgeFade(out Vector3 offset));
 
-            if (profileReference.lightingMode != LightingMode.Unlit)
+            PropertyBlock.SetVector("_FadeOffset", offset);
+            
+            PropertyBlock.SetFloat("_LightsFade", lightsFade ? 1 : 0);
+
+            if (ProfileReference.lightingMode != LightingMode.Unlit)
             {
                 Bounds bounds = GetBounds();
                 Matrix4x4 trs = transform.localToWorldMatrix;
                 Matrix4x4 invTrs = transform.worldToLocalMatrix;
 
-                lightCount = 0;
+                int lightCount = 0;
                 for (int i = 0; i < Math.Min(lights.Count, maxLights); i++)
                 {   
                     NativeLight light = lights[i];
@@ -163,7 +174,7 @@ namespace Sinnwrig.FogVolumes
         {
             PropertyBlock.SetVector("_FogRange", new Vector2(maxDistance, Mathf.Lerp(0, maxDistance, distanceFade)));
 
-            Material material = profileReference.GetMaterial(shader, cmd);
+            Material material = ProfileReference.GetMaterial(shader, cmd);
 
             volumeType.SetVolumeKeyword(cmd);
 
@@ -179,7 +190,7 @@ namespace Sinnwrig.FogVolumes
         // Whether or not the volume can be culled by the frustum or distance
         public bool CullVolume(Vector3 cameraPosition, Plane[] cameraPlanes)
         {
-            if (profileReference == null)
+            if (ProfileReference == null)
                 return true;
 
             Bounds aabb = GetAABB();
@@ -213,16 +224,6 @@ namespace Sinnwrig.FogVolumes
 
             // Default to cube
             return GeometryUtility.CalculateBounds(BoundsUtility.cubeCorners, transform.localToWorldMatrix);
-        }
-
-
-        public void OnDrawGizmosSelected()
-        {
-            for (int i = 0; i < lightCount; i++)
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawWireSphere(lightPositions[i], 0.5f);
-            }
         }
     }
 }

@@ -8,8 +8,36 @@ namespace Sinnwrig.FogVolumes.Editor
     [CustomEditor(typeof(FogVolumeProfile))]
     public class FogVolumeProfileEditor : UnityEditor.Editor
     {
+        static class Styles
+        {
+            public static readonly GUIContent fogAlbedo = EditorGUIUtility.TrTextContent("Fog Albedo", "The base ambient color of the fog.");
+            public static readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "The intensity and influence of the fog albedo.");
+
+            public static readonly GUIContent minMaxStepLength = EditorGUIUtility.TrTextContent("Step Size Range", "The minimum and maximum step lengths of the ray being marched. Lower values produce higher quality results. Higher values produce results with more banding.");
+            public static readonly GUIContent stepIncrementFactor = EditorGUIUtility.TrTextContent("Step Increment", "The factor by which to increase the length of the ray being marched. Higher values will reach the maximum step length quicker.");
+            public static readonly GUIContent maxRayLength = EditorGUIUtility.TrTextContent("Max Ray Length", "The maximum length of a ray.");
+
+            public static readonly GUIContent maxSampleCount = EditorGUIUtility.TrTextContent("Sample Count", "The maximum amount of samples or steps taken by the raymarcher.");
+            public static readonly GUIContent jitterStrength = EditorGUIUtility.TrTextContent("Jitter Strength", "The strength of jittering to apply to the rays.");
+
+            public static readonly GUIContent lightingMode = EditorGUIUtility.TrTextContent("Lighting Mode", "How scene lights will affect fog. When set to None, lights will not influence the fog. When set to Lit, lights will influence fog. When set to Shadowed, lights and shadows will influence the fog.");
+            public static readonly GUIContent lightIntensityModifier = EditorGUIUtility.TrTextContent("Light Intensity Modifier", "How the strength and intensity of scene lights should be modified.");
+            public static readonly GUIContent scattering = EditorGUIUtility.TrTextContent("Scattering", "How much light is scattered towards the camera. Higher values will produce brighter fog.");
+            public static readonly GUIContent extinction = EditorGUIUtility.TrTextContent("Extinction", "How quickly light power is reduced based on its distance to the camera. Higher values will fade fog further away.");
+            public static readonly GUIContent mieG = EditorGUIUtility.TrTextContent("Mie G", "Determines the distribution of scattered light based on the viewing angle. Higher values will increase how strongly brightness is focused on light position.");
+            public static readonly GUIContent brightnessClamp = EditorGUIUtility.TrTextContent("Brightness Clamp", "The value at which the brightness of the fog will be clamped.");
+
+            public static readonly GUIContent noiseTexture = EditorGUIUtility.TrTextContent("Noise Texture", "The world-space noise to apply to the fog volume.");
+            public static readonly GUIContent scale = EditorGUIUtility.TrTextContent("Scale", "The scale of the noise texture.");
+            public static readonly GUIContent noiseScroll = EditorGUIUtility.TrTextContent("Noise Scroll", "The vector direction in which the noise should scroll.");
+            public static readonly GUIContent noiseIntensity = EditorGUIUtility.TrTextContent("Noise Intensity", "How intensely the noise will affect the fog.");
+            public static readonly GUIContent intensityOffset = EditorGUIUtility.TrTextContent("Intensity Offset", "The offset applied to the noise texture values.");
+        }
+
         private SerializedProperty fogAlbedo;
-        private SerializedProperty intensity;
+
+        private SerializedProperty ambientColor;
+        private SerializedProperty ambientIntensity;
 
         private SerializedProperty minMaxStepLength;
         private SerializedProperty stepIncrementFactor;
@@ -45,7 +73,9 @@ namespace Sinnwrig.FogVolumes.Editor
             PropertyFetcher<FogVolume> fetcher = new(serializedObject);
 
             fogAlbedo = fetcher.Find("fogAlbedo");
-            intensity = fetcher.Find("intensity");
+
+            ambientColor = fetcher.Find("ambientColor");
+            ambientIntensity = fetcher.Find("ambientIntensity");
 
             minMaxStepLength = fetcher.Find("minMaxStepLength");
             stepIncrementFactor = fetcher.Find("stepIncrementFactor");
@@ -72,50 +102,55 @@ namespace Sinnwrig.FogVolumes.Editor
 
         public override void OnInspectorGUI()
         {
+            FogVolumeProfile actualTarget = (FogVolumeProfile)target;
             serializedObject.Update();
 
+            using var scope = new EditorGUI.ChangeCheckScope();
+
             EditorGUILayout.LabelField("Appearance", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(fogAlbedo);
-            EditorGUILayout.PropertyField(intensity);
+            EditorGUILayout.PropertyField(fogAlbedo, Styles.fogAlbedo);
+            EditorGUILayout.PropertyField(ambientColor);
+            EditorGUILayout.PropertyField(ambientIntensity);
 
             EditorGUILayout.Space(EditorGUIUtility.singleLineHeight * 0.5f);
-            EditorGUILayout.LabelField("Raymarching", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Ray-Marching", EditorStyles.boldLabel);
 
-            MinMaxProperty(0, 10, minMaxStepLength, new GUIContent("Step Size Range"));
+            MinMaxProperty(0, 10, minMaxStepLength, Styles.minMaxStepLength);
 
-            EditorGUILayout.PropertyField(stepIncrementFactor);
-            EditorGUILayout.PropertyField(maxRayLength);
+            EditorGUILayout.PropertyField(stepIncrementFactor, Styles.stepIncrementFactor);
+            EditorGUILayout.PropertyField(maxRayLength, Styles.maxRayLength);
 
-            EditorGUILayout.PropertyField(maxSampleCount);
-            EditorGUILayout.PropertyField(jitterStrength);
+            EditorGUILayout.PropertyField(maxSampleCount, Styles.maxSampleCount);
+            EditorGUILayout.PropertyField(jitterStrength, Styles.jitterStrength);
 
             EditorGUILayout.Space(EditorGUIUtility.singleLineHeight * 0.5f);
             EditorGUILayout.LabelField("Lighting", EditorStyles.boldLabel);
 
-            EditorGUILayout.PropertyField(lightingMode);
+            EditorGUILayout.PropertyField(lightingMode, Styles.lightingMode);
 
-            EditorGUILayout.PropertyField(lightIntensityModifier);
-            EditorGUILayout.PropertyField(scattering);
-            EditorGUILayout.PropertyField(extinction);
+            EditorGUILayout.PropertyField(lightIntensityModifier, Styles.lightIntensityModifier);
+            EditorGUILayout.PropertyField(scattering, Styles.scattering);
+            EditorGUILayout.PropertyField(extinction, Styles.extinction);
 
-            EditorGUILayout.PropertyField(mieG);
-            EditorGUILayout.PropertyField(brightnessClamp);
+            EditorGUILayout.PropertyField(mieG, Styles.mieG);
+            EditorGUILayout.PropertyField(brightnessClamp, Styles.brightnessClamp);
 
             EditorGUILayout.Space(EditorGUIUtility.singleLineHeight * 0.5f);
             EditorGUILayout.LabelField("Noise", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(noiseTexture);
+            EditorGUILayout.PropertyField(noiseTexture, Styles.noiseTexture);
 
             if (noiseTexture.objectReferenceValue != null)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(scale);
-                EditorGUILayout.PropertyField(noiseScroll);
-                EditorGUILayout.PropertyField(noiseIntensity);
-                EditorGUILayout.PropertyField(intensityOffset);
+                EditorGUILayout.PropertyField(scale, Styles.scale);
+                EditorGUILayout.PropertyField(noiseScroll, Styles.noiseScroll);
+                EditorGUILayout.PropertyField(noiseIntensity, Styles.noiseIntensity);
+                EditorGUILayout.PropertyField(intensityOffset, Styles.intensityOffset);
                 EditorGUI.indentLevel--;
             }
 
-            serializedObject.ApplyModifiedProperties();
+            if (scope.changed)
+                serializedObject.ApplyModifiedProperties();
         }
 
 

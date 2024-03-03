@@ -450,7 +450,7 @@ namespace Sinnwrig.FogVolumes
         {
             temporalPassIndex = (temporalPassIndex + 1) % (TemporalKernelSize * TemporalKernelSize);
 
-            if (semiRandomOffsets == null || semiRandomOffsets.Length == 0)
+            if (semiRandomOffsets == null || semiRandomOffsets.Length == 0 || semiRandomOffsets.Length != TemporalKernelSize  * TemporalKernelSize)
                 GenerateOffsets();
 
             commandBuffer.SetGlobalVector("_TileSize", new Vector2(TemporalKernelSize, TemporalKernelSize));
@@ -474,7 +474,7 @@ namespace Sinnwrig.FogVolumes
             else
                 commandBuffer.SetRenderTarget(volumeFog);
 
-            commandBuffer.ClearRenderTarget(true, true, Color.black);
+            commandBuffer.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
 
             if (feature.temporalRendering)
             {

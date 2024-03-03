@@ -27,6 +27,10 @@ TEXTURE2D(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
 half3 _Albedo;
+
+half3 _Ambient;
+float _Intensity;
+
 float _IntensityModifier;
 
 int _SampleCount; 
@@ -44,14 +48,14 @@ float _MaxRayLength;
 float2 _FogRange;
 
 float3 _EdgeFade;
+float3 _FadeOffset;
+float _LightsFade;
 
 float4x4 _InvMatrix;
 
 
-float FadeBoxEdge(float3 worldPosition)
+float FadeBoxEdge(float3 localPos)
 {
-	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz;
-
 	float edgeX = smoothstep(_EdgeFade.x, 0.5, min(localPos.x + 0.5, 0.5 - localPos.x));
 	float edgeY = smoothstep(_EdgeFade.y, 0.5, min(localPos.y + 0.5, 0.5 - localPos.y));
     float edgeZ = smoothstep(_EdgeFade.z, 0.5, min(localPos.z + 0.5, 0.5 - localPos.z));
@@ -60,19 +64,16 @@ float FadeBoxEdge(float3 worldPosition)
 }
 
 
-float FadeSphereEdge(float3 worldPosition)
+float FadeSphereEdge(float3 localPos)
 {
-	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz;
 	float dist = 0.5 - length(localPos);
 
 	return smoothstep(_EdgeFade.x, 0.5, dist);
 }
 
 
-float FadeCylinderEdge(float3 worldPosition)
+float FadeCylinderEdge(float3 localPos)
 {
-	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz;
-
 	float dist = 0.5 - length(localPos.xz);
 
 	float sphereRad = smoothstep(_EdgeFade.x, 0.5, dist);
@@ -82,10 +83,8 @@ float FadeCylinderEdge(float3 worldPosition)
 }
 
 
-float FadeCapsuleEdge(float3 worldPosition)
+float FadeCapsuleEdge(float3 localPos)
 {	
-	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz;
-
 	const float3 ab = float3(0, 1, 0);
 	float3 ac = localPos - float3(0, -0.5, 0);
 	float3 bc = localPos - float3(0, 0.5, 0);
@@ -107,6 +106,25 @@ float FadeCapsuleEdge(float3 worldPosition)
 }
 
 
+float GetFade(float3 worldPosition)
+{	
+	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz + _FadeOffset;
+
+	float fade = 1.0;
+
+	#if defined(CUBE_VOLUME)
+		fade = FadeBoxEdge(localPos);
+	#elif defined(CAPSULE_VOLUME)
+		fade = FadeCapsuleEdge(localPos);
+	#elif defined(CYLINDER_VOLUME)
+		fade = FadeCylinderEdge(localPos);
+	#else
+		fade = FadeSphereEdge(localPos);
+	#endif
+
+	return fade;
+}
+
 
 float GetDensity(float3 worldPosition, float distance)
 {
@@ -122,20 +140,10 @@ float GetDensity(float3 worldPosition, float distance)
 		float noise = SAMPLE_BASE3D(_NoiseTexture, sampler_NoiseTexture, samplePos).x;
 		density = saturate(noise - _NoiseData.z) * _NoiseData.y;
 	#endif
-
-	#if defined(CUBE_VOLUME)
-		density *= FadeBoxEdge(worldPosition);
-	#elif defined(CAPSULE_VOLUME)
-		density *= FadeCapsuleEdge(worldPosition);
-	#elif defined(CYLINDER_VOLUME)
-		density *= FadeCylinderEdge(worldPosition);
-	#else
-		density *= FadeSphereEdge(worldPosition);
-	#endif
     
 	// Fade density as position gets further from camera
     return density * smoothstep(_FogRange.x, _FogRange.y, distance);
-}        
+}
 
 
 // Original from https://github.com/SlightlyMad/VolumetricLights/blob/master/Assets/Shaders/VolumetricLight.shader under the BSD license
@@ -148,19 +156,22 @@ float MiePhase(float cosAngle, float mieG)
 }
 
 
-half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
+half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG, out float attenuation)
 {
     half3 totalColor = 0.0;
+	attenuation = 1.0;
 
     #if defined(LIGHTING_ENABLED) || defined(SHADOWS_ENABLED)
         for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
         {
             float3 lightDir;
-            half3 lightColor = GetLightAttenuation(worldPosition, i, lightDir);
+			float lightAttenuation;
+            half3 lightColor = GetColorAndAttenuation(worldPosition, i, lightDir, lightAttenuation);
 
             lightColor *= MiePhase(dot(lightDir, direction), mieG);  
 
             totalColor += lightColor;
+			attenuation *= lightAttenuation;
         }
     #endif
 
@@ -168,7 +179,7 @@ half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG)
 }
 
 
-half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
+half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
 {
 	float cameraDistance = length(cameraPos - rayStart);
 
@@ -178,6 +189,7 @@ half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 
 	half3 vlight = 0;
 	float distance = 0;
+	float opacity = 0;
 
 	[loop]
 	for (int i = 0; i < _SampleCount; ++i)
@@ -187,30 +199,43 @@ half3 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 
 		float3 currentPosition = rayStart + rayDir * distance;
 
-		half3 light = _Albedo;
-		light += GetLightAttenuationMie(currentPosition, rayDir, _MieG) * _IntensityModifier;
-		
 		float density = GetDensity(currentPosition, distance + cameraDistance);
+
+		float fade = GetFade(currentPosition);
 
         float scattering = _Scattering * stepSize * density;
 		extinction += _Extinction * stepSize * density;
 
-		light *= scattering * exp(-extinction);
+		float influence = scattering * exp(-extinction);
 
-		vlight += light;
+		float attenuation = _Intensity;
+		float lightAttenuation;
+
+		half3 color = _Ambient * _Intensity;
+		half3 light = GetLightAttenuationMie(currentPosition, rayDir, _MieG, lightAttenuation) * _IntensityModifier;
+
+		color *= fade;
+		light *= _LightsFade == 1 ? fade : 1.0;
+
+		color += light;
+		attenuation += lightAttenuation; 
+
+		opacity += attenuation * influence * fade;
+		vlight += color * influence;
 		distance += stepSize;	
 
 		stepSize = min(_StepParams.y, stepSize * _StepParams.z);			
 	}
 
+	vlight *= _Albedo;
 	vlight = clamp(vlight, 0, _BrightnessClamp);
 
-	return vlight;
+	return half4(vlight, opacity);
 }
 
 
 
-half3 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDepth, float2 uv)
+half4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDepth, float2 uv)
 {
 	bool hit = false;
     float near = 0;
@@ -265,7 +290,7 @@ Varyings VolumetricVertex(Attributes v)
 }
 
 
-half3 VolumetricFragment(Varyings i) : SV_Target
+half4 VolumetricFragment(Varyings i) : SV_Target
 {
 	float2 uv = i.uv;
 
@@ -283,7 +308,7 @@ half3 VolumetricFragment(Varyings i) : SV_Target
 	float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
 	float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
 
-	half3 light = CalculateVolumetricLight(_WorldSpaceCameraPos.xyz, rayDir, linearDepth, uv);
+	half4 light = CalculateVolumetricLight(_WorldSpaceCameraPos.xyz, rayDir, linearDepth, uv);
 
 	return light;
 }

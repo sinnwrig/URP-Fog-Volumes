@@ -29,8 +29,7 @@ To add this package to your Unity project, open the Package Manager and add this
 ### Limitations
 
 * There is currently a hard cap of 32 lights per volume. 
-* Fog is strictly additive and cannot darken the scene. Multiplicative fog is planned to be added in the future to allow fog to darken the scene.
-* Does not use physically based light scattering throughout the volume. Light-marching is planned to be added in the future.
+* Does not use physically based light scattering throughout the volume.
 * Temporal Reprojection does not properly reproject from motion vectors. Function motion vector reprojection is planned to be added in the future.
 
 ### Example Scenes

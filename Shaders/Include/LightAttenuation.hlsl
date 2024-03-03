@@ -38,24 +38,28 @@ VolumeLight GetAdditionalLight(int index)
 
 
 // TODO: Find out how to get baked lights to work with this- if I discover what to pass into the occlusion probe channels 
-half3 GetMainLightColor(half3 color, float3 worldPosition)
+half3 GetMainColorAndAttenuation(half3 color, float3 worldPosition, out float attenuation)
 {    
     float4 shadowCoord = TransformWorldToShadowCoord(worldPosition);
 
+    attenuation = 1;
+
     #if defined(SHADOWS_ENABLED)
-        color *= MainLightRealtimeShadow(shadowCoord);
+        float shadAttenuation = MainLightRealtimeShadow(shadowCoord);
+        color *= shadAttenuation;
+        attenuation *= shadAttenuation;
     #endif
 
     #if defined(_LIGHT_COOKIES)
-        real3 cookieColor = SampleMainLightCookie(worldPosition);
-        color *= cookieColor;
+        color *= SampleMainLightCookie(worldPosition);
     #endif
 
     return color;
 }
 
 
-half3 GetLightAttenuation(float3 worldPosition, int additionalLightIndex, out float3 lightDirection)
+// Light color is stored in xyz, and attenuation is stored in w.
+half3 GetColorAndAttenuation(float3 worldPosition, int additionalLightIndex, out float3 lightDirection, out float attenuation)
 {
     VolumeLight light = GetAdditionalLight(additionalLightIndex);
 
@@ -63,7 +67,7 @@ half3 GetLightAttenuation(float3 worldPosition, int additionalLightIndex, out fl
 
     if (light.shadowIndex < 0)
     {
-        return GetMainLightColor(light.color, worldPosition);
+        return GetMainColorAndAttenuation(light.color, worldPosition, attenuation);
     }
 
     float distanceSqr = max(sqrlen(lightDirection), HALF_MIN);
@@ -72,19 +76,22 @@ half3 GetLightAttenuation(float3 worldPosition, int additionalLightIndex, out fl
     float rsqr = rsqrt(distanceSqr);
 
     half3 color = light.color;
-
     lightDirection = lightDirection * rsqr;
-    half distanceAttenuation = DistanceAttenuation(distanceSqr, light.attenuation.xy) * AngleAttenuation(light.spotDirection.xyz, lightDirection, light.attenuation.zw);
-    color *= distanceAttenuation;
+
+    float distAttenuation = DistanceAttenuation(distanceSqr, light.attenuation.xy) * AngleAttenuation(light.spotDirection.xyz, lightDirection, light.attenuation.zw);
+    attenuation = distAttenuation;
+
+    color *= distAttenuation;
 
     #if defined(SHADOWS_ENABLED)
-        float shadowAttenuation = AdditionalLightRealtimeShadow(light.shadowIndex, worldPosition, lightDirection);
-        color *= shadowAttenuation;
+        float shadAttenuation = AdditionalLightRealtimeShadow(light.shadowIndex, worldPosition, lightDirection);
+        color *= shadAttenuation;
+        attenuation *= shadAttenuation;
     #endif
 
     #if defined(_LIGHT_COOKIES)
-        real3 cookieColor = SampleAdditionalLightCookie(light.shadowIndex, worldPosition);
-        color *= cookieColor;
+        // Cookies only influence color
+        color *= SampleAdditionalLightCookie(light.shadowIndex, worldPosition);
     #endif
 
     return color;

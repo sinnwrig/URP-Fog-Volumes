@@ -13,11 +13,18 @@ namespace Sinnwrig.FogVolumes.Editor
         {
             public static readonly GUIContent volumeType = EditorGUIUtility.TrTextContent("Volume Type", "Defines the primitive shape of the volume. Shape is affected by the object transform");
 
-            public static readonly GUIContent radiusFade = EditorGUIUtility.TrTextContent("Radius Fade", "Defines how intensely the fog will fade towards the edge of the volume.");
+            public static readonly GUIContent radiusFade = EditorGUIUtility.TrTextContent("Radius Fade", "Defines how intensely the fog will fade towards the edges of the volume.");
             public static readonly GUIContent edgeFadeX = EditorGUIUtility.TrTextContent("Edge Fade X", radiusFade.tooltip);
             public static readonly GUIContent edgeFadeY = EditorGUIUtility.TrTextContent("Edge Fade Y", radiusFade.tooltip);
             public static readonly GUIContent edgeFadeZ = EditorGUIUtility.TrTextContent("Edge Fade Z", radiusFade.tooltip);
             public static readonly GUIContent heightFade = EditorGUIUtility.TrTextContent("Height Fade", radiusFade.tooltip);
+
+            public static readonly GUIContent fadeOffsetX = EditorGUIUtility.TrTextContent("Fade Offset X",  "Offsets the fade center");
+            public static readonly GUIContent fadeOffsetY = EditorGUIUtility.TrTextContent("Fade Offset Y", fadeOffsetX.tooltip);
+            public static readonly GUIContent fadeOffsetZ = EditorGUIUtility.TrTextContent("Fade Offset Z", fadeOffsetX.tooltip);
+            public static readonly GUIContent heightOffset = EditorGUIUtility.TrTextContent("Height Offset", fadeOffsetX.tooltip);
+            
+            public static readonly GUIContent lightsFade = EditorGUIUtility.TrTextContent("Lighting Fade", "Whether or not lighting fades with ambient color");
 
             public static readonly GUIContent maxDistance = EditorGUIUtility.TrTextContent("Max Distance", "Maximum distance the Fog Volume will draw at before being culled");
             public static readonly GUIContent distanceFade = EditorGUIUtility.TrTextContent("Distance Fade", "At what percentage from the maximum distance will the fog begin to fade out");
@@ -37,6 +44,8 @@ namespace Sinnwrig.FogVolumes.Editor
         private SerializedProperty profile;
         private SerializedProperty volumeType;
         private SerializedProperty edgeFade;
+        private SerializedProperty fadeOffset;
+        private SerializedProperty lightsFade;
         private SerializedProperty maxDistance;
         private SerializedProperty distanceFade;
         private SerializedProperty lightLayerMask;
@@ -63,6 +72,8 @@ namespace Sinnwrig.FogVolumes.Editor
 
             volumeType = fetcher.Find("volumeType");
             edgeFade = fetcher.Find("edgeFade");
+            fadeOffset = fetcher.Find("fadeOffset");
+            lightsFade = fetcher.Find("lightsFade");
             maxDistance = fetcher.Find("maxDistance");
             distanceFade = fetcher.Find("distanceFade");
             lightLayerMask = fetcher.Find("lightLayerMask");
@@ -78,16 +89,31 @@ namespace Sinnwrig.FogVolumes.Editor
 
             EditorGUILayout.PropertyField(volumeType, Styles.volumeType);
 
-            DrawFadeField();
-
-            DrawDistanceField();
+            bool assetHasChanged = DrawProfileField(actualTarget);
 
             EditorGUILayout.PropertyField(lightLayerMask, Styles.lightLayerMask);
             EditorGUILayout.PropertyField(disableLightLimit, Styles.disableLightLimit);
 
-            bool assetHasChanged = DrawProfileField(actualTarget);
-
             EditorGUILayout.Space(5f);
+
+            edgeFade.isExpanded = DrawHeaderToggleFoldout(new GUIContent("Fade Settings"), edgeFade.isExpanded, false);
+            
+            if (edgeFade.isExpanded)
+            {
+                EditorGUI.indentLevel++;
+                DrawFadeField();
+                EditorGUI.indentLevel--;
+
+                QuickSpace(0.1f);
+
+                EditorGUILayout.PropertyField(lightsFade, Styles.lightsFade);
+
+                QuickSpace(0.1f);
+
+                DrawDistanceField();
+
+                EditorGUILayout.Space(5f);
+            }
 
             if (profile.objectReferenceValue == null)
             {
@@ -112,7 +138,7 @@ namespace Sinnwrig.FogVolumes.Editor
             Matrix4x4 trsMatrix = volume.transform.localToWorldMatrix;
             Handles.matrix = trsMatrix;
 
-            Handles.color = volume.profileReference == null ? Color.red : Color.white;
+            Handles.color = volume.ProfileReference == null ? Color.red : Color.white;
 
             switch (volume.volumeType)
             {
@@ -145,37 +171,50 @@ namespace Sinnwrig.FogVolumes.Editor
         }
 
 
+        private static void QuickSpace(float factor)
+        {
+            EditorGUILayout.Space(EditorGUIUtility.singleLineHeight * factor);
+        }
+
+
         private void DrawFadeField()
         {
             using var scope = new EditorGUI.ChangeCheckScope();
 
             Vector3 fade = edgeFade.vector3Value;
-
-            EditorGUI.indentLevel++;
+            Vector3 offset = fadeOffset.vector3Value;
 
             if ((VolumeType)volumeType.enumValueFlag == VolumeType.Cube)
             {
-                fade.x = EditorGUILayout.Slider(Styles.edgeFadeX, fade.x, -1, 1);
-                fade.y = EditorGUILayout.Slider(Styles.edgeFadeY, fade.y, -1, 1);
-                fade.z = EditorGUILayout.Slider(Styles.edgeFadeZ, fade.z, -1, 1);
-                EditorGUI.indentLevel--;
+                fade.x = EditorGUILayout.Slider(Styles.edgeFadeX, fade.x, 0, 1);
+                fade.y = EditorGUILayout.Slider(Styles.edgeFadeY, fade.y, 0, 1);
+                fade.z = EditorGUILayout.Slider(Styles.edgeFadeZ, fade.z, 0, 1);
+
+                QuickSpace(0.1f);
+
+                offset.x = EditorGUILayout.Slider(Styles.fadeOffsetX, offset.x, -0.5f, 0.5f);
+                offset.y = EditorGUILayout.Slider(Styles.fadeOffsetY, offset.y, -0.5f, 0.5f);
+                offset.z = EditorGUILayout.Slider(Styles.fadeOffsetZ, offset.z, -0.5f, 0.5f);
             }
             else if ((VolumeType)volumeType.enumValueFlag == VolumeType.Cylinder)
             {
-                fade.x = EditorGUILayout.Slider(Styles.radiusFade, fade.x, -1, 1);
-                fade.y = EditorGUILayout.Slider(Styles.heightFade, fade.y, -1, 1);
-                EditorGUI.indentLevel--;
+                fade.x = EditorGUILayout.Slider(Styles.radiusFade, fade.x, 0, 1);
+                fade.y = EditorGUILayout.Slider(Styles.heightFade, fade.y, 0, 1);
+
+                QuickSpace(0.1f);
+
+                offset.y = EditorGUILayout.Slider(Styles.heightOffset, offset.y, -0.5f, 0.5f);
             }
             else
             {
-                EditorGUI.indentLevel--;
-                fade.x = EditorGUILayout.Slider(Styles.radiusFade, fade.x, -1, 1);
+                fade.x = EditorGUILayout.Slider(Styles.radiusFade, fade.x, 0, 1);
             }
 
             if (!scope.changed)
                 return;
 
             edgeFade.vector3Value = fade;
+            fadeOffset.vector3Value = offset;
         }
 
 
@@ -265,18 +304,20 @@ namespace Sinnwrig.FogVolumes.Editor
 
             if (string.IsNullOrEmpty(scene.path))
             {
+                Debug.LogWarning("Scene directory could not be determined. Creating profile under Assets/");
                 path = "Assets/";
             }
             else
             {
                 string targetDirectory = Path.GetDirectoryName(scene.path);
-                string profileFolder = Path.Combine(targetDirectory, scene.name);
 
                 if (!AssetDatabase.IsValidFolder(targetDirectory))
                 {
-                    Debug.LogError($"Parent directory for {scene.name} could not be found. Cannot create profile.");
-                    return null;
+                    Debug.LogWarning("Scene directory could not be determined. Creating profile under Assets/");
+                    path = "Assets/";
                 }
+
+                string profileFolder = Path.Combine(targetDirectory, scene.name);
 
                 if (!AssetDatabase.IsValidFolder(profileFolder))
                     AssetDatabase.CreateFolder(targetDirectory, scene.name);
@@ -284,7 +325,8 @@ namespace Sinnwrig.FogVolumes.Editor
                 path = profileFolder;
             }
 
-            path += targetName.ReplaceInvalidFileNameCharacters() + ".asset";
+            path = Path.Combine(path, targetName.ReplaceInvalidFileNameCharacters() + ".asset");
+
             var profile = CreateInstance<FogVolumeProfile>();
             CreateUniqueAsset(profile, path);
             return profile;
@@ -293,7 +335,7 @@ namespace Sinnwrig.FogVolumes.Editor
 
         private FogVolumeProfile CopyProfile(FogVolume origin, Object pathObj)
         {
-            var asset = Instantiate(origin.profileReference);
+            var asset = Instantiate(origin.ProfileReference);
             CreateUniqueAsset(asset, AssetDatabase.GetAssetPath(pathObj));
             return asset;
         }
@@ -308,7 +350,7 @@ namespace Sinnwrig.FogVolumes.Editor
             }
             else
             {
-                if (assetHasChanged || actualTarget.profileReference != profileEditor?.target)
+                if (assetHasChanged || actualTarget.ProfileReference != profileEditor?.target)
                 {
                     serializedObject.ApplyModifiedProperties();
                     serializedObject.Update();
@@ -336,7 +378,7 @@ namespace Sinnwrig.FogVolumes.Editor
         }
 
         // Draw a header similar to those seen on the Volume Components
-        public static bool DrawHeaderToggleFoldout(GUIContent title, bool foldoutExpanded)
+        public static bool DrawHeaderToggleFoldout(GUIContent title, bool foldoutExpanded, bool hasBottomBorder = true)
         {
             Rect backgroundRect = EditorGUILayout.GetControlRect(GUILayout.Height(17f));
             Rect labelRect = new Rect(backgroundRect.x + 16f, backgroundRect.y, backgroundRect.width, backgroundRect.height);
@@ -345,7 +387,7 @@ namespace Sinnwrig.FogVolumes.Editor
             // Background rect should be full-width
             backgroundRect.xMin = 0f;
             backgroundRect.width += 4f;
-
+            
             Rect edgeRect = new Rect(backgroundRect.x, backgroundRect.y - 1f, backgroundRect.width, 1f);
             EditorGUI.DrawRect(edgeRect, Color.black);
 
@@ -353,7 +395,7 @@ namespace Sinnwrig.FogVolumes.Editor
             backgroundTint.a = 0.2f;
             EditorGUI.DrawRect(backgroundRect, backgroundTint);
 
-            if (!foldoutExpanded)
+            if (foldoutExpanded || hasBottomBorder)
             {
                 edgeRect.y = backgroundRect.y + backgroundRect.height;
                 EditorGUI.DrawRect(edgeRect, Color.black);

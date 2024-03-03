@@ -1,5 +1,28 @@
 Shader "Hidden/VolumetricFog"
 {	
+	Properties
+	{
+		_NoiseTexture ("_NoiseTexture", 3D) = "white" {}
+		_NoiseData ("_NoiseData", Vector) = (0, 0, 0, 0)
+		_NoiseVelocity ("_NoiseVelocity", Vector) = (0, 0, 0, 0)
+
+		_Albedo ("_Albedo", Color) = (0, 0, 0, 0)
+
+		_Albedo ("_Ambient", Color) = (0, 0, 0, 0)
+		_Intensity ("_Intensity", Float) = 1
+
+        _StepParams ("_StepParams", Vector) = (0, 0, 0, 0)
+        _SampleCount ("SampleCount", Int) = 0
+    	_Jitter ("_Jitter", Float) = 0
+
+		_IntensityModifier ("_IntensityModifier", Float) = 1
+    	_MieG ("_MieG", Float) = 0
+    	_Scattering ("_Scattering", Float) = 0
+    	_Extinction ("_Extinction", Float) = 0
+
+        _BrightnessClamp ("_BrightnessClamp", Float) = 0
+	}
+
 	SubShader
 	{
 		Pass

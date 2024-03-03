@@ -47,7 +47,12 @@ Shader "Hidden/BlitAdd"
 
 			half3 blendFrag(v2f i) : SV_Target
 			{
-				return SAMPLE_BASE(_BlitSource, sampler_BlitSource, i.uv) + SAMPLE_BASE(_BlitAdd, sampler_BlitAdd, i.uv);
+				half3 base = SAMPLE_BASE(_BlitSource, sampler_BlitSource, i.uv);
+				half4 add = SAMPLE_BASE(_BlitAdd, sampler_BlitAdd, i.uv);
+
+				float srcFactor = 1 - saturate(add.w);
+
+				return (base * srcFactor) + add;
 			}
 
 			ENDHLSL

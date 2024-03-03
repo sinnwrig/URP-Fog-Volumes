@@ -25,6 +25,7 @@ struct Varyings
 
 TEXTURE2D(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
+float4 _CameraDepthTexture_TexelSize;
 
 half3 _Albedo;
 
@@ -305,7 +306,9 @@ half4 VolumetricFragment(Varyings i) : SV_Target
 	float len = length(viewVector);
 	float3 rayDir = viewVector / len;				
 
-	float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
+	float2 depthUV = float2(uv.x, uv.y + _CameraDepthTexture_TexelSize.y);
+	float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, depthUV);
+	
 	float linearDepth = LINEAR_EYE_DEPTH(depth) * len;
 
 	half4 light = CalculateVolumetricLight(_WorldSpaceCameraPos.xyz, rayDir, linearDepth, uv);

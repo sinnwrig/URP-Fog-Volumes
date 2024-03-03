@@ -398,11 +398,6 @@ namespace Sinnwrig.FogVolumes
 
         private static readonly GlobalKeyword temporalKeyword = GlobalKeyword.Create("TEMPORAL_RENDERING_ENABLED");
 
-        // Previous frame reprojection matrices
-        private Matrix4x4 prevVMatrix;
-        private Matrix4x4 prevVpMatrix;
-        private Matrix4x4 prevInvVpMatrix;
-
         // Temporal pass iterator
         private int temporalPassIndex;
 
@@ -410,51 +405,13 @@ namespace Sinnwrig.FogVolumes
         // NOTE: only a RenderTexture seems to preserve information between frames on my device, otherwise I'd use an RTHandle or RenderTargetIdentifier
         private RenderTexture temporalBuffer;
 
-        private Vector2[] semiRandomOffsets;
-
-
-        private void GenerateOffsets()
-        {
-            semiRandomOffsets = new Vector2[TemporalKernelSize * TemporalKernelSize];
-
-            for (int i = 0; i < semiRandomOffsets.Length; i++)
-                semiRandomOffsets[i] = new Vector2(i / TemporalKernelSize, i % TemporalKernelSize);
-
-            var random = new System.Random();
-
-            semiRandomOffsets = semiRandomOffsets.OrderBy(x => random.Next()).ToArray();
-        }
-
-
-        // Set the current and previous matrices neccesary to generate motion vectors, since the unity builtins aren't reliable in edit mode
-        private void SetReprojectionMatrices(Camera cam)
-        {
-            Matrix4x4 vpMatrix = cam.worldToCameraMatrix * cam.projectionMatrix;
-            Matrix4x4 invVpMatrix = vpMatrix.inverse;
-
-            commandBuffer.SetGlobalMatrix("_PrevView", prevVMatrix);
-            commandBuffer.SetGlobalMatrix("_PrevViewProjection", prevVpMatrix);
-            commandBuffer.SetGlobalMatrix("_PrevInvViewProjection", prevInvVpMatrix);
-
-            commandBuffer.SetGlobalMatrix("_CameraView", cam.worldToCameraMatrix);
-            commandBuffer.SetGlobalMatrix("_CameraViewProjection", vpMatrix);
-            commandBuffer.SetGlobalMatrix("_InverseViewProjection", invVpMatrix);
-
-            prevVMatrix = cam.worldToCameraMatrix;
-            prevVpMatrix = vpMatrix;
-            prevInvVpMatrix = invVpMatrix;
-        }   
-
 
         private void SetTemporalConstants()
         {
             temporalPassIndex = (temporalPassIndex + 1) % (TemporalKernelSize * TemporalKernelSize);
 
-            if (semiRandomOffsets == null || semiRandomOffsets.Length == 0 || semiRandomOffsets.Length != TemporalKernelSize  * TemporalKernelSize)
-                GenerateOffsets();
-
             commandBuffer.SetGlobalVector("_TileSize", new Vector2(TemporalKernelSize, TemporalKernelSize));
-            commandBuffer.SetGlobalVector("_PassOffset", semiRandomOffsets[temporalPassIndex]);
+            commandBuffer.SetGlobalVector("_PassOffset", new Vector2(Random.Range(0, TemporalKernelSize), Random.Range(0, TemporalKernelSize)));
         }
 
 
@@ -502,8 +459,6 @@ namespace Sinnwrig.FogVolumes
                 temporalBuffer = new RenderTexture(descriptor);
                 temporalBuffer.Create();
             }
-
-            SetReprojectionMatrices(data.cameraData.camera);
 
             commandBuffer.SetGlobalTexture("_TemporalBuffer", temporalBuffer);
             commandBuffer.SetGlobalTexture("_TemporalTarget", temporalTarget);

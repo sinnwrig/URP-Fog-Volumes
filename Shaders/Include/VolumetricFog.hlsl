@@ -306,7 +306,7 @@ half4 VolumetricFragment(Varyings i) : SV_Target
 	float len = length(viewVector);
 	float3 rayDir = viewVector / len;				
 
-	float2 depthUV = float2(uv.x, uv.y + _CameraDepthTexture_TexelSize.y);
+	float2 depthUV = uv + _CameraDepthTexture_TexelSize.xy;
 	float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, depthUV);
 	
 	float linearDepth = LINEAR_EYE_DEPTH(depth) * len;

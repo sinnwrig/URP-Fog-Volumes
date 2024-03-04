@@ -2,6 +2,15 @@
 
 Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline
 
+
+### Installation
+
+* Open the package manager and select the _Add package from Git URL_ option found under the top left dropdown.
+![From Git URL](Samples~/Images/giturl.png)<br>
+* Add this repository git URL in the prompt, using the following link: https://github.com/sinnwrig/URP-Fog-Volumes.git.
+![Git Input URL](Samples~/Images/gitinput.png)<br>
+
+
 ### Features
 
 * Fog Volume Render Feature.
@@ -10,7 +19,6 @@ Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline
 
 ### Usage
 
-* Add this package through the Package Manager using the option at the top left, symbolized by a plus sign. Select the Git URL option at the top left and use the link: [https://github.com/sinnwrig/URP-Fog-Volumes.git].
 * Add the Fog Volume Render Feature to the current active renderer.
 * Create a new Fog Volume in the scene by adding the FogVolume component to any object.
 * Assign a new profile.

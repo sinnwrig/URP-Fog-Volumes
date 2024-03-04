@@ -6,7 +6,9 @@
         "Unity.RenderPipelines.Core.Editor",
         "Sinnwrig.FogVolumes"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

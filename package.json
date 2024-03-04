@@ -1,6 +1,6 @@
 {
     "name": "com.sinnwrig.fogvolumes",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "displayName": "Fog Volumes",
     "description": "Raymarched fog volumes for Unity's Universal Render Pipeline. To get started, add the fog render feature and create a new fog volume",
     "unity": "2020.1",
@@ -20,6 +20,6 @@
     ],
 
     "dependencies": {
-        "com.unity.render-pipelines.universal": "14.0.0"
+        "com.unity.render-pipelines.universal": "10.x.x"
     }
 }

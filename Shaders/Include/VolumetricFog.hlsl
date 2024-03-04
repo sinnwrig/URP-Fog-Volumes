@@ -23,7 +23,7 @@ struct Varyings
 	float3 _NoiseVelocity; // noise move direction
 #endif
 
-TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D_X(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 float4 _CameraDepthTexture_TexelSize;
 

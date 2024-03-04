@@ -1,1 +1,1 @@
-Fixed improper depth sampling when using Temporal Rendering
+Added Temporal Reprojection using motion vectors

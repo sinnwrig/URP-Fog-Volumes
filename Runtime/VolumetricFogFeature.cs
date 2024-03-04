@@ -19,6 +19,7 @@ namespace Sinnwrig.FogVolumes
 
         public bool temporalRendering = false;
         public bool disableBlur = true;
+        public bool beforeTransparents = false;
 
         [Range(2, 16)] public int temporalResolution = 3;
 
@@ -34,7 +35,7 @@ namespace Sinnwrig.FogVolumes
 
             lightPass = new VolumetricFogPass(this, data.bilateralBlur, data.volumetricFog, data.blitAdd, data.reprojection) 
             { 
-                renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing,
+                renderPassEvent = beforeTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox,
             };
         }
 
@@ -68,7 +69,12 @@ namespace Sinnwrig.FogVolumes
             // Don't draw in material previews
             if (!renderingData.cameraData.isPreviewCamera)
             {
-                lightPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+                var input = ScriptableRenderPassInput.Depth;
+
+                if (temporalRendering)
+                    input |= ScriptableRenderPassInput.Motion;
+
+                lightPass.ConfigureInput(input);
                 
                 renderer.EnqueuePass(lightPass);
             }
@@ -78,8 +84,10 @@ namespace Sinnwrig.FogVolumes
         // Ehsure all neccesary shaders are included in the project's GraphicsSettings- to prevent having to do manual reference tracking
         private void ValidateShaders() 
         {
+#if UNITY_EDITOR
             if (data == null)
                 data = AssetDatabase.LoadAssetAtPath<FogVolumeData>("Packages/com.sinnwrig.fogvolumes/Runtime/Data/FogVolumeData.asset");
+#endif
 
             if (data == null)
                 Debug.LogError("Could not find fog volume data. Fog will not render");

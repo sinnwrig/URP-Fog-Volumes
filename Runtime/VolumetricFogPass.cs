@@ -405,13 +405,15 @@ namespace Sinnwrig.FogVolumes
         // NOTE: only a RenderTexture seems to preserve information between frames on my device, otherwise I'd use an RTHandle or RenderTargetIdentifier
         private RenderTexture temporalBuffer;
 
+        private static System.Random random = new();
+
 
         private void SetTemporalConstants()
         {
             temporalPassIndex = (temporalPassIndex + 1) % (TemporalKernelSize * TemporalKernelSize);
 
             commandBuffer.SetGlobalVector("_TileSize", new Vector2(TemporalKernelSize, TemporalKernelSize));
-            commandBuffer.SetGlobalVector("_PassOffset", new Vector2(Random.Range(0, TemporalKernelSize), Random.Range(0, TemporalKernelSize)));
+            commandBuffer.SetGlobalVector("_PassOffset", new Vector2(random.Next(0, TemporalKernelSize), random.Next(0, TemporalKernelSize)));
         }
 
 

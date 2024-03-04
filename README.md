@@ -2,10 +2,6 @@
 
 Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline
 
-### Installation
-
-To add this package to your Unity project, open the Package Manager and add this package using the Git URL option at the top left. Use the link: [https://github.com/sinnwrig/URP-Fog-Volumes.git].
-
 ### Features
 
 * Fog Volume Render Feature.
@@ -22,6 +18,8 @@ To add this package to your Unity project, open the Package Manager and add this
 
 ### Potential issues/Requirements
 
+This asset is not backed by heavy testing, and there is a good chance that some featues are incomplete or buggy. However, I am confident of its current state, and that there are no glaring or apparent bugs. 
+
 * Not tested with VR/AR.
 * Tested on Linux and Windows machines with Unity 2022. Mac, Mobile, and other platforms are untested.
 * Orthographic cameras do not work.
@@ -30,7 +28,7 @@ To add this package to your Unity project, open the Package Manager and add this
 
 * There is currently a hard cap of 32 lights per volume. 
 * Does not use physically based light scattering throughout the volume.
-* Temporal Reprojection does not properly reproject from motion vectors. Function motion vector reprojection is planned to be added in the future.
+* Temporal Reprojection does not properly reproject skybox.
 
 ### Example Scenes
 * Outdoors scene with a Directional Light and light shafts

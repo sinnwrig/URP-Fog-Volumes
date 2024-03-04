@@ -26,9 +26,10 @@ This asset is not backed by heavy testing, and there is a good chance that some 
 
 ### Limitations
 
+* Temporal Reprojection does not work in the scene view as motion vectors do not get generated. As such, ghosting is visible when moving the scene camera quickly around fog.
 * There is currently a hard cap of 32 lights per volume. 
 * Does not use physically based light scattering throughout the volume.
-* Temporal Reprojection does not properly reproject skybox.
+* Temporal Reprojection cannot properly reproject skybox or parts where fog is facing towards direct sky. There is a possible fix involving generating motion vectors for the fog bounding shape, but I'm not too keen on implementing it. 
 
 ### Example Scenes
 * Outdoors scene with a Directional Light and light shafts

@@ -72,7 +72,7 @@ half3 GetColorAndAttenuation(float3 worldPosition, int additionalLightIndex, out
 
     float distanceSqr = max(sqrlen(lightDirection), HALF_MIN);
 
-    // A reciprocal square root in a nested shader loop is kind of scary... But it doesn't seem to hurt performance too much
+    // A reciprocal square root in a nested shader loop is kind of scary... but it doesn't seem to hurt performance too much
     float rsqr = rsqrt(distanceSqr);
 
     half3 color = light.color;

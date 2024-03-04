@@ -34,7 +34,7 @@ v2fUpsample VertUpsample(appdata v)
 	float2 texelSize = _DownsampleDepth_TexelSize;
 
     v2fUpsample o;
-    o.vertex = CorrectVertex(v.vertex);
+    o.vertex = CorrectUV(v.vertex);
     o.uv = v.uv;
 
     o.uv00 = v.uv - 0.5 * texelSize.xy;

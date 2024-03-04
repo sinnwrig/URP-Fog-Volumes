@@ -18,13 +18,13 @@ namespace Sinnwrig.FogVolumes
     {
         // Appearance 
 
-        [ColorUsage(false, false)]
+        [ColorUsage(false, true)]
         public Color ambientColor = Color.white;
          
-        public float ambientIntensity = 1;
+        public float ambientOpacity = 1;
 
         [ColorUsage(false, true)]
-        public Color fogAlbedo = Color.white;
+        public Color albedo = Color.white;
         
 
         // Ray settings
@@ -81,9 +81,9 @@ namespace Sinnwrig.FogVolumes
         private Material material;
 
 
-        private GlobalKeyword? noise = null;
-        private GlobalKeyword? light = null;
-        private GlobalKeyword? shadow = null;
+        private LocalKeyword? noise = null;
+        private LocalKeyword? light = null;
+        private LocalKeyword? shadow = null;
 
 
         private void OnDisable() => OnDestroy();
@@ -95,9 +95,9 @@ namespace Sinnwrig.FogVolumes
             if (material == null)
                 material = new Material(shader);
 
-            noise ??= GlobalKeyword.Create("NOISE_ENABLED");
-            light ??= GlobalKeyword.Create("LIGHTING_ENABLED");
-            shadow ??= GlobalKeyword.Create("SHADOWS_ENABLED");
+            noise ??= new LocalKeyword(shader, "NOISE_ENABLED");
+            light ??= new LocalKeyword(shader, "LIGHTING_ENABLED");
+            shadow ??= new LocalKeyword(shader, "SHADOWS_ENABLED");
 
             SetupProperties(cmd);
 
@@ -114,7 +114,7 @@ namespace Sinnwrig.FogVolumes
 
         private void SetupNoise(CommandBuffer cmd)
         {
-            cmd.SetKeyword(noise.Value, noiseTexture != null);
+            material.SetKeyword(noise.Value, noiseTexture != null);
 
             if (noiseTexture != null)
             {
@@ -128,9 +128,9 @@ namespace Sinnwrig.FogVolumes
         private void SetupLighting(CommandBuffer cmd)
         {
             material.SetVector("_Ambient", ambientColor);
-            material.SetFloat("_Intensity", ambientIntensity);
+            material.SetFloat("_AmbientOpacity", ambientOpacity);
 
-            material.SetVector("_Albedo", fogAlbedo);
+            material.SetVector("_Albedo", albedo);
 
             material.SetFloat("_IntensityModifier", lightIntensityModifier);
             material.SetVector("_StepParams", new Vector4(minMaxStepLength.x, minMaxStepLength.y, stepIncrementFactor, maxRayLength));
@@ -143,8 +143,8 @@ namespace Sinnwrig.FogVolumes
 
             material.SetFloat("_BrightnessClamp", brightnessClamp);
 
-            cmd.SetKeyword(light.Value, lightingMode == LightingMode.Lit);
-            cmd.SetKeyword(shadow.Value, lightingMode == LightingMode.Shadowed);
+            material.SetKeyword(light.Value, lightingMode == LightingMode.Lit);
+            material.SetKeyword(shadow.Value, lightingMode == LightingMode.Shadowed);
         }
     }
 }

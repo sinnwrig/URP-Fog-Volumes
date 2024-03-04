@@ -302,8 +302,6 @@ namespace Sinnwrig.FogVolumes
         // --------------------------   Upscaling & Blur   --------------------------
         // --------------------------------------------------------------------------
 
-        private static readonly GlobalKeyword fullDepthSource = GlobalKeyword.Create("SOURCE_FULL_DEPTH");
-
 
         // Blurs the active resolution texture, upscaling to full resolution if needed
         private void BilateralBlur(int width, int height)
@@ -380,15 +378,20 @@ namespace Sinnwrig.FogVolumes
         }
 
 
-        // Use shader variants to either 
-        // 1: Use the depth texture being assigned 
-        // 2: Use the builtin _CameraDepthTexture property
         private void SetDepthTexture(string textureId, RenderTargetIdentifier? depth)
         {
-            commandBuffer.SetKeyword(fullDepthSource, !depth.HasValue);
-
             if (depth.HasValue)
+            {
                 commandBuffer.SetGlobalTexture(textureId, depth.Value);
+            }
+            else
+            {
+                #if UNITY_2022_1_OR_NEWER
+                   commandBuffer.SetGlobalTexture(textureId, depthAttachmentHandle);
+                #else
+                    commandBuffer.SetGlobalTexture(textureId, depthAttachment);
+                #endif
+            }
         }
 
 
@@ -400,6 +403,10 @@ namespace Sinnwrig.FogVolumes
 
         // Temporal pass iterator
         private int temporalPassIndex;
+
+        private Matrix4x4 prevViewProj = Matrix4x4.zero;
+        private Matrix4x4 view;
+        private Matrix4x4 proj;
 
         // Temporal Reprojection Target-
         // NOTE: only a RenderTexture seems to preserve information between frames on my device, otherwise I'd use an RTHandle or RenderTargetIdentifier
@@ -464,6 +471,7 @@ namespace Sinnwrig.FogVolumes
 
             commandBuffer.SetGlobalTexture("_TemporalBuffer", temporalBuffer);
             commandBuffer.SetGlobalTexture("_TemporalTarget", temporalTarget);
+            commandBuffer.SetGlobalFloat("_MotionInfluence", data.cameraData.isSceneViewCamera ? 0 : 1);
 
             TargetBlit(commandBuffer, volumeFog, reprojection, 0);
 

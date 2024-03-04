@@ -30,7 +30,7 @@ float4 _CameraDepthTexture_TexelSize;
 half3 _Albedo;
 
 half3 _Ambient;
-float _Intensity;
+float _AmbientOpacity;
 
 float _IntensityModifier;
 
@@ -201,7 +201,6 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 		float3 currentPosition = rayStart + rayDir * distance;
 
 		float density = GetDensity(currentPosition, distance + cameraDistance);
-
 		float fade = GetFade(currentPosition);
 
         float scattering = _Scattering * stepSize * density;
@@ -209,20 +208,18 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 
 		float influence = scattering * exp(-extinction);
 
-		float attenuation = _Intensity;
+		float attenuation = _AmbientOpacity;
+		half3 color = _Ambient * fade;
+
 		float lightAttenuation;
-
-		half3 color = _Ambient * _Intensity;
-		half3 light = GetLightAttenuationMie(currentPosition, rayDir, _MieG, lightAttenuation) * _IntensityModifier;
-
-		color *= fade;
-		light *= _LightsFade == 1 ? fade : 1.0;
+		half3 light = GetLightAttenuationMie(currentPosition, rayDir, _MieG, lightAttenuation) * _IntensityModifier * (_LightsFade == 1 ? fade : 1.0);
 
 		color += light;
 		attenuation += lightAttenuation; 
 
 		opacity += attenuation * influence * fade;
 		vlight += color * influence;
+
 		distance += stepSize;	
 
 		stepSize = min(_StepParams.y, stepSize * _StepParams.z);			
@@ -275,7 +272,7 @@ half4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDep
 Varyings VolumetricVertex(Attributes v)
 {
 	Varyings output = (Varyings)0;
-	output.vertex = CorrectVertex(v.vertex);
+	output.vertex = CorrectUV(v.vertex);
 
 	float2 vertex01 = output.vertex.xy * 0.5 + 0.5;
 
@@ -285,7 +282,7 @@ Varyings VolumetricVertex(Attributes v)
 
 	output.vertex.xy = vertex01 * 2 - 1;
 
-	output.vertex = CorrectVertex(output.vertex);
+	output.vertex = CorrectUV(output.vertex);
 
 	return output;
 }

@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
+using Sinnwrig.FogVolumes;
+
 
 public class VolumeGUIEditor : MonoBehaviour
 {

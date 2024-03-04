@@ -11,8 +11,7 @@
 #define SAMPLE_BASE(_Tex, sampler_Tex, uv) SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv, 0)
 #define SAMPLE_BASE3D(_Tex, sampler_Tex, uv) SAMPLE_TEXTURE3D_LOD(_Tex, sampler_Tex, uv, 0)
 
-
-inline float4 CorrectVertex(float4 vertex)
+inline float4 CorrectUV(float4 vertex)
 {
     #if UNITY_UV_STARTS_AT_TOP
         vertex.y *= -1;

@@ -378,7 +378,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 65.3
+  field of view: 50
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -884,11 +884,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   volumeType: 1
   edgeFade: {x: 0, y: 0, z: 0}
+  fadeOffset: {x: 0, y: 0, z: 0}
+  lightsFade: 0
   maxDistance: 100
   distanceFade: 0.999
   lightLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  disableLightLimit: 0
   sharedProfile: {fileID: 11400000, guid: 5e26c9e9fbda821c0b20ea0101960a6a, type: 2}
 --- !u!4 &1859192033
 Transform:

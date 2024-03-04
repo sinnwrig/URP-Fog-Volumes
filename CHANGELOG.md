@@ -1,1 +1,3 @@
-Added Temporal Reprojection using motion vectors
+Updated demo scenes
+
+Removed unnecesary shader defines

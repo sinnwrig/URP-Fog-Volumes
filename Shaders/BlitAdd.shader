@@ -34,16 +34,18 @@ Shader "Hidden/BlitAdd"
 			v2f vert(appdata v)
 			{
 				v2f o;
-				o.vertex = CorrectVertex(v.vertex);
+				o.vertex = CorrectUV(v.vertex);
 				o.uv = v.uv;
 				return o;
 			}
+
 
 			TEXTURE2D(_BlitSource);
 			SAMPLER(sampler_BlitSource);
 
 			TEXTURE2D(_BlitAdd);
 			SAMPLER(sampler_BlitAdd);
+
 
 			half3 blendFrag(v2f i) : SV_Target
 			{

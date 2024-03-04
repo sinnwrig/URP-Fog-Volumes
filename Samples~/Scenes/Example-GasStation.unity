@@ -224,7 +224,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 100
-  field of view: 65.3
+  field of view: 50
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -250,8 +250,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 618457759}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.035716113, y: 0.41195554, z: -0.014711453, w: -0.9103849}
-  m_LocalPosition: {x: 12.726875, y: 6.544894, z: -49.606476}
+  m_LocalRotation: {x: -0.06444712, y: -0.37316024, z: -0.026827898, w: 0.925137}
+  m_LocalPosition: {x: 17.278734, y: 3.7980847, z: -54.758682}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -681,7 +681,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   volumeType: 1
-  edgeFade: {x: 0, y: 0.57, z: 0}
+  edgeFade: {x: 0, y: 0.911, z: 0}
+  fadeOffset: {x: 0, y: 0.5, z: 0}
+  lightsFade: 0
   maxDistance: 100
   distanceFade: 0.999
   lightLayerMask:
@@ -698,8 +700,8 @@ Transform:
   m_GameObject: {fileID: 1859192031}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.3, y: -0.9, z: -28.9}
-  m_LocalScale: {x: 64.177315, y: 29.194584, z: 80.20576}
+  m_LocalPosition: {x: -2.3, y: 7.3, z: -28.9}
+  m_LocalScale: {x: 64.177315, y: 15, z: 80.20576}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

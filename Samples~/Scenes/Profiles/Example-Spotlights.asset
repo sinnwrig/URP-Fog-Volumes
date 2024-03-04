@@ -12,21 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5134b924c5746e7eb06404f924ebf59, type: 3}
   m_Name: Example-Spotlights
   m_EditorClassIdentifier: 
-  fogAlbedo: {r: 0, g: 0, b: 0, a: 1}
-  intensity: 0
-  minMaxStepLength: {x: 0.16514991, y: 0.25754142}
+  ambientColor: {r: 0.029617608, g: 0.029617608, b: 0.029617608, a: 1}
+  ambientOpacity: 0.2
+  albedo: {r: 1, g: 1, b: 1, a: 1}
+  minMaxStepLength: {x: 0.1651499, y: 0.25754142}
   stepIncrementFactor: 1.05
   maxRayLength: 100
   maxSampleCount: 128
-  jitterStrength: 0.2
+  jitterStrength: 0.25
   lightingMode: 2
   lightIntensityModifier: 25
   scattering: 0.4
-  extinction: 0.05
+  extinction: 0.02
   mieG: 0.5
   brightnessClamp: 10
   noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
-  scale: 0.1
+  scale: 0.5
   noiseScroll: {x: 0, y: -0.15, z: 0}
   noiseIntensity: 1
-  intensityOffset: 0.28
+  intensityOffset: 0.178

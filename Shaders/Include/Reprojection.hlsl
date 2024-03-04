@@ -3,9 +3,7 @@
 uint2 _TileSize;
 uint2 _PassOffset; 
 uint2 _TemporalRenderSize;
-
-TEXTURE2D_X(_MotionVectorTexture);
-SAMPLER(sampler_MotionVectorTexture);
+float _MotionInfluence;
 
 
 bool SkipReprojectPixel(float2 uv, out int2 lowresPixel)
@@ -28,10 +26,10 @@ float2 FullUVFromLowResUV(float2 lowresUV)
 }
 
 
-half4 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColor), TEXTURE2D_PARAM(_LowresSample, sampler_LowresSample), TEXTURE2D_PARAM(_DepthTexture, sampler_DepthTexture))
+half4 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColor), TEXTURE2D_PARAM(_LowresSample, sampler_LowresSample), TEXTURE2D_PARAM(_MotionVectors, sampler_MotionVectors))
 {
-    float2 motion = SAMPLE_TEXTURE2D_X(_MotionVectorTexture, sampler_MotionVectorTexture, uv);
-    float2 sampleUv = uv - motion;
+    float2 motion = SAMPLE_TEXTURE2D_X(_MotionVectors, sampler_MotionVectors, uv);
+    float2 sampleUv = uv - (motion * _MotionInfluence);
 
     int2 lowresPixel;
     if (!SkipReprojectPixel(uv, lowresPixel))

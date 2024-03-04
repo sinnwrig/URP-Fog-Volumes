@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5134b924c5746e7eb06404f924ebf59, type: 3}
   m_Name: Example-GasStation
   m_EditorClassIdentifier: 
-  fogAlbedo: {r: 0.19234943, g: 0.19234943, b: 0.19234943, a: 1}
-  intensity: 0.45
-  minMaxStepLength: {x: 0.21685348, y: 0.44449887}
+  ambientColor: {r: 0.26824492, g: 0.26824492, b: 0.26824492, a: 1}
+  ambientOpacity: 0
+  albedo: {r: 1, g: 1, b: 1, a: 1}
+  minMaxStepLength: {x: 0.34812358, y: 0.8192246}
   stepIncrementFactor: 1.05
   maxRayLength: 100
   maxSampleCount: 128

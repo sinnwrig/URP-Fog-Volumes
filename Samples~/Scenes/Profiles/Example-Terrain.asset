@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5134b924c5746e7eb06404f924ebf59, type: 3}
   m_Name: Example-Terrain
   m_EditorClassIdentifier: 
-  fogAlbedo: {r: 1, g: 0.89526284, b: 0.60771096, a: 1}
-  intensity: 0.025
+  ambientColor: {r: 0, g: 0, b: 0, a: 1}
+  ambientOpacity: 0
+  albedo: {r: 1, g: 1, b: 1, a: 1}
   minMaxStepLength: {x: 0.15, y: 0.5}
   stepIncrementFactor: 1.05
   maxRayLength: 100

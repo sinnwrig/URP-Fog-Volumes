@@ -34,14 +34,14 @@ Shader "Hidden/TemporalReprojection"
 			v2f vert(appdata v)
 			{
 				v2f o;
-				o.vertex = CorrectVertex(v.vertex);
+				o.vertex = CorrectUV(v.vertex);
 				o.uv = v.uv;
 				return o;
 			}
 			
 
-			TEXTURE2D(_CameraDepthTexture);       
-			SAMPLER(sampler_CameraDepthTexture);
+			TEXTURE2D_X(_MotionVectorTexture);
+			SAMPLER(sampler_MotionVectorTexture);
 
 			TEXTURE2D(_TemporalBuffer);
 			SAMPLER(sampler_TemporalBuffer);
@@ -55,7 +55,7 @@ Shader "Hidden/TemporalReprojection"
 				return ReprojectPixel(i.uv, 
 					TEXTURE2D_ARGS(_TemporalBuffer, sampler_TemporalBuffer), 
 					TEXTURE2D_ARGS(_TemporalTarget, sampler_TemporalTarget),
-					TEXTURE2D_ARGS(_CameraDepthTexture, sampler_CameraDepthTexture));
+					TEXTURE2D_ARGS(_MotionVectorTexture, sampler_MotionVectorTexture));
 			}
 
 			ENDHLSL

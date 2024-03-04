@@ -7,12 +7,6 @@
 // method used to downsample depth buffer: 0 = min; 1 = max; 2 = min/max in chessboard pattern
 #define DOWNSAMPLE_DEPTH_MODE 2
 
-#if defined(SOURCE_FULL_DEPTH)
-	#define _DownsampleSource _CameraDepthTexture
-	#define sampler_DownsampleSource sampler_CameraDepthTexture
-	#define _DownsampleSource_TexelSize _CameraDepthTexture_TexelSize
-#endif
-
 
 TEXTURE2D_X(_DownsampleSource);     
 SAMPLER(sampler_DownsampleSource);
@@ -36,7 +30,7 @@ v2fDownsample DownsampleVertex(appdata v)
 	float2 texelSize = _DownsampleSource_TexelSize;
 
 	v2fDownsample o;
-	o.vertex = CorrectVertex(v.vertex);
+	o.vertex = CorrectUV(v.vertex);
 	o.uv = v.uv;
 	
 	o.uv00 = v.uv - 0.5 * texelSize.xy; // Offset bottom-left

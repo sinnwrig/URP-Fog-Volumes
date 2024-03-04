@@ -10,8 +10,10 @@ namespace Sinnwrig.FogVolumes.Editor
     {
         static class Styles
         {
-            public static readonly GUIContent fogAlbedo = EditorGUIUtility.TrTextContent("Fog Albedo", "The base ambient color of the fog.");
-            public static readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "The intensity and influence of the fog albedo.");
+            public static readonly GUIContent ambientColor = EditorGUIUtility.TrTextContent("Ambient Color", "The ambient color of the fog.");
+            public static readonly GUIContent ambientOpacity = EditorGUIUtility.TrTextContent("Ambient Opacity", "The opacity of the ambient fog.");
+
+            public static readonly GUIContent albedo = EditorGUIUtility.TrTextContent("Albedo", "The base Albedo color of the fog.");
 
             public static readonly GUIContent minMaxStepLength = EditorGUIUtility.TrTextContent("Step Size Range", "The minimum and maximum step lengths of the ray being marched. Lower values produce higher quality results. Higher values produce results with more banding.");
             public static readonly GUIContent stepIncrementFactor = EditorGUIUtility.TrTextContent("Step Increment", "The factor by which to increase the length of the ray being marched. Higher values will reach the maximum step length quicker.");
@@ -34,10 +36,10 @@ namespace Sinnwrig.FogVolumes.Editor
             public static readonly GUIContent intensityOffset = EditorGUIUtility.TrTextContent("Intensity Offset", "The offset applied to the noise texture values.");
         }
 
-        private SerializedProperty fogAlbedo;
+        private SerializedProperty albedo;
 
         private SerializedProperty ambientColor;
-        private SerializedProperty ambientIntensity;
+        private SerializedProperty ambientOpacity;
 
         private SerializedProperty minMaxStepLength;
         private SerializedProperty stepIncrementFactor;
@@ -72,10 +74,10 @@ namespace Sinnwrig.FogVolumes.Editor
         {
             PropertyFetcher<FogVolume> fetcher = new(serializedObject);
 
-            fogAlbedo = fetcher.Find("fogAlbedo");
+            albedo = fetcher.Find("albedo");
 
             ambientColor = fetcher.Find("ambientColor");
-            ambientIntensity = fetcher.Find("ambientIntensity");
+            ambientOpacity = fetcher.Find("ambientOpacity");
 
             minMaxStepLength = fetcher.Find("minMaxStepLength");
             stepIncrementFactor = fetcher.Find("stepIncrementFactor");
@@ -108,9 +110,9 @@ namespace Sinnwrig.FogVolumes.Editor
             using var scope = new EditorGUI.ChangeCheckScope();
 
             EditorGUILayout.LabelField("Appearance", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(fogAlbedo, Styles.fogAlbedo);
-            EditorGUILayout.PropertyField(ambientColor);
-            EditorGUILayout.PropertyField(ambientIntensity);
+            EditorGUILayout.PropertyField(albedo, Styles.albedo);
+            EditorGUILayout.PropertyField(ambientColor, Styles.ambientColor);
+            EditorGUILayout.PropertyField(ambientOpacity, Styles.ambientOpacity);
 
             EditorGUILayout.Space(EditorGUIUtility.singleLineHeight * 0.5f);
             EditorGUILayout.LabelField("Ray-Marching", EditorStyles.boldLabel);

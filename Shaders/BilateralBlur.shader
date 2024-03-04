@@ -22,7 +22,7 @@ Shader "Hidden/BilateralBlur"
 	v2f vert(appdata v)
 	{
 		v2f o;
-		o.vertex = CorrectVertex(v.vertex);
+		o.vertex = CorrectUV(v.vertex);
 		o.uv = v.uv;
 		return o;
 	}
@@ -47,9 +47,11 @@ Shader "Hidden/BilateralBlur"
 
 			#include "/Include/BilateralBlur.hlsl"
 
+
 			TEXTURE2D(_BlurSource);
 			SAMPLER(sampler_BlurSource);
 			float4 _BlurSource_TexelSize;
+			
 			
 			half4 horizontalFrag(v2f input) : SV_Target
 			{
@@ -73,9 +75,11 @@ Shader "Hidden/BilateralBlur"
 			
 			#include "/Include/BilateralBlur.hlsl"
 
+
 			TEXTURE2D(_BlurSource);
 			SAMPLER(sampler_BlurSource);
 			float4 _BlurSource_TexelSize;
+
 			
 			half4 verticalFrag(v2f input) : SV_Target
 			{
@@ -94,8 +98,6 @@ Shader "Hidden/BilateralBlur"
 			#pragma vertex DownsampleVertex
 			#pragma fragment DownsampleFragment
             #pragma target 4.0
-
-			#pragma multi_compile_fragment _ SOURCE_FULL_DEPTH
 
 			#include "/Include/Downsample.hlsl"
 

@@ -45,9 +45,9 @@ Shader "Hidden/VolumetricFog"
 			#pragma multi_compile_fragment _ _LIGHT_COOKIES
 
 			// Custom keywords
-			#pragma multi_compile_fragment _ NOISE_ENABLED
 			#pragma multi_compile_fragment _ TEMPORAL_RENDERING_ENABLED
-   			#pragma multi_compile_fragment _ LIGHTING_ENABLED SHADOWS_ENABLED 
+			#pragma multi_compile_local_fragment _ NOISE_ENABLED
+   			#pragma multi_compile_local_fragment _ LIGHTING_ENABLED SHADOWS_ENABLED 
 
 			#pragma multi_compile_fragment _ SPHERE_VOLUME CUBE_VOLUME CAPSULE_VOLUME CYLINDER_VOLUME
 

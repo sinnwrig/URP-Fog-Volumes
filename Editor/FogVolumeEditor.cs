@@ -115,16 +115,16 @@ namespace Sinnwrig.FogVolumes.Editor
                 EditorGUILayout.Space(5f);
             }
 
+            
+            profile.isExpanded = DrawHeaderToggleFoldout(new GUIContent("Volume Profile"), profile.isExpanded);
+
             if (profile.objectReferenceValue == null)
             {
                 EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Warning);
             }
-            else
+            else if (profile.isExpanded)
             {
-                profile.isExpanded = DrawHeaderToggleFoldout(new GUIContent("Volume Profile"), profile.isExpanded);
-
-                if (profile.isExpanded)
-                    DrawProfileEditor(actualTarget, assetHasChanged);   
+                DrawProfileEditor(actualTarget, assetHasChanged);   
             }
 
     	    serializedObject.ApplyModifiedProperties();

@@ -3,7 +3,8 @@ guid: d5134b924c5746e7eb06404f924ebf59
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - noiseTexture: {fileID: 11700000, guid: efd48ce14b8950988b9f642e7c37df02, type: 2}
   executionOrder: 0
   icon: {fileID: 2800000, guid: 82fc3bae391023a18a787c9688f32db7, type: 3}
   userData: 

@@ -80,14 +80,13 @@ namespace Sinnwrig.FogVolumes
 
         private Material material;
 
-
-        private LocalKeyword? noise = null;
-        private LocalKeyword? light = null;
-        private LocalKeyword? shadow = null;
-
-
         private void OnDisable() => OnDestroy();
         private void OnDestroy() => DestroyImmediate(material);
+
+
+        private LocalKeyword? noiseKeyword = null;
+        private LocalKeyword? lightsKeyword = null;
+        private LocalKeyword? shadowsKeyword = null;
 
 
         public Material GetMaterial(Shader shader, CommandBuffer cmd)
@@ -95,9 +94,9 @@ namespace Sinnwrig.FogVolumes
             if (material == null)
                 material = new Material(shader);
 
-            noise ??= new LocalKeyword(shader, "NOISE_ENABLED");
-            light ??= new LocalKeyword(shader, "LIGHTING_ENABLED");
-            shadow ??= new LocalKeyword(shader, "SHADOWS_ENABLED");
+            noiseKeyword ??= new LocalKeyword(shader, "NOISE_ENABLED");
+            lightsKeyword ??= new LocalKeyword(shader, "LIGHTING_ENABLED");
+            shadowsKeyword ??= new LocalKeyword(shader, "SHADOWS_ENABLED");
 
             SetupProperties(cmd);
 
@@ -114,7 +113,7 @@ namespace Sinnwrig.FogVolumes
 
         private void SetupNoise(CommandBuffer cmd)
         {
-            material.SetKeyword(noise.Value, noiseTexture != null);
+            material.SetKeyword(noiseKeyword.Value, noiseTexture != null);
 
             if (noiseTexture != null)
             {
@@ -143,8 +142,8 @@ namespace Sinnwrig.FogVolumes
 
             material.SetFloat("_BrightnessClamp", brightnessClamp);
 
-            material.SetKeyword(light.Value, lightingMode == LightingMode.Lit);
-            material.SetKeyword(shadow.Value, lightingMode == LightingMode.Shadowed);
+            material.SetKeyword(lightsKeyword.Value, lightingMode == LightingMode.Lit);
+            material.SetKeyword(shadowsKeyword.Value, lightingMode == LightingMode.Shadowed);
         }
     }
 }

@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafc90245bfe9e2408e358f71deace2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volumeType: 1
+  volumeType: 0
   edgeFade: {x: 0, y: 0, z: 0}
   fadeOffset: {x: 0, y: 0, z: 0}
   lightsFade: 0
@@ -173,8 +173,8 @@ Transform:
   m_GameObject: {fileID: 132168504}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.21845464, z: -0, w: 0.9758471}
-  m_LocalPosition: {x: 5.7, y: 8.37, z: -2.7}
-  m_LocalScale: {x: 39.192524, y: 31.729624, z: 37.945904}
+  m_LocalPosition: {x: 2.59, y: 4.86, z: -7.43}
+  m_LocalScale: {x: 40, y: 40, z: 40}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -212,7 +212,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: a6560a915ef98420e9faacc1c7438823, type: 2}
+  sharedProfile: {fileID: 11400000, guid: 4f00f3d1d78330f13b3474c53bc18e15, type: 2}
 --- !u!4 &585558510
 Transform:
   m_ObjectHideFlags: 0

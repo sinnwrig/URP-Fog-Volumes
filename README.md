@@ -5,9 +5,9 @@ Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline
 
 ### Installation
 
-* Open the package manager and select the _Add package from Git URL_ option found under the top left dropdown.
+* Open the package manager and select the _Add package from Git URL_ option found under the top left dropdown.<br>
 ![From Git URL](Samples~/Images/giturl.png)<br>
-* Add this repository git URL in the prompt, using the following link: https://github.com/sinnwrig/URP-Fog-Volumes.git.
+* Add this repository git URL in the prompt, using the following link: https://github.com/sinnwrig/URP-Fog-Volumes.git.<br>
 ![Git Input URL](Samples~/Images/gitinput.png)<br>
 
 

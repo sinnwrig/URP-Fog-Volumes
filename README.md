@@ -13,17 +13,17 @@ Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline
 
 ### Features
 
-* Fog Volume Render Feature.
-* Fog Volume Profile ScriptableObject.
-* Fog Volume Behaviour.
-
-Volumes come in 4 primitive shapes that support non-uniform scale and rotation:
-* Cube
-* Capsule
-* Sphere
-* Cylinder
-
-Supports APV GI for Unity 2023.1+
+* Half & quarter-resolution rendering with depth-aware upsampling (Incompatible with temporal rendering).
+* Temporal Rendering with reprojection (Semi-complete).
+* Animated scrolling 3D texture noise
+* 4 primitive shapes that support non-uniform scale and rotation:
+    * Cube
+    * Capsule
+    * Sphere
+    * Cylinder
+* Support for all types of realtime lights, shadows, and cookies up to a maximum of 32 lights per volume.<br>
+    * _Lighting is not physically-based, instead exposing artistic controls for finer tweaking._<br>
+* Support for APV GI in Unity 2023.1+
 
 ### Usage
 

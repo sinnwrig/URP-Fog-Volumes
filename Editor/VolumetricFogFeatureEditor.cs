@@ -19,12 +19,15 @@ namespace Sinnwrig.FogVolumes.Editor
             public static readonly GUIContent temporalResolution = EditorGUIUtility.TrTextContent("Temporal Resolution", 
                 "The fractional resolution that the temporal passes should render at. Higher values will improve performance exponentially, but will also introduce ghosting." + 
                 "The number of frames it will take to fully render a temporal pass is equal to (resolution ^ 2)");
+
+            public static readonly GUIContent beforeTransparents = EditorGUIUtility.TrTextContent("Before Transparents", "Render the fog before the transaprent object pass");
         }
 
         private SerializedProperty resolution;
         private SerializedProperty temporalRendering;
         private SerializedProperty disableBlur;
         private SerializedProperty temporalResolution;
+        private SerializedProperty beforeTransparents;
         private SerializedProperty data;
 
 
@@ -36,6 +39,7 @@ namespace Sinnwrig.FogVolumes.Editor
             temporalRendering = fetcher.Find("temporalRendering");
             disableBlur = fetcher.Find("disableBlur");
             temporalResolution = fetcher.Find("temporalResolution");
+            beforeTransparents = fetcher.Find("beforeTransparents");
             data = fetcher.Find("data");
         }
 
@@ -90,6 +94,8 @@ namespace Sinnwrig.FogVolumes.Editor
                 EditorGUILayout.PropertyField(temporalResolution, Styles.temporalResolution);
                 EditorGUI.indentLevel--;
             }
+
+            EditorGUILayout.PropertyField(beforeTransparents, Styles.beforeTransparents);
 
             // Render Feature detects when properties have been applied regardless of if there was change, and completely refreshes the pass
             // Prevent that by only applying properties when something actually changes

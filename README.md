@@ -40,9 +40,9 @@ This asset is not backed by heavy testing, and there is a good chance that some 
 * Temporal Reprojection cannot properly reproject skybox or parts where fog is facing towards direct sky. There is a possible fix involving generating motion vectors for the fog bounding shape, but I'm not too keen on implementing it. 
 
 ### Example Scenes
-* Outdoors scene with a Directional Light and light shafts
+* Outdoors scene with a Directional Light and light shafts (No blur)
 ![Outdoors God Rays](Samples~/Scenes/Example-Terrain.png)<br>
-* Nighttime scene with four spot lights around a street and building.
+* Nighttime scene with four spot lights around a street and building (No blur)
 ![Nighttime Building](Samples~/Scenes/Example-Spotlights.png)<br>
 * Nighttime scene with eight spot lights and ground fog around a gas station.
 ![Nighttime Gas](Samples~/Scenes/Example-GasStation.png)<br>

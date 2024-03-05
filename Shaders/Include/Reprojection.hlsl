@@ -34,10 +34,17 @@ half4 ReprojectPixel(float2 uv, TEXTURE2D_PARAM(_SourceColor, sampler_SourceColo
     int2 lowresPixel;
     if (!SkipReprojectPixel(uv, lowresPixel))
         return LOAD_TEXTURE2D(_LowresSample, lowresPixel);
+
+    const float motionThreshold;
     
     // Reproject this pixel if possible
-    if (sampleUv.x >= 0 && sampleUv.x <= 1 && sampleUv.y >= 0 && sampleUv.y <= 1)
+    if (sampleUv.x >= 0 && sampleUv.x <= 1 && 
+        sampleUv.y >= 0 && sampleUv.y <= 1 && 
+        abs(sampleUv.x - uv.x) < motionThreshold && 
+        abs(sampleUv.y - uv.y) < motionThreshold)
+    {
         return SAMPLE_BASE(_SourceColor, sampler_SourceColor, sampleUv);
+    }
 
     return SAMPLE_BASE(_SourceColor, sampler_SourceColor, uv);
 }

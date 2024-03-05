@@ -10,6 +10,9 @@ Shader "Hidden/BlitAdd"
 
 			HLSLPROGRAM
 
+			#pragma exclude_renderers d3d11_9x
+    		#pragma exclude_renderers d3d9
+
 			#pragma vertex vert
 			#pragma fragment blendFrag
 			#pragma target 4.0

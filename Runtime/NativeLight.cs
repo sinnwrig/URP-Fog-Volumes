@@ -2,16 +2,17 @@ using UnityEngine;
 
 namespace Sinnwrig.FogVolumes
 {
-    public struct NativeLight
+    // Made internal since it's basically VisibleLight with extra useless values.
+    internal struct NativeLight
     {
-        public bool isDirectional;
-        public float range;
-        public int shadowIndex;
-        public Vector4 position;
-        public Vector4 color;
-        public Vector4 attenuation;
-        public Vector4 spotDirection;
-        public int layer;
-        public Light light;
+        internal bool isDirectional;
+        internal float range;
+        internal int shadowIndex;
+        internal Vector4 position;
+        internal Vector4 color;
+        internal Vector4 attenuation;
+        internal Vector4 spotDirection;
+        internal int layer;
+        internal float cameraDistance;
     }
 }

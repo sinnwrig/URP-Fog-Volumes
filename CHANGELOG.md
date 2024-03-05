@@ -1,3 +1,3 @@
-Updated demo scenes
+Added documentation
 
-Removed unnecesary shader defines
+Added positional light sorting (No priority-based)

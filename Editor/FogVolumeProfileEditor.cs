@@ -10,20 +10,20 @@ namespace Sinnwrig.FogVolumes.Editor
     {
         static class Styles
         {
-            public static readonly GUIContent ambientColor = EditorGUIUtility.TrTextContent("Ambient Color", "The ambient color of the fog.");
-            public static readonly GUIContent ambientOpacity = EditorGUIUtility.TrTextContent("Ambient Opacity", "The opacity of the ambient fog.");
+            public static readonly GUIContent ambientColor = EditorGUIUtility.TrTextContent("Ambient Color", "The ambient color of the fog when not lit.");
+            public static readonly GUIContent ambientOpacity = EditorGUIUtility.TrTextContent("Ambient Opacity", "The opacity of the ambient fog. A value of 0 will be only additive. Values higher than 0 will allow fog to influence background color based on density. ");
 
-            public static readonly GUIContent albedo = EditorGUIUtility.TrTextContent("Albedo", "The base Albedo color of the fog.");
+            public static readonly GUIContent albedo = EditorGUIUtility.TrTextContent("Albedo", "The base (multiplicative) color of the fog.");
 
             public static readonly GUIContent minMaxStepLength = EditorGUIUtility.TrTextContent("Step Size Range", "The minimum and maximum step lengths of the ray being marched. Lower values produce higher quality results. Higher values produce results with more banding.");
-            public static readonly GUIContent stepIncrementFactor = EditorGUIUtility.TrTextContent("Step Increment", "The factor by which to increase the length of the ray being marched. Higher values will reach the maximum step length quicker.");
-            public static readonly GUIContent maxRayLength = EditorGUIUtility.TrTextContent("Max Ray Length", "The maximum length of a ray.");
+            public static readonly GUIContent stepIncrementFactor = EditorGUIUtility.TrTextContent("Step Increment", "The factor at which the step length taken by the raymarcher is increased.");
+            public static readonly GUIContent maxRayLength = EditorGUIUtility.TrTextContent("Max Ray Length", "The maximum total length of a ray.");
 
-            public static readonly GUIContent maxSampleCount = EditorGUIUtility.TrTextContent("Sample Count", "The maximum amount of samples or steps taken by the raymarcher.");
-            public static readonly GUIContent jitterStrength = EditorGUIUtility.TrTextContent("Jitter Strength", "The strength of jittering to apply to the rays.");
+            public static readonly GUIContent maxSampleCount = EditorGUIUtility.TrTextContent("Sample Count", "The maximum amount of samples or steps the raymarcher is allowed to take.");
+            public static readonly GUIContent jitterStrength = EditorGUIUtility.TrTextContent("Jitter Strength", "The intensity of pseudorandom jitter used to offset the starting point of the raymarcher.");
 
             public static readonly GUIContent lightingMode = EditorGUIUtility.TrTextContent("Lighting Mode", "How scene lights will affect fog. When set to None, lights will not influence the fog. When set to Lit, lights will influence fog. When set to Shadowed, lights and shadows will influence the fog.");
-            public static readonly GUIContent lightIntensityModifier = EditorGUIUtility.TrTextContent("Light Intensity Modifier", "How the strength and intensity of scene lights should be modified.");
+            public static readonly GUIContent lightIntensityModifier = EditorGUIUtility.TrTextContent("Light Intensity Modifier", "Modulates the strength and intensity of the lights affecting the fog.");
             public static readonly GUIContent scattering = EditorGUIUtility.TrTextContent("Scattering", "How much light is scattered towards the camera. Higher values will produce brighter fog.");
             public static readonly GUIContent extinction = EditorGUIUtility.TrTextContent("Extinction", "How quickly light power is reduced based on its distance to the camera. Higher values will fade fog further away.");
             public static readonly GUIContent mieG = EditorGUIUtility.TrTextContent("Mie G", "Determines the distribution of scattered light based on the viewing angle. Higher values will increase how strongly brightness is focused on light position.");
@@ -31,7 +31,7 @@ namespace Sinnwrig.FogVolumes.Editor
 
             public static readonly GUIContent noiseTexture = EditorGUIUtility.TrTextContent("Noise Texture", "The world-space noise to apply to the fog volume.");
             public static readonly GUIContent scale = EditorGUIUtility.TrTextContent("Scale", "The scale of the noise texture.");
-            public static readonly GUIContent noiseScroll = EditorGUIUtility.TrTextContent("Noise Scroll", "The vector direction in which the noise should scroll.");
+            public static readonly GUIContent noiseScroll = EditorGUIUtility.TrTextContent("Noise Scroll", "The direction in which the noise should scroll.");
             public static readonly GUIContent noiseIntensity = EditorGUIUtility.TrTextContent("Noise Intensity", "How intensely the noise will affect the fog.");
             public static readonly GUIContent intensityOffset = EditorGUIUtility.TrTextContent("Intensity Offset", "The offset applied to the noise texture values.");
         }
@@ -60,7 +60,6 @@ namespace Sinnwrig.FogVolumes.Editor
         private SerializedProperty noiseScroll;
         private SerializedProperty noiseIntensity;
         private SerializedProperty intensityOffset;
-
 
         static readonly string[] lightingOptions = new string[]
         {

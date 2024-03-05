@@ -8,6 +8,9 @@ Shader "Hidden/TemporalReprojection"
 
 			HLSLPROGRAM
 
+			#pragma exclude_renderers d3d11_9x
+    		#pragma exclude_renderers d3d9
+
 			#pragma vertex vert
 			#pragma fragment reprojectFrag
 			#pragma target 4.0

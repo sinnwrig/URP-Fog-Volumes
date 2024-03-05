@@ -13,7 +13,7 @@ namespace Sinnwrig.FogVolumes
 {
     public class VolumetricFogPass : ScriptableRenderPass
     {    
-
+        // Bundles the integer ID with an RtID
         readonly struct RTPair
         {
             public readonly int propertyId;
@@ -31,8 +31,10 @@ namespace Sinnwrig.FogVolumes
 
 
         // --------------------------------------------------------------------------
-        // ----------------------------- Render Targets -----------------------------
+        // ------------------------------- Properties -------------------------------
         // --------------------------------------------------------------------------
+
+        #region PROPERTIES
 
         // Depth render targets
         private static readonly RTPair halfDepth = new RTPair("_HalfDepthTarget");
@@ -50,19 +52,12 @@ namespace Sinnwrig.FogVolumes
         private static readonly RTPair temp = new RTPair("_Temp");
 
 
-        // --------------------------------------------------------------------------
-        // -----------------------------   Materials    -----------------------------
-        // --------------------------------------------------------------------------
-
+        // Materials
         private static Material bilateralBlur;
         private static Shader fogShader;
         private static Material blitAdd;
         private static Material reprojection;
-
-
-        // --------------------------------------------------------------------------
-        // -------------------------------   General   ------------------------------
-        // --------------------------------------------------------------------------
+        
 
         private readonly VolumetricFogFeature feature;
         private CommandBuffer commandBuffer;
@@ -80,9 +75,7 @@ namespace Sinnwrig.FogVolumes
             }   
         }
 
-        private int TemporalKernelSize => System.Math.Max(2, feature.temporalResolution);
-
-
+        
 
         public VolumetricFogPass(VolumetricFogFeature feature, Shader blur, Shader fog, Shader add, Shader reproj)
         {
@@ -100,6 +93,13 @@ namespace Sinnwrig.FogVolumes
                 reprojection = new Material(reproj);
         }   
 
+        #endregion
+
+        // --------------------------------------------------------------------------
+        // ----------------------------   Render Pass   -----------------------------
+        // --------------------------------------------------------------------------
+
+        #region RENDERING
 
         // Allocate temporary textures
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData data)
@@ -202,32 +202,63 @@ namespace Sinnwrig.FogVolumes
         }
 
 
-        // Equivalent to CommandBuffer.Blit, except for the use of a custom mesh and lack of a source
+        // Equivalent to normal Blit, but uses a custom quad instead of stupid idiot fullscreen triangle I couldn't get working.
         private static void TargetBlit(CommandBuffer cmd, RenderTargetIdentifier destination, Material material, int pass)
         {
             cmd.SetRenderTarget(destination);
             cmd.DrawMesh(MeshUtility.FullscreenQuad, Matrix4x4.identity, material, 0, pass);
         }
 
+        #endregion
 
         // --------------------------------------------------------------------------
         // --------------------------   Volume Rendering   --------------------------
         // --------------------------------------------------------------------------
 
+        #region VOLUMES
+
         private static readonly HashSet<FogVolume> activeVolumes = new();
 
+        /// <summary>
+        /// Add a volume to the tracked volume set. Does not track duplicates.
+        /// </summary>
+        /// <param name="volume">The volume to track.</param>
         public static void AddVolume(FogVolume volume) => activeVolumes.Add(volume);
+
+        /// <summary>
+        /// Remove a volume from the tracked volume set.
+        /// </summary>
+        /// <param name="volume">The volume to stop tracking.</param>
         public static void RemoveVolume(FogVolume volume) => activeVolumes.Remove(volume);
 
+        /// <summary>
+        /// The list of active volumes in the scene.
+        /// </summary>
         public static IEnumerable<FogVolume> ActiveVolumes => activeVolumes;
 
 
         private static readonly FieldInfo shadowPassField = typeof(UniversalRenderer).GetField("m_AdditionalLightsShadowCasterPass", BindingFlags.NonPublic | BindingFlags.Instance);
         private static readonly Plane[] cullingPlanes = new Plane[6];
 
+
+	    private bool CullSphere(Vector3 pos, float radius) 
+	    {
+	    	// Cull spherical bounds, ignoring camera far plane at index 5
+	    	for (int i = 0; i < cullingPlanes.Length; i++) 
+	    	{
+	    		float distance = cullingPlanes[i].GetDistanceToPoint(pos);
+
+	    		if (distance < 0 && Mathf.Abs(distance) > radius) 
+	    			return true;
+	    	}
+
+	    	return false;
+	    }
+
         // Package visible lights and initialize lighting data
         private List<NativeLight> SetupLights(ref RenderingData renderingData)
         {
+            // Curse you unity internals
             var shadowPass = shadowPassField.GetValue(renderingData.cameraData.renderer) as AdditionalLightsShadowCasterPass;
 
             LightData lightData = renderingData.lightData;
@@ -235,20 +266,29 @@ namespace Sinnwrig.FogVolumes
 
             List<NativeLight> initializedLights = new();
 
+            Vector3 cameraPosition = renderingData.cameraData.camera.transform.position;
+
             for (int i = 0; i < visibleLights.Length; i++)
             {
                 var visibleLight = visibleLights[i];
 
-                // Curse you unity internals
+                bool isDirectional = visibleLight.lightType == LightType.Directional;
+                bool isMain = i == lightData.mainLightIndex;
+
+                Vector3 position = visibleLight.localToWorldMatrix.GetColumn(3);
+
+                if (!isDirectional && CullSphere(position, visibleLight.range))
+                    continue;
+
                 int shadowIndex = shadowPass.GetShadowLightIndexFromLightIndex(i);
 
                 NativeLight light = new()
                 {
-                    isDirectional = visibleLight.lightType == LightType.Directional,
-                    shadowIndex = i == lightData.mainLightIndex ? -1 : shadowIndex, // Main light gets special treatment
+                    isDirectional = isDirectional,
+                    shadowIndex = isMain ? -1 : shadowIndex, // Main light gets special treatment
                     range = visibleLight.range,
                     layer = visibleLight.light.gameObject.layer,
-                    light = visibleLight.light
+                    cameraDistance = isDirectional ? 0 : (cameraPosition - position).sqrMagnitude
                 };
 
                 // Set up light properties
@@ -262,6 +302,8 @@ namespace Sinnwrig.FogVolumes
 
                 initializedLights.Add(light);
             }
+
+            initializedLights.Sort((a, b) => a.cameraDistance.CompareTo(b.cameraDistance));
 
             return initializedLights;
         }
@@ -297,11 +339,13 @@ namespace Sinnwrig.FogVolumes
                 volumes[i].DrawVolume(ref renderingData, commandBuffer, fogShader, lights, perObjectLightCount);
         }
 
+        #endregion
 
         // --------------------------------------------------------------------------
         // --------------------------   Upscaling & Blur   --------------------------
         // --------------------------------------------------------------------------
 
+        #region UPSCALING
 
         // Blurs the active resolution texture, upscaling to full resolution if needed
         private void BilateralBlur(int width, int height)
@@ -394,23 +438,23 @@ namespace Sinnwrig.FogVolumes
             }
         }
 
+        #endregion
 
         // --------------------------------------------------------------------------
         // -------------------------   Temporal Rendering   -------------------------
         // --------------------------------------------------------------------------
 
+        #region TEMPORAL
+
         private static readonly GlobalKeyword temporalKeyword = GlobalKeyword.Create("TEMPORAL_RENDERING_ENABLED");
 
-        // Temporal pass iterator
+        private int TemporalKernelSize => System.Math.Max(2, feature.temporalResolution);
         private int temporalPassIndex;
-
-        private Matrix4x4 prevViewProj = Matrix4x4.zero;
-        private Matrix4x4 view;
-        private Matrix4x4 proj;
 
         // Temporal Reprojection Target-
         // NOTE: only a RenderTexture seems to preserve information between frames on my device, otherwise I'd use an RTHandle or RenderTargetIdentifier
         private RenderTexture temporalBuffer;
+
 
         private static System.Random random = new();
 
@@ -484,5 +528,8 @@ namespace Sinnwrig.FogVolumes
             if (temporalBuffer != null && temporalBuffer.IsCreated())
                 temporalBuffer.Release();
         }
+
+        #endregion
+    
     }
 }

@@ -6,6 +6,9 @@ namespace Sinnwrig.FogVolumes
     {
         private static Mesh _fullscreenQuad;
 
+        /// <summary>
+        /// A full-screen NDC quad.
+        /// </summary>
         public static Mesh FullscreenQuad
         {
             get

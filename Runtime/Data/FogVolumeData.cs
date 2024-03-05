@@ -11,7 +11,7 @@ using System;
 namespace Sinnwrig.FogVolumes
 {
     [Serializable, ReloadGroup, CreateAssetMenu(menuName = "Fog Volume Data")]
-    public class FogVolumeData : ScriptableObject
+    public sealed class FogVolumeData : ScriptableObject
     {
         /// <summary>
         /// The Bilateral Blur shader.

@@ -52,6 +52,8 @@ namespace Sinnwrig.FogVolumes.Editor
         private SerializedProperty disableLightLimit;
 
         private UnityEditor.Editor profileEditor;
+        private BoundsHandle boundsHandle;
+
 
 
         private void SetProfileEditor()
@@ -64,6 +66,8 @@ namespace Sinnwrig.FogVolumes.Editor
 
         private void OnEnable()
         {
+            boundsHandle = new();
+
             PropertyFetcher<FogVolume> fetcher = new(serializedObject);
 
             profile = fetcher.Find("sharedProfile");
@@ -133,6 +137,8 @@ namespace Sinnwrig.FogVolumes.Editor
 
         private void OnSceneGUI()
         {
+            using var scope = new EditorGUI.ChangeCheckScope();
+
             FogVolume volume = (FogVolume)target;
 
             Matrix4x4 trsMatrix = volume.transform.localToWorldMatrix;
@@ -212,6 +218,8 @@ namespace Sinnwrig.FogVolumes.Editor
 
             if (!scope.changed)
                 return;
+
+            Undo.RecordObject(target, "Changed Fade and Offset");
 
             edgeFade.vector3Value = fade;
             fadeOffset.vector3Value = offset;

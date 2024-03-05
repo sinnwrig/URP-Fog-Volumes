@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 namespace Sinnwrig.FogVolumes
 { 
     /// <summary>
-    /// The resolution to render the volumetric fog at
+    /// The resolution to render volumetric fog at
     /// </summary>
     [System.Serializable]
     public enum VolumetricResolution

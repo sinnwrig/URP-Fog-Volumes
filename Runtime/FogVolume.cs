@@ -9,28 +9,67 @@ using UnityEngine.Rendering.Universal;
 namespace Sinnwrig.FogVolumes
 {
     [ExecuteAlways]
-    public partial class FogVolume : MonoBehaviour 
+    public class FogVolume : MonoBehaviour 
     {
+        /// <summary>
+        /// The rendered shape of the volume.
+        /// </summary>
         public VolumeType volumeType;
+
+        /// <summary>
+        /// How intensely the volume should fade from its edges determined by a nonlinear, normalized range.
+        /// <para>Cube volumes use the [x, y, z] components for each local axis.</para> 
+        /// <para>Cylinder volumes use the [x, y] components for radius and height.</para>
+        /// <para>Capsule and Sphere volumes use the [x] components for radius.</para>
+        /// </summary>
         public Vector3 edgeFade = Vector3.zero;
+
+        /// <summary>
+        /// The offset applied to the volume to determine where fading begins/ends.
+        /// <para>Cube volumes use the [x, y, z] components in the range [-0.5, 0.5] to offset each local axis.</para> 
+        /// <para>Cylinder volumes use the [y] component in the range [-1, 1] for height offset.</para>
+        /// <para>Capsule and Sphere volumes ignore this setting.</para>
+        /// </summary>
         public Vector3 fadeOffset = Vector3.zero;
+
+        /// <summary>
+        /// Determines whether or not fog lighting will be affected by fading along with base fog albedo.
+        /// </summary>
         public bool lightsFade = false;
 
+        /// <summary>
+        /// The maximum render distance of the fog.
+        /// </summary>
         [Min(0)] 
         public float maxDistance = 100.0f;
 
-        [Range(0, 0.999f)] 
-        public float distanceFade = 0.999f;
+        /// <summary>
+        /// The percentage from the maximum distance at which to begin fading fog.
+        /// </summary>
+        [Range(0, 1f)] 
+        public float distanceFade = 1f;
 
+        /// <summary>
+        /// The mask used to determine what lights can affect this volume.
+        /// </summary>
         public LayerMask lightLayerMask = ~0;
 
+        /// <summary>
+        /// Determines whether or not this volume should ignore the maximum per-object light limit set in the renderer. Absolute light limit is 32.
+        /// </summary>
         public bool disableLightLimit;
 
 
         private FogVolumeProfile _internalProfile;
 
+        /// <summary>
+        /// The shared profile used by this volume.
+        /// </summary>
         public FogVolumeProfile sharedProfile = null;
 
+        /// <summary>
+        /// The instantiated profile used by this volume.
+        /// </summary>
         public FogVolumeProfile profile
         {
             get
@@ -47,8 +86,16 @@ namespace Sinnwrig.FogVolumes
             set => _internalProfile = value;
         }
 
+
+        /// <summary>
+        /// Is this volume using a shared profile or an instantiated one?
+        /// </summary>
         public bool HasInstantiatedProfile() => _internalProfile != null;
 
+
+        /// <summary>
+        /// (Read-Only) The profile currently being used by this volume.
+        /// </summary>
         public FogVolumeProfile ProfileReference => _internalProfile == null ? sharedProfile : _internalProfile;
 
 
@@ -170,9 +217,10 @@ namespace Sinnwrig.FogVolumes
         }
 
 
-        public void DrawVolume(ref RenderingData renderingData, CommandBuffer cmd, Shader shader, List<NativeLight> lights, int maxLights)
+        // Not public since some global properties must be set for the shader to render correctly. 
+        internal void DrawVolume(ref RenderingData renderingData, CommandBuffer cmd, Shader shader, List<NativeLight> lights, int maxLights)
         {
-            PropertyBlock.SetVector("_FogRange", new Vector2(maxDistance, Mathf.Lerp(0, maxDistance, distanceFade)));
+            PropertyBlock.SetVector("_FogRange", new Vector2(maxDistance, Mathf.Lerp(0, maxDistance, distanceFade - 0.001f)));
 
             Material material = ProfileReference.GetMaterial(shader, cmd);
 
@@ -181,13 +229,18 @@ namespace Sinnwrig.FogVolumes
             SetupViewport(ref renderingData);
             SetupLighting(lights, maxLights);
 
-            PropertyBlock.SetMatrix("_InvMatrix", transform.worldToLocalMatrix);
+            PropertyBlock.SetMatrix("_InverseVolumeMatrix", transform.worldToLocalMatrix);
 
             cmd.DrawMesh(MeshUtility.FullscreenQuad, Matrix4x4.identity, material, 0, 0, PropertyBlock);
         }
 
 
-        // Whether or not the volume can be culled by the frustum or distance
+        /// <summary>
+        /// Determines if the volume should be culled given a camera position and the camera culling planes
+        /// </summary>
+        /// <param name="cameraPosition">The position of the camera to use in determining culling state.</param>
+        /// <param name="cameraPlanes">The camera planes to use in determining culling state.</param>
+        /// <returns>True if the volume shoud be culled, false otherwise.</returns>
         public bool CullVolume(Vector3 cameraPosition, Plane[] cameraPlanes)
         {
             if (ProfileReference == null)
@@ -207,6 +260,7 @@ namespace Sinnwrig.FogVolumes
         }
 
 
+        /// <returns>The local-space culling bounds of the volume</returns>
         public Bounds GetBounds()
         {
             if (volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder) 
@@ -217,6 +271,7 @@ namespace Sinnwrig.FogVolumes
         }
 
 
+        /// <returns>The world-space Axis-Aligned Bounds of the volume</returns>
         public Bounds GetAABB()
         {
             if (volumeType == VolumeType.Capsule || volumeType == VolumeType.Cylinder) 

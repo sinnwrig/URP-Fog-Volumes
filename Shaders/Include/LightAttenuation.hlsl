@@ -66,9 +66,7 @@ half3 GetColorAndAttenuation(float3 worldPosition, int additionalLightIndex, out
     lightDirection = light.position.xyz - worldPosition * light.position.w;
 
     if (light.shadowIndex < 0)
-    {
         return GetMainColorAndAttenuation(light.color, worldPosition, attenuation);
-    }
 
     float distanceSqr = max(sqrlen(lightDirection), HALF_MIN);
 
@@ -90,7 +88,6 @@ half3 GetColorAndAttenuation(float3 worldPosition, int additionalLightIndex, out
     #endif
 
     #if defined(_LIGHT_COOKIES)
-        // Cookies only influence color
         color *= SampleAdditionalLightCookie(light.shadowIndex, worldPosition);
     #endif
 

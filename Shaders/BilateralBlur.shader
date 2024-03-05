@@ -1,6 +1,9 @@
 Shader "Hidden/BilateralBlur"
 {
 	HLSLINCLUDE
+
+	#pragma exclude_renderers d3d11_9x
+    #pragma exclude_renderers d3d9
 	
 	#include "/Include/Common.hlsl"	
 	#include "/Include/Math.hlsl"

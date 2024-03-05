@@ -24,21 +24,43 @@ Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline
 * Assign a new profile.
 * Play with the scale and settings until your fog looks right.
 
-### Potential issues/Requirements
+### Potential Issues
 
-This asset is not backed by heavy testing, and there is a good chance that some featues are incomplete or buggy. However, I am confident of its current state, and that there are no glaring or apparent bugs. 
+I am confident the the asset in its current state has no glaring or overly apparent issues. 
+That said, this asset is not backed by heavy testing, and there is a good chance that this package may have bugs or not work on some platforms.<br>
 
-* Not tested with VR/AR.
-* Tested on Linux and Windows machines with Unity 2022. Mac, Mobile, and other platforms are untested.
-* Orthographic cameras do not work.
+This asset has been tested on:
+* OpenGL 4.5.
+* Direct3D 11.
+* Vulkan.
+* Unity version 2022.3.
+* A Linux machine.
+* A Windows machine.
+
+This asset has _not_ been tested on:
+* Metal.
+* Direct3D 12.
+* VR or AR platforms.
+* Versions of Unity besides 2022.3.
+* macOS.
+* PlayStation devices.
+* Xbox devices.
+* Nintendo devices.
+* iOS.
+* visionOS.
+* Android.
+* WebGL.
+* UWP.
+* tvOS.
 
 ### Limitations
 
-* Does not support 
-* Temporal Reprojection does not work in the scene view as motion vectors do not get generated. As such, ghosting is visible when moving the scene camera quickly around fog.
+* Does not support Direct3D 9 (Desktop GPUs before 2009~2011) or Direct3D 11 9.x (Windows Phone and Microsoft Surface RT).
+* Temporal Reprojection does not work in scene view, and only works when in play mode.
+* Temporal Reprojection cannot reproject parts where fog is facing the skybox or empty space. This is planned on being fixed. 
 * There is currently a hard cap of 32 lights per volume. 
 * Does not use physically based light scattering throughout the volume.
-* Temporal Reprojection cannot properly reproject skybox or parts where fog is facing towards direct sky. There is a possible fix involving generating motion vectors for the fog bounding shape, but I'm not too keen on implementing it. 
+* Orthographic cameras do not work.
 
 ### Example Scenes
 * Japanese Forest with/without fog

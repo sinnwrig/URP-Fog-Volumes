@@ -52,7 +52,7 @@ float3 _EdgeFade;
 float3 _FadeOffset;
 float _LightsFade;
 
-float4x4 _InvMatrix;
+float4x4 _InverseVolumeMatrix;
 
 
 float FadeBoxEdge(float3 localPos)
@@ -109,7 +109,7 @@ float FadeCapsuleEdge(float3 localPos)
 
 float GetFade(float3 worldPosition)
 {	
-	float3 localPos = mul(_InvMatrix, float4(worldPosition, 1.0)).xyz + _FadeOffset;
+	float3 localPos = mul(_InverseVolumeMatrix, float4(worldPosition, 1.0)).xyz + _FadeOffset;
 
 	float fade = 1.0;
 
@@ -191,7 +191,7 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 
 	half3 vlight = 0;
 	float distance = 0;
-	float opacity = 0;
+	float opacity = 0; // Additive attenuation of ambient fog and light.
 
 	[loop]
 	for (int i = 0; i < _SampleCount; ++i)
@@ -209,16 +209,18 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 
 		float influence = scattering * exp(-extinction);
 
-		float attenuation = _AmbientOpacity;
+		float attenuation = _AmbientOpacity * fade;
 		half3 color = _Ambient * fade;
 
 		float lightAttenuation;
-		half3 light = GetLightAttenuationMie(currentPosition, rayDir, _MieG, lightAttenuation) * _IntensityModifier * (_LightsFade == 1 ? fade : 1.0);
+		half3 light = GetLightAttenuationMie(currentPosition, rayDir, _MieG, lightAttenuation) * _IntensityModifier;
 
-		color += light;
-		attenuation += lightAttenuation; 
+		float lightFade = _LightsFade == 1 ? fade : 1.0;
 
-		opacity += attenuation * influence * fade;
+		color += light * lightFade;
+		attenuation += lightAttenuation * lightFade;
+
+		opacity += attenuation * influence;
 		vlight += color * influence;
 
 		distance += stepSize;	
@@ -241,14 +243,14 @@ half4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDep
     float far = _FogRange.x;
 
 	#if defined(CUBE_VOLUME)
-		hit = RayCube(_InvMatrix, cameraPos, viewDir, near, far);
+		hit = RayCube(_InverseVolumeMatrix, cameraPos, viewDir, near, far);
 	#elif defined(CAPSULE_VOLUME)
-		hit = RayCapsule(_InvMatrix, cameraPos, viewDir, near, far);
+		hit = RayCapsule(_InverseVolumeMatrix, cameraPos, viewDir, near, far);
 	#elif defined(CYLINDER_VOLUME)
-		hit = RayCylinder(_InvMatrix, cameraPos, viewDir, near, far);
+		hit = RayCylinder(_InverseVolumeMatrix, cameraPos, viewDir, near, far);
 	#else
 		// Default to sphere
-		hit = RaySphere(_InvMatrix, cameraPos, viewDir, near, far);
+		hit = RaySphere(_InverseVolumeMatrix, cameraPos, viewDir, near, far);
 	#endif
 
 	// No intersection

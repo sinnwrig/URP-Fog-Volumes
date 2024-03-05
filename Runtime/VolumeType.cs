@@ -26,7 +26,7 @@ namespace Sinnwrig.FogVolumes
         };
 
 
-        public static void SetVolumeKeyword(this VolumeType type, CommandBuffer cmd)
+        internal static void SetVolumeKeyword(this VolumeType type, CommandBuffer cmd)
         {
             for (int i = 0; i < shapeKeywords.Length; i++)
                 cmd.SetKeyword(shapeKeywords[i], i == (int)type);

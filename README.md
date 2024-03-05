@@ -17,11 +17,19 @@ Implementation of Raymarched Volumetric Fog in Unity's Universal Render Pipeline
 * Fog Volume Profile ScriptableObject.
 * Fog Volume Behaviour.
 
+Volumes come in 4 primitive shapes that support non-uniform scale and rotation:
+* Cube
+* Capsule
+* Sphere
+* Cylinder
+
+Supports APV GI for Unity 2023.1+
+
 ### Usage
 
 * Add the Fog Volume Render Feature to the current active renderer.
 * Create a new Fog Volume in the scene by adding the FogVolume component to any object.
-* Assign a new profile.
+* Create or assign a new profile.
 * Play with the scale and settings until your fog looks right.
 
 ### Potential Issues
@@ -41,7 +49,7 @@ This asset has _not_ been tested on:
 * Metal.
 * Direct3D 12.
 * VR or AR platforms.
-* Versions of Unity besides 2022.3.
+* Versions of Unity below 2022.3.
 * macOS.
 * PlayStation devices.
 * Xbox devices.
@@ -61,6 +69,7 @@ This asset has _not_ been tested on:
 * There is currently a hard cap of 32 lights per volume. 
 * Does not use physically based light scattering throughout the volume.
 * Orthographic cameras do not work.
+* Baked lighting does not work at the moment. This is planned on being fixed.
 
 ### Example Scenes
 * Japanese Forest with/without fog

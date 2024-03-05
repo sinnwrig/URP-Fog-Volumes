@@ -61,6 +61,7 @@ Shader "Hidden/VolumetricFog"
 			#include "/Include/Intersection.hlsl"
 			#include "/Include/LightAttenuation.hlsl"
 			#include "/Include/Reprojection.hlsl"
+			#include "/Include/GIProbes.hlsl"
 			#include "/Include/VolumetricFog.hlsl"
 
 			ENDHLSL

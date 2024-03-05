@@ -181,7 +181,7 @@ half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG,
 }
 
 
-half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos)
+half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos, float2 screenUV)
 {
 	float cameraDistance = length(cameraPos - rayStart);
 
@@ -214,6 +214,8 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 
 		float lightAttenuation;
 		half3 light = GetLightAttenuationMie(currentPosition, rayDir, _MieG, lightAttenuation) * _IntensityModifier;
+
+		light += SampleGI(currentPosition, screenUV);
 
 		float lightFade = _LightsFade == 1 ? fade : 1.0;
 
@@ -267,7 +269,7 @@ half4 CalculateVolumetricLight(float3 cameraPos, float3 viewDir, float linearDep
     // Jump to point on intersection surface, then add jitter
     float3 rayStart = cameraPos + viewDir * (near + MathRand(uv) * _Jitter);
 
-	return RayMarch(rayStart, viewDir, min(rayLength, _StepParams.w), cameraPos);
+	return RayMarch(rayStart, viewDir, min(rayLength, _StepParams.w), cameraPos, uv);
 }
 
 

@@ -34,15 +34,27 @@ This asset is not backed by heavy testing, and there is a good chance that some 
 
 ### Limitations
 
+* Does not support 
 * Temporal Reprojection does not work in the scene view as motion vectors do not get generated. As such, ghosting is visible when moving the scene camera quickly around fog.
 * There is currently a hard cap of 32 lights per volume. 
 * Does not use physically based light scattering throughout the volume.
 * Temporal Reprojection cannot properly reproject skybox or parts where fog is facing towards direct sky. There is a possible fix involving generating motion vectors for the fog bounding shape, but I'm not too keen on implementing it. 
 
 ### Example Scenes
-* Outdoors scene with a Directional Light and light shafts (No blur)
-![Outdoors God Rays](Samples~/Scenes/Example-Terrain.png)<br>
-* Nighttime scene with four spot lights around a street and building (No blur)
-![Nighttime Building](Samples~/Scenes/Example-Spotlights.png)<br>
-* Nighttime scene with eight spot lights and ground fog around a gas station.
-![Nighttime Gas](Samples~/Scenes/Example-GasStation.png)<br>
+* Japanese Forest with/without fog
+![Outdoors Fog](Samples~/Images/Terrain-Fog.png)
+![Outdoors](Samples~/Images/Terrain.png)<br>
+* Oasis with/without fog
+![Oasis Fog](Samples~/Images/Oasis-Fog.png)
+![Oasis](Samples~/Images/Oasis.png)<br>
+* Building with/without fog
+![Building Fog](Samples~/Images/Building-Fog.png)
+![Building](Samples~/Images/Building.png)<br>
+* Japanese Garden with/without fog
+![Garden Fog](Samples~/Images/Garden-Fog.png)
+![Garden](Samples~/Images/Garden.png)<br>
+* Gas station with/without fog
+![Gas Station Fog](Samples~/Images/GasStation-Fog.png)
+![Gas Station](Samples~/Images/GasStation.png)<br>
+* Demo Terminal Building with fog
+![Terminal Fog](Samples~/Images/Terminal-Fog.png)<br>

@@ -32,6 +32,9 @@ Shader "Hidden/VolumetricFog"
 
 			HLSLPROGRAM
 
+			#pragma exclude_renderers d3d11_9x
+    		#pragma exclude_renderers d3d9
+
 			#pragma vertex VolumetricVertex
 			#pragma fragment VolumetricFragment
 			#pragma target 4.0

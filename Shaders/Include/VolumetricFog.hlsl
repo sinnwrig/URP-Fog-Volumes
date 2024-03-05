@@ -163,7 +163,7 @@ half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG,
 	attenuation = 1.0;
 
     #if defined(LIGHTING_ENABLED) || defined(SHADOWS_ENABLED)
-		[unroll]
+		[loop]
         for (int i = 0; i < min(_LightCount, MAX_LIGHT_COUNT); i++)
         {
             float3 lightDir;

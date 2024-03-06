@@ -5,6 +5,10 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif
+
 
 namespace Sinnwrig.FogVolumes
 {
@@ -22,7 +26,7 @@ namespace Sinnwrig.FogVolumes
         /// <para>Cylinder volumes use the [x, y] components for radius and height.</para>
         /// <para>Capsule and Sphere volumes use the [x] components for radius.</para>
         /// </summary>
-        public Vector3 edgeFade = Vector3.zero;
+        public Vector3 edgeFade = Vector3.one * 0.6f;
 
         /// <summary>
         /// The offset applied to the volume to determine where fading begins/ends.

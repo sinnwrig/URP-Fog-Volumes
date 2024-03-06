@@ -37,7 +37,53 @@ namespace Sinnwrig.FogVolumes.Editor
             public static readonly GUIContent newLabel = EditorGUIUtility.TrTextContent("New", "Create a new profile.");
             public static readonly GUIContent saveLabel = EditorGUIUtility.TrTextContent("Save", "Save the instantiated profile");
             public static readonly GUIContent cloneLabel = EditorGUIUtility.TrTextContent("Clone", "Create a new profile and copy the content of the currently assigned profile.");
-            public static readonly string noVolumeMessage = L10n.Tr("Please select or create a new Fog Volume profile to begin applying effects to the scene.");
+            public static readonly string noVolumeMessage = L10n.Tr("Please select or create a new Fog Volume profile to begin applying fog to the scene.");
+        }
+
+
+        static FogVolume CreateNewVolume(string name, Vector3 scale, MenuCommand command)
+        {
+            GameObject go = new GameObject(name);
+            go.transform.localScale = scale;
+
+            GameObjectUtility.SetParentAndAlign(go, command.context as GameObject);
+            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+
+            Selection.activeObject = go;
+
+            return go.AddComponent<FogVolume>();
+        }
+
+
+        [MenuItem("GameObject/Volume/Sphere Fog Volume", false, 11000)]
+        static void CreateSphere(MenuCommand command)
+        {
+            var volume = CreateNewVolume("Sphere Fog Volume", Vector3.one * 15, command);
+            volume.volumeType = VolumeType.Sphere;
+        }
+
+
+        [MenuItem("GameObject/Volume/Box Fog Volume", false, 11000)]
+        static void CreateBox(MenuCommand command)
+        {
+            var volume = CreateNewVolume("Box Fog Volume", Vector3.one * 15, command);
+            volume.volumeType = VolumeType.Cube;
+        }
+
+
+        [MenuItem("GameObject/Volume/Capsule Fog Volume", false, 11000)]
+        static void CreateCapsule(MenuCommand command)
+        {
+            var volume = CreateNewVolume("Capsule Fog Volume", Vector3.one * 15, command);
+            volume.volumeType = VolumeType.Capsule;
+        }
+
+
+        [MenuItem("GameObject/Volume/Cylinder Fog Volume", false, 11000)]
+        static void CreateCylinder(MenuCommand command)
+        {
+            var volume = CreateNewVolume("Cylinder Fog Volume", Vector3.one * 15, command);
+            volume.volumeType = VolumeType.Cylinder;
         }
 
     

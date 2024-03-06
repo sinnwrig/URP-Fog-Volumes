@@ -6,7 +6,7 @@ using System.IO;
 // Ripped from the SRP Volume component editor with significant changes. 
 namespace Sinnwrig.FogVolumes.Editor
 {
-    [CustomEditor(typeof(FogVolume))]
+    [CustomEditor(typeof(FogVolume)), CanEditMultipleObjects]
     public class FogVolumeEditor : UnityEditor.Editor
     {
         static class Styles
@@ -98,7 +98,6 @@ namespace Sinnwrig.FogVolumes.Editor
         private SerializedProperty disableLightLimit;
 
         private UnityEditor.Editor profileEditor;
-        private BoundsHandle boundsHandle;
 
 
 
@@ -112,8 +111,6 @@ namespace Sinnwrig.FogVolumes.Editor
 
         private void OnEnable()
         {
-            boundsHandle = new();
-
             PropertyFetcher<FogVolume> fetcher = new(serializedObject);
 
             profile = fetcher.Find("sharedProfile");

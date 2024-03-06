@@ -31,6 +31,7 @@ namespace Sinnwrig.FogVolumes
     }
 
     [CreateAssetMenu(menuName = "Fog Volumes/Volume Profile")]
+    [HelpURL("https://github.com/sinnwrig/URP-Fog-Volumes/blob/main/README.md")]
     public class FogVolumeProfile : ScriptableObject
     {
         /// <summary>

@@ -13,6 +13,7 @@ using UnityEngine.Rendering.Universal;
 namespace Sinnwrig.FogVolumes
 {
     [ExecuteAlways]
+    [HelpURL("https://github.com/sinnwrig/URP-Fog-Volumes/blob/main/README.md")]
     public class FogVolume : MonoBehaviour 
     {
         /// <summary>

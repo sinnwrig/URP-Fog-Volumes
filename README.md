@@ -42,7 +42,7 @@ No Fog | ![Outdoors](Samples~/Images/Terrain.png)<br> | ![Garden](Samples~/Image
 
 * Does not support DirectX 9 (Desktop GPUs before 2009~2011) or DirectX 11 9.x (DirectX version specifically for Windows Phone and Microsoft Surface RT).
 * Temporal Reprojection does not work in scene view, and only works when in play mode.
-* Temporal Reprojection cannot reproject parts where fog is facing the skybox or empty space. This is planned on being fixed. 
+* Temporal Reprojection cannot reproject parts where fog is facing the skybox or empty space. 
 * There is currently a hard cap of 32 lights per volume. 
 * Does not use physically based light scattering through the volume, as lingting is single-bounce only. This means that for directional lights, volumes will be evenly lit regardless of density. Lightmarching is planned on being added.
 * Orthographic cameras do not work. This is being worked on.

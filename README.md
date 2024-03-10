@@ -26,9 +26,9 @@ No Fog | ![Outdoors](Samples~/Images/Terrain.png)<br> | ![Garden](Samples~/Image
     * Capsule
     * Sphere
     * Cylinder
-* Support for single-bounced all realtime lights, shadows, and cookies up to a maximum of 32 lights per volume.<br>
+* Support for all realtime lights, shadows, and cookies up to a maximum of 32 lights per volume.<br>
     * _Lighting is not entirely physically-based, and instead exposes artistic controls for finer tweaking._<br>
-    * _Multiple-bounce lightmarching will be added soon._<br>
+    * _Light attenuation is only single-bounce, and fog does not self-shadow. Multiple-bounce lightmarching will be added soon._<br>
 * Support for APV GI in Unity 2023.1+
 
 ## Usage

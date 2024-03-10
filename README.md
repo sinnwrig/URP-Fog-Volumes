@@ -1,6 +1,6 @@
 # Raymarched Fog Volumes for Unity's Universal RP
 
-This repository is an implementation of single-bounced raymarched volumetric fog for Unity's Universal Render Pipeline. 
+This repository is an implementation of single-bounce raymarched volumetric fog for Unity's Universal Render Pipeline. 
 
 Scenes | Outdoors Light Shafts | URP Samples- Japanese Garden | Nighttime streetlights
 :-:|:-:|:-:|:-:|
@@ -44,7 +44,7 @@ No Fog | ![Outdoors](Samples~/Images/Terrain.png)<br> | ![Garden](Samples~/Image
 * Temporal Reprojection does not work in scene view, and only works when in play mode.
 * Temporal Reprojection cannot reproject parts where fog is facing the skybox or empty space. This is planned on being fixed. 
 * There is currently a hard cap of 32 lights per volume. 
-* Does not use physically based light scattering through the volume, as lingting is single-bounce only. This means that for directional lights, volumes will be evenly lit regardless of density. This is planned on being added.
+* Does not use physically based light scattering through the volume, as lingting is single-bounce only. This means that for directional lights, volumes will be evenly lit regardless of density. Lightmarching is planned on being added.
 * Orthographic cameras do not work. This is being worked on.
 * Baked lighting does not work at the moment. This is planned on being fixed.
 

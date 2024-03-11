@@ -30,7 +30,7 @@ No Fog | ![Outdoors](Samples~/Images/Terrain.png)<br> | ![Garden](Samples~/Image
     * _Lighting is not entirely physically-based, and instead exposes artistic controls for finer tweaking._<br>
     * _Light attenuation is only single-bounce, and fog does not self-shadow. Multiple-bounce lightmarching will be added soon._<br>
 * Support for APV GI in Unity 2023.1+
-* Samples for the [_Gas Station_](#gas-station-with-and-without-fog),  [_Forest_](#japanese-forest-with-and-without-fog), and [_Office Building_](#building-with-and-without-fog) scene can be imported through the package manager.
+* Samples for the [_Gas Station_](#gas-station-with-and-without-fog),  [_Forest_](#japanese-forest-with-and-without-fog), and [_Office Building_](#building-with-and-without-fog) scenes. These can be imported through the package manager.
 
 ## Usage
 
@@ -42,15 +42,15 @@ No Fog | ![Outdoors](Samples~/Images/Terrain.png)<br> | ![Garden](Samples~/Image
 ## Limitations
 
 #### Unresolvable
-* Does not support DirectX 9 (Desktop GPUs before 2009~2011) or DirectX 11 9.x (DirectX version specifically for Windows Phone and Microsoft Surface RT). These shader models are incompatible with dynamic loops which cannot be unrolled.
-* Temporal Reprojection is disabled in scene view, and only works when in play mode. This is because Unity does not seem to generate consistent motion vectors for the editor view, and causes severe warping/blurring.
+* Does not support DirectX 9 (Desktop GPUs before 2009~2011) or DirectX 11 9.x (DirectX version specifically for Windows Phone and Microsoft Surface RT). These shader models are incompatible with dynamic loops.
+* Temporal Reprojection is disabled in scene view, and only works when in play mode. Unity does not seem to generate consistent motion vectors for the editor view, and causes severe warping/blurring.
 * Temporal Reprojection cannot reproject parts where fog is facing the skybox or empty space. Motion vectors can't be created where there are no discernible features to track and compute movement.
 * There is currently a hard cap of 32 lights per volume. This cap can be changed by editing the maximum light constants in [VolumetricFog.shader](https://github.com/sinnwrig/URP-Fog-Volumes/blob/main/Shaders/VolumetricFog.shader#L57) and [FogVolume.cs](https://github.com/sinnwrig/URP-Fog-Volumes/blob/main/Runtime/FogVolume.cs#L120)
 
 #### Under Development
-* Does not use physically based light scattering through the volume, as lingting is single-bounce only. This means that for directional lights, volumes will be evenly lit regardless of density. Lightmarching is planned on being added.
+* Does not use physically based light scattering through the volume, as lighting is single-bounce only. This means that for directional lights, volumes will be evenly lit regardless of density. Lightmarching is planned on being added.
 * Orthographic cameras do not work. This is planned on being fixed.
-* Baked lighting does not work at the moment. This is planned on being fixed.
+* Baked lighting and light probes does not work at the moment. This is planned on being fixed.
 
 #### Transparency Handling
 Due to how transparent objects are rendered to the depth texture, transparency does not work out-of-the-box with Fog Volumes and requires some additional render feature setup detailed in this [Forum Post](https://forum.unity.com/threads/transparent-shader-problem.1059206/), although a brief tutorial will be provided:

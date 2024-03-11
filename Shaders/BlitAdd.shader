@@ -55,6 +55,7 @@ Shader "Hidden/BlitAdd"
 				half3 base = SAMPLE_BASE(_BlitSource, sampler_BlitSource, i.uv);
 				half4 add = SAMPLE_BASE(_BlitAdd, sampler_BlitAdd, i.uv);
 
+				// Hacky blend- the stronger the fog transmittance, the less of the original color.
 				float srcFactor = 1 - saturate(add.w);
 
 				return (base * srcFactor) + add;

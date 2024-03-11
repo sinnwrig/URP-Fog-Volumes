@@ -4,17 +4,17 @@ This repository is an implementation of single-bounce raymarched volumetric fog 
 
 Scenes | Outdoors Light Shafts | URP Samples- Japanese Garden | Nighttime streetlights
 :-:|:-:|:-:|:-:|
-Fog | ![Outdoors Fog](Samples~/Images/Terrain-Fog.png) | ![Garden Fog](Samples~/Images/Garden-Fog.png) | ![Building Fog](Samples~/Images/Building-Fog.png)
-No Fog | ![Outdoors](Samples~/Images/Terrain.png)<br> | ![Garden](Samples~/Images/Garden.png)<br> | ![Building](Samples~/Images/Building.png)<br>
+Fog | ![Outdoors Fog](Assets~/Images/Terrain-Fog.png) | ![Garden Fog](Assets~/Images/Garden-Fog.png) | ![Building Fog](Assets~/Images/Building-Fog.png)
+No Fog | ![Outdoors](Assets~/Images/Terrain.png)<br> | ![Garden](Assets~/Images/Garden.png)<br> | ![Building](Assets~/Images/Building.png)<br>
 
 [More Examples](#examples)
 
 ## Installation
 
 * Open the package manager and select the _Add package from Git URL_ option found under the top left dropdown.<br>
-![From Git URL](Samples~/Images/giturl.png)<br>
+![From Git URL](Assets~/Images/giturl.png)<br>
 * Add this repository git URL in the prompt, using the following link: https://github.com/sinnwrig/URP-Fog-Volumes.git.<br>
-![Git Input URL](Samples~/Images/gitinput.png)<br>
+![Git Input URL](Assets~/Images/gitinput.png)<br>
 
 ## Features
 
@@ -92,19 +92,19 @@ This asset has _not_ been tested, but may work on:
 
 # Examples
 ### Japanese Forest with and without fog
-![Outdoors Fog](Samples~/Images/Terrain-Fog.png)
-![Outdoors](Samples~/Images/Terrain.png)<br>
+![Outdoors Fog](Assets~/Images/Terrain-Fog.png)
+![Outdoors](Assets~/Images/Terrain.png)<br>
 ### Oasis with and without fog
-![Oasis Fog](Samples~/Images/Oasis-Fog.png)
-![Oasis](Samples~/Images/Oasis.png)<br>
+![Oasis Fog](Assets~/Images/Oasis-Fog.png)
+![Oasis](Assets~/Images/Oasis.png)<br>
 ### Building with and without fog
-![Building Fog](Samples~/Images/Building-Fog.png)
-![Building](Samples~/Images/Building.png)<br>
+![Building Fog](Assets~/Images/Building-Fog.png)
+![Building](Assets~/Images/Building.png)<br>
 ### Japanese Garden with and without fog
-![Garden Fog](Samples~/Images/Garden-Fog.png)
-![Garden](Samples~/Images/Garden.png)<br>
+![Garden Fog](Assets~/Images/Garden-Fog.png)
+![Garden](Assets~/Images/Garden.png)<br>
 ### Gas station with and without fog
-![Gas Station Fog](Samples~/Images/GasStation-Fog.png)
-![Gas Station](Samples~/Images/GasStation.png)<br>
+![Gas Station Fog](Assets~/Images/GasStation-Fog.png)
+![Gas Station](Assets~/Images/GasStation.png)<br>
 ### Demo Terminal Building with fog
-![Terminal Fog](Samples~/Images/Terminal-Fog.png)<br>
+![Terminal Fog](Assets~/Images/Terminal-Fog.png)<br>

@@ -9,7 +9,7 @@ namespace Sinnwrig.FogVolumes.Editor
     [CustomEditor(typeof(FogVolume)), CanEditMultipleObjects]
     public class FogVolumeEditor : UnityEditor.Editor
     {
-        static class Styles
+        static class Styles 
         {
             public static readonly GUIContent volumeType = EditorGUIUtility.TrTextContent("Volume Type", "Defines the primitive shape of the volume. Shape is affected by the object transform");
 

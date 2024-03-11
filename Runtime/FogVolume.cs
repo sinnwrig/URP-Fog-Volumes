@@ -28,7 +28,7 @@ namespace Sinnwrig.FogVolumes
         /// <para>Capsule and Sphere volumes use the [x] components for radius.</para>
         /// </summary>
         public Vector3 edgeFade = Vector3.one * 0.6f;
-
+ 
         /// <summary>
         /// The offset applied to the volume to determine where fading begins/ends.
         /// <para>Cube volumes use the [x, y, z] components in the range [-0.5, 0.5] to offset each local axis.</para> 

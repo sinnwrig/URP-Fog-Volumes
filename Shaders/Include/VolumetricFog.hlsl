@@ -181,17 +181,18 @@ half3 GetLightAttenuationMie(float3 worldPosition, float3 direction, float mieG,
 }
 
 
+// For the record, I have no idea if the transmittance is physically accurate, and it's kind of hacky. If anyone can fix it that would be great!~ but for the meantime it looks ok.
 half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos, float2 screenUV)
 {
 	float cameraDistance = length(cameraPos - rayStart);
 
-	float extinction = cameraDistance * _Extinction * 0.5; // Assume density of 0.5 between camera and fog volume
+	float extinction = cameraDistance * _Extinction * 0.5; // Assume density of 0.5 between camera and fog volume.
 
 	float stepSize = _StepParams.x;
 
 	half3 vlight = 0;
 	float distance = 0;
-	float opacity = 0; // Additive attenuation of ambient fog and light.
+	float invTransmittance = 0; // Hacky transmittance- basically accumulate ambient fog attenuation and light attenuation and use that to modulate background color.
 
 	[loop]
 	for (int i = 0; i < _SampleCount; ++i)
@@ -214,7 +215,6 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 
 		float lightAttenuation;
 		half3 light = GetLightAttenuationMie(currentPosition, rayDir, _MieG, lightAttenuation) * _IntensityModifier;
-
 		light += SampleGI(currentPosition, screenUV);
 
 		float lightFade = _LightsFade == 1 ? fade : 1.0;
@@ -222,7 +222,7 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 		color += light * lightFade;
 		attenuation += lightAttenuation * lightFade;
 
-		opacity += attenuation * influence;
+		invTransmittance += attenuation * influence;
 		vlight += color * influence;
 
 		distance += stepSize;	
@@ -233,7 +233,7 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 	vlight *= _Albedo;
 	vlight = clamp(vlight, 0, _BrightnessClamp);
 
-	return half4(vlight, opacity);
+	return half4(vlight, invTransmittance);
 }
 
 

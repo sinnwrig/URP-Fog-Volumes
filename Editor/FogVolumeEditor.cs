@@ -143,7 +143,7 @@ namespace Sinnwrig.FogVolumes.Editor
 
             EditorGUILayout.Space(5f);
 
-            edgeFade.isExpanded = DrawHeaderToggleFoldout(new GUIContent("Fade Settings"), edgeFade.isExpanded, false);
+            //edgeFade.isExpanded = DrawHeaderToggleFoldout(new GUIContent("Fade Settings"), edgeFade.isExpanded, false);
             
             if (edgeFade.isExpanded)
             {
@@ -163,7 +163,7 @@ namespace Sinnwrig.FogVolumes.Editor
             }
 
             
-            profile.isExpanded = DrawHeaderToggleFoldout(new GUIContent("Volume Profile"), profile.isExpanded);
+            //profile.isExpanded = DrawHeaderToggleFoldout(new GUIContent("Volume Profile"), profile.isExpanded);
 
             if (profile.objectReferenceValue == null)
             {
@@ -426,43 +426,6 @@ namespace Sinnwrig.FogVolumes.Editor
                         profileEditor = CreateEditor(actualTarget.sharedProfile);
                 }
             }
-        }
-
-        // Draw a header similar to those seen on the Volume Components
-        public static bool DrawHeaderToggleFoldout(GUIContent title, bool foldoutExpanded, bool hasBottomBorder = true)
-        {
-            Rect backgroundRect = EditorGUILayout.GetControlRect(GUILayout.Height(17f));
-            Rect labelRect = new Rect(backgroundRect.x + 16f, backgroundRect.y, backgroundRect.width, backgroundRect.height);
-            Rect foldoutRect = new Rect(backgroundRect.x, backgroundRect.y + 1f, 13f, 13f);
-
-            // Background rect should be full-width
-            backgroundRect.xMin = 0f;
-            backgroundRect.width += 4f;
-            
-            Rect edgeRect = new Rect(backgroundRect.x, backgroundRect.y - 1f, backgroundRect.width, 1f);
-            EditorGUI.DrawRect(edgeRect, Color.black);
-
-            Color backgroundTint = EditorGUIUtility.isProSkin ? Color.white * 0.1f : Color.white;
-            backgroundTint.a = 0.2f;
-            EditorGUI.DrawRect(backgroundRect, backgroundTint);
-
-            if (foldoutExpanded || hasBottomBorder)
-            {
-                edgeRect.y = backgroundRect.y + backgroundRect.height;
-                EditorGUI.DrawRect(edgeRect, Color.black);
-            }
-
-            EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
-
-            bool expanded = GUI.Toggle(foldoutRect, foldoutExpanded, GUIContent.none, EditorStyles.foldout);
-
-            if (Event.current.type == EventType.MouseDown && backgroundRect.Contains(Event.current.mousePosition) && Event.current.button == 0)
-            {
-                expanded = !expanded;
-                Event.current.Use();
-            }
-
-            return expanded;
         }
     }
 }

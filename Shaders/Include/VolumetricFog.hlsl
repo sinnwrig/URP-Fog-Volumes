@@ -192,7 +192,6 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 
 	half3 vlight = 0;
 	float distance = 0;
-	float invTransmittance = 0; // Hacky transmittance- basically accumulate ambient fog attenuation and light attenuation and use that to modulate background color.
 
 	[loop]
 	for (int i = 0; i < _SampleCount; ++i)
@@ -222,8 +221,7 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 		color += light * lightFade;
 		attenuation += lightAttenuation * lightFade;
 
-		invTransmittance += attenuation * influence;
-		vlight += color * influence;
+        vlight += color * influence;
 
 		distance += stepSize;	
 
@@ -233,7 +231,11 @@ half4 RayMarch(float3 rayStart, float3 rayDir, float rayLength, float3 cameraPos
 	vlight *= _Albedo;
 	vlight = clamp(vlight, 0, _BrightnessClamp);
 
-	return half4(vlight, invTransmittance);
+    // Calculate physically accurate opacity from optical depth (extinction)
+    // Opacity = 1 - Transmittance
+    float opacity = 1.0 - exp(-extinction);
+
+	return half4(vlight, opacity);
 }
 
 
